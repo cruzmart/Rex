@@ -1,0 +1,31 @@
+# -------------------------------
+# Build and binary directories
+# -------------------------------
+bin/                    # compiled executables
+build/                  # build folder
+.bin/                   # optional binaries
+
+# -------------------------------
+# Generated ANTLR sources
+# -------------------------------
+gen/                    # ANTLR-generated sources
+grammar/.antlr/         # ANTLR temp files
+
+# -------------------------------
+# IDE-specific files
+# -------------------------------
+.vscode/                # VSCode
+.cmake-build*/          # CMake CLion build directories
+
+# -------------------------------
+# Clang/Clangd files
+# -------------------------------
+.cache/                 # generic cache
+.cache/clangd/          # clangd cache
+.clangd                 # clangd config / index
+
+# -------------------------------
+# Tests: keep folder, ignore generated outputs
+# -------------------------------
+tests/*.txt            # txt files
+
