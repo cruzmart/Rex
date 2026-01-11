@@ -28,4 +28,3 @@ grammar/.antlr/         # ANTLR temp files
 # Tests: keep folder, ignore generated outputs
 # -------------------------------
 tests/*.txt            # txt files
-

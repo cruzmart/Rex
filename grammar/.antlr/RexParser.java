@@ -40,7 +40,7 @@ public class RexParser extends Parser {
 
 	private static String[] makeLiteralNames() {
 		return new String[] {
-			null, "'fn'", "'let'", "'mut'", "'for'", "'while'", "'loop'", "'in'", 
+			null, "'function'", "'let'", "'mut'", "'for'", "'while'", "'loop'", "'in'", 
 			"'return'", "'type'", "'Int'", "'Bool'", "'Char'", "'Real'", "'String'", 
 			"'true'", "'false'", "'and'", "'or'", "'->'", "'|>'", "'='", "'=='", 
 			"'!='", "'<'", "'>'", "'<='", "'>='", "'+'", "'-'", "'*'", "'/'", "'%'", 

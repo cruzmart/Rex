@@ -60,12 +60,12 @@ void rexParserInitialize() {
       "argList", "literal"
     },
     std::vector<std::string>{
-      "", "'fn'", "'let'", "'mut'", "'for'", "'while'", "'loop'", "'in'", 
-      "'return'", "'type'", "'Int'", "'Bool'", "'Char'", "'Real'", "'String'", 
-      "'true'", "'false'", "'and'", "'or'", "'->'", "'|>'", "'='", "'=='", 
-      "'!='", "'<'", "'>'", "'<='", "'>='", "'+'", "'-'", "'*'", "'/'", 
-      "'%'", "'..'", "'('", "')'", "'{'", "'}'", "'['", "']'", "','", "';'", 
-      "':'"
+      "", "'function'", "'let'", "'mut'", "'for'", "'while'", "'loop'", 
+      "'in'", "'return'", "'type'", "'Int'", "'Bool'", "'Char'", "'Real'", 
+      "'String'", "'true'", "'false'", "'and'", "'or'", "'->'", "'|>'", 
+      "'='", "'=='", "'!='", "'<'", "'>'", "'<='", "'>='", "'+'", "'-'", 
+      "'*'", "'/'", "'%'", "'..'", "'('", "')'", "'{'", "'}'", "'['", "']'", 
+      "','", "';'", "':'"
     },
     std::vector<std::string>{
       "", "FN", "LET", "MUT", "FOR", "WHILE", "LOOP", "IN", "RETURN", "TYPE", 

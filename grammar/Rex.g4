@@ -161,7 +161,7 @@ literal
 // Keywords
 // -------------------------------------------------
 
-FN      : 'fn';
+FN      : 'function';
 LET     : 'let';
 MUT     : 'mut';
 FOR     : 'for';

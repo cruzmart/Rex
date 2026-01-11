@@ -114,8 +114,13 @@ antlrcpp::Any rex_ast_build::visitFile(RexParser::FileContext* ctx) {
 }
 
 antlrcpp::Any rex_ast_build::visitItem(RexParser::ItemContext* ctx) {
-    if (ctx->functionDef())
+      std::cout << "visit function";
+    if (ctx->functionDef()){
         return visit(ctx->functionDef());
+
+    }
+
+        
 
     if (ctx->typeDef())
         return visit(ctx->typeDef());
@@ -147,25 +152,53 @@ antlrcpp::Any rex_ast_build::visitReturnType(RexParser::ReturnTypeContext* ctx) 
 // --------------------------------------------------
 
 antlrcpp::Any rex_ast_build::visitFunctionDef(RexParser::FunctionDefContext* ctx) {
-    std::shared_ptr<function_decl> fn = std::make_shared<function_decl>();
+    auto fn = std::make_shared<function_decl>();
+     std::cout << "here";
+    std::string function_name = ctx->ID()->getText();
     fn->loc = loc(ctx);
-    fn->name = ctx->ID()->getText();
+    fn->name = function_name;
+   
+
+    if (ctx->paramList()) {
+        auto function_paramaters = std::any_cast<std::vector<param_decl>>(visit(ctx->paramList()));
+        fn->params = function_paramaters;
+    }
+    
+    fn->return_type = std::make_shared<type_decl>(ctx->returnType()->getText());
     fn->body = std::any_cast<std::shared_ptr<block_expr>>(visit(ctx->block()));
     return fn;
 }
+antlrcpp::Any rex_ast_build::visitParam(RexParser::ParamContext* ctx) {
+    param_decl param;
+    std::string param_name = ctx->ID()->getText();
+    param.name = param_name;
+    
+    if (ctx->type()) {
+        std::string param_type = ctx->type()->getText();
+        param.type = std::make_shared<type_decl>(param_type);
+        param.type->loc = loc(ctx->type());
+        param.type->name = param_type;
+    } else {
+        param.type = std::make_shared<type_decl>();
+    }
 
-antlrcpp::Any rex_ast_build::visitParamList(RexParser::ParamListContext* ctx) { return nullptr; }
-antlrcpp::Any rex_ast_build::visitParam(RexParser::ParamContext* ctx) { return nullptr; }
+    return param; // param_decl is returned by value
+}
+
+antlrcpp::Any rex_ast_build::visitParamList(RexParser::ParamListContext* ctx) {
+    std::vector<param_decl> params;
+    for (auto pctx : ctx->param()) {
+        params.push_back(std::any_cast<param_decl>(visit(pctx)));
+    }
+    return params;
+}
 
 // --------------------------------------------------
 // Statements
 // --------------------------------------------------
 
 antlrcpp::Any rex_ast_build::visitStatement(RexParser::StatementContext* ctx) {
-    if (ctx->letStmt()) {
-        std::cout << "Visiting let statement\n";
-        return visit(ctx->letStmt());}
-
+    if (ctx->letStmt()) {return visit(ctx->letStmt());}
     if (ctx->returnStmt()) return visit(ctx->returnStmt());
     if (ctx->exprStmt()) return visit(ctx->exprStmt());
     if (ctx->loopStmt()) return visit(ctx->loopStmt());
