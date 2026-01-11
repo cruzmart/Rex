@@ -1,5 +1,7 @@
 #pragma once
 #include "rex_ast.h"
+#include <iostream>
+#include <memory>
 
 namespace rex {
 
@@ -34,10 +36,36 @@ struct file_ast : ast_node {
 
 struct type_decl : ast_node {
     std::string name;
+    enum class kind_type { int_, real_, bool_, char_, string_, unknown };
+    kind_type kind = kind_type::unknown;
+
+    // Constructor that optionally sets name and automatically maps known types
+    explicit type_decl(const std::string& n = "") : name(n) {
+        kind = map_name_to_kind(n);
+    }
+
+    static kind_type map_name_to_kind(const std::string& n) {
+        if (n == "Int") return kind_type::int_;
+        if (n == "Real") return kind_type::real_;
+        if (n == "Bool") return kind_type::bool_;
+        if (n == "Char") return kind_type::char_;
+        if (n == "String") return kind_type::string_;
+        return kind_type::unknown; // default/fallback
+    }
 
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
-        os << "type_decl " << name << "\n";
+        os << "type_decl ";
+        os << name << " ";
+        switch (kind) {
+            case kind_type::int_:    os << "(int)"; break;
+            case kind_type::real_:   os << "(real)"; break;
+            case kind_type::bool_:   os << "(bool)"; break;
+            case kind_type::char_:   os << "(char)"; break;
+            case kind_type::string_: os << "(string)"; break;
+            default:                 os << "(unknown)"; break;
+        }
+        os << "\n";
     }
 };
 
@@ -60,22 +88,35 @@ struct block_expr : expr {
     }
 };
 
+// ----------- Function Structs ----------------------------- 
+struct param_decl {
+    std::string name;
+    std::shared_ptr<type_decl> type;
+};
+
 struct function_decl : ast_node {
     std::string name;
-    std::vector<std::string> params;
+    std::shared_ptr<type_decl> return_type;
+    std::vector<param_decl> params;
     std::shared_ptr<block_expr> body;
 
-    void dump(std::ostream& os, int i) const override {
-        indent(os, i);
-        os << "function " << name << "(";
-        for (size_t p = 0; p < params.size(); ++p) {
-            os << params[p];
-            if (p + 1 < params.size()) os << ", ";
-        }
-        os << ")\n";
-        body->dump(os, i + 1);
+  void dump(std::ostream& os, int i) const override {
+    indent(os, i);
+    os << "function " << name << "(";
+    for (size_t p = 0; p < params.size(); ++p) {
+        os << params[p].name;
+        if (params[p].type)
+            os << " : " << params[p].type->name;
+        if (p + 1 < params.size()) os << ", ";
     }
+    os << ") {\n";
+    if (body) body->dump(os, i + 1);
+    indent(os, i);
+    os << "}\n";
+}
 };
+
+
 
 // ---------- Statements ----------
 

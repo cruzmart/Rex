@@ -1,0 +1,19 @@
+let x = 3;
+let y = 4.5;
+let z = x + y * 2;
+
+let a = (x + 1) * 2;
+let b = a - 4 / 2;
+
+let c = true;
+let d = false;
+
+let e = x < 10;
+let f = x == 3;
+
+let g = foo(x, y, z);
+
+function add(a : Int , b : Int) {
+    let sum = a + b;
+    sum
+}
