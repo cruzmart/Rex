@@ -7,12 +7,13 @@ namespace rex {
 
 // ---------- Forward declarations ----------
 struct file_ast;
-struct type_decl;
+struct param_decl;
 struct function_decl;
 
 struct stmt;
 struct expr;
 
+// Expressions 
 struct block_expr;
 struct id_expr;
 struct literal_expr;
@@ -34,40 +35,116 @@ struct file_ast : ast_node {
     }
 };
 
+// ----------- Decleration ----------------
+
+// type decleration
 struct type_decl : ast_node {
-    std::string name;
-    enum class kind_type { int_, real_, bool_, char_, string_, unknown };
-    kind_type kind = kind_type::unknown;
-
-    // Constructor that optionally sets name and automatically maps known types
-    explicit type_decl(const std::string& n = "") : name(n) {
-        kind = map_name_to_kind(n);
-    }
-
-    static kind_type map_name_to_kind(const std::string& n) {
-        if (n == "Int") return kind_type::int_;
-        if (n == "Real") return kind_type::real_;
-        if (n == "Bool") return kind_type::bool_;
-        if (n == "Char") return kind_type::char_;
-        if (n == "String") return kind_type::string_;
-        return kind_type::unknown; // default/fallback
-    }
+    std::string name;                     // alias name
+    std::shared_ptr<type_node> aliased;   // the real type. Type expression
 
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
-        os << "type_decl ";
-        os << name << " ";
-        switch (kind) {
-            case kind_type::int_:    os << "(int)"; break;
-            case kind_type::real_:   os << "(real)"; break;
-            case kind_type::bool_:   os << "(bool)"; break;
-            case kind_type::char_:   os << "(char)"; break;
-            case kind_type::string_: os << "(string)"; break;
-            default:                 os << "(unknown)"; break;
+        os << "type " << name << " = ";
+        aliased->dump(os, 0);
+    }
+};
+
+// ---------------------- Types -------------------
+
+// --- Primitive Type ---
+struct primitive_type : type_node {
+    enum class prim_kind { int_, real_, bool_, char_, string_, void_ };
+    prim_kind value;
+
+    explicit primitive_type(prim_kind k)
+        : type_node(kind::primitive), value(k) {}
+
+    static prim_kind from_name(const std::string& n) {
+        if (n == "Int") return prim_kind::int_;
+        if (n == "Real") return prim_kind::real_;
+        if (n == "Bool") return prim_kind::bool_;
+        if (n == "Char") return prim_kind::char_;
+        if (n == "String") return prim_kind::string_;
+        return prim_kind::void_;
+    }
+
+    void dump(std::ostream& os, int) const override {
+        switch (value) {
+            case prim_kind::int_:    os << "Int"; break;
+            case prim_kind::real_:   os << "Real"; break;
+            case prim_kind::bool_:   os << "Bool"; break;
+            case prim_kind::char_:   os << "Char"; break;
+            case prim_kind::string_: os << "String"; break;
+            case prim_kind::void_:   os << "Void"; break;
         }
+       
+    }
+};
+
+
+// --- Named Type ---
+struct named_type : type_node {
+    std::string name;
+
+    explicit named_type(std::string n)
+        : type_node(kind::named), name(std::move(n)) {}
+
+    void dump(std::ostream& os, int) const override {
+        os << "(" << name << ")";
+         os << "\n";
+    }
+};
+
+
+
+// --- Array Type ---
+struct array_type : type_node {
+    std::shared_ptr<type_node> element;
+    int size;
+
+    array_type(std::shared_ptr<type_node> elem, int s)
+        : type_node(kind::array), element(std::move(elem)), size(s) {}
+
+    void dump(std::ostream& os, int) const override {
+        element->dump(os, 0);
+        os << "[" << size << "]";
+         os << "\n";
+    }
+};
+
+// --- Slice Type ---
+struct slice_type : type_node {
+    std::shared_ptr<type_node> element;
+
+    explicit slice_type(std::shared_ptr<type_node> elem)
+        : type_node(kind::slice), element(std::move(elem)) {}
+
+    void dump(std::ostream& os, int) const override {
+        element->dump(os, 0);
+        os << "[]";
         os << "\n";
     }
 };
+// --- Tuple Type ---
+struct tuple_type : type_node {
+    std::vector<std::shared_ptr<type_node>> elements;
+
+    tuple_type() : type_node(kind::tuple) {}
+
+    void dump(std::ostream& os, int) const override {
+        os << "(";
+        for (size_t i = 0; i < elements.size(); ++i) {
+            elements[i]->dump(os, 0);
+            if (i + 1 < elements.size()) os << ", ";
+        }
+        os << ")";
+         os << "\n";
+    }
+};
+
+
+
+
 
 // ---------- Expressions ----------
 
@@ -89,32 +166,39 @@ struct block_expr : expr {
 };
 
 // ----------- Function Structs ----------------------------- 
-struct param_decl {
+struct param {
     std::string name;
-    std::shared_ptr<type_decl> type;
+    std::shared_ptr<type_node> type; // <- use type_node, not primitive_type
 };
+
 
 struct function_decl : ast_node {
     std::string name;
-    std::shared_ptr<type_decl> return_type;
-    std::vector<param_decl> params;
+    std::shared_ptr<type_node> func_return_type; // <- type_node
+    std::vector<param> params;
     std::shared_ptr<block_expr> body;
 
-  void dump(std::ostream& os, int i) const override {
+void dump(std::ostream& os, int i) const override {
     indent(os, i);
     os << "function " << name << "(";
+
     for (size_t p = 0; p < params.size(); ++p) {
-        os << params[p].name;
-        if (params[p].type)
-            os << " : " << params[p].type->name;
+        os << params[p].name << " : ";
+        params[p].type->dump(os, 0);
         if (p + 1 < params.size()) os << ", ";
     }
-    os << ") {\n";
-    if (body) body->dump(os, i + 1);
-    indent(os, i);
-    os << "}\n";
+
+    os << ") -> ";
+    if (func_return_type)
+        func_return_type->dump(os, 0);
+    else
+        os << "Void";
+
+    os << "\n";
+    body->dump(os, i + 1);
 }
 };
+
 
 
 
@@ -196,12 +280,12 @@ struct literal_expr : expr {
         indent(os, i);
         os << "literal ";
         switch (value_kind) {
-            case kind::int_lit:    os << "int "; break;
-            case kind::real_lit:   os << "real "; break;
-            case kind::bool_lit:   os << "bool "; break;
-            case kind::char_lit:   os << "char "; break;
-            case kind::string_lit: os << "string "; break;
-            case kind::null_lit:   os << "null "; break;
+            case kind::int_lit:    os << "Int "; break;
+            case kind::real_lit:   os << "Real "; break;
+            case kind::bool_lit:   os << "Bool "; break;
+            case kind::char_lit:   os << "Char "; break;
+            case kind::string_lit: os << "String "; break;
+            case kind::null_lit:   os << "Null "; break;
         }
         os << text << "\n";
     }
