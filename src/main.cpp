@@ -16,7 +16,7 @@ int main() {
         std::cerr << "Failed to open tests/the_first.txt\n";
         return 1;
     }
-
+    
     std::stringstream buffer;
     buffer << file.rdbuf();
 
@@ -25,6 +25,7 @@ int main() {
     CommonTokenStream tokens(&lexer);
     RexParser parser(&tokens);
 
+    
     RexParser::FileContext* parse_tree = parser.file();
 
     rex_ast_build builder;
