@@ -72,7 +72,7 @@ binary_expr::op operation_type (const size_t op_token_type) {
         case RexParser::AND:
             return binary_expr::op::and_;
         case RexParser::OR:
-            return binary_expr::op::or_;   
+            return binary_expr::op::or_; 
         default:
             throw std::runtime_error("Unknown operation token type");
     }
@@ -272,12 +272,20 @@ antlrcpp::Any rex_ast_build::visitStatement(RexParser::StatementContext* ctx) {
 }
 
 antlrcpp::Any rex_ast_build::visitLetStmt(RexParser::LetStmtContext* ctx) {
-    auto lets = std::make_shared<let_stmt>();
-    lets->loc = loc(ctx);
-    lets->name = ctx->pattern()->getText(); // simple for now
-    lets->init = std::any_cast<std::shared_ptr<expr>>(visit(ctx->expr()));
-   
-    return std::dynamic_pointer_cast<stmt>(lets);
+    auto let = std::make_shared<let_stmt>();
+    let->loc = loc(ctx);
+
+    let->name = ctx->pattern()->getText();
+    let->init = std::any_cast<std::shared_ptr<expr>>(visit(ctx->expr()));
+
+    if (ctx->type()) {
+        let->explicit_type =
+            std::any_cast<std::shared_ptr<type_node>>(visit(ctx->type()));
+    } else {
+        let->explicit_type = nullptr; // inferred later
+    }
+
+    return std::dynamic_pointer_cast<stmt>(let);
 }
 
 antlrcpp::Any rex_ast_build::visitReturnStmt(RexParser::ReturnStmtContext* ctx) {
@@ -352,10 +360,48 @@ antlrcpp::Any rex_ast_build::visitEqualityExpr(RexParser::EqualityExprContext* c
 
 
 // Have to still implement these ones
-antlrcpp::Any rex_ast_build::visitPipeExpr(RexParser::PipeExprContext* ctx) { return nullptr;}
-antlrcpp::Any rex_ast_build::visitRangeExpr(RexParser::RangeExprContext* ctx) { return nullptr; }
-antlrcpp::Any rex_ast_build::visitIndexExpr(RexParser::IndexExprContext* ctx) { return nullptr; }
+antlrcpp::Any rex_ast_build::visitPipeExpr(RexParser::PipeExprContext* ctx) { 
 
+    auto pip = std::make_shared<binary_expr>();
+    pip->loc = loc(ctx);
+    pip->operation = binary_expr::op::pipe;
+    pip->lhs = std::any_cast<std::shared_ptr<expr>>(visit(ctx->expr(0)));
+    pip->rhs = std::any_cast<std::shared_ptr<expr>>(visit(ctx->expr(1)));
+
+    return std::dynamic_pointer_cast<expr>(pip);
+
+}
+
+antlrcpp::Any rex_ast_build::visitRangeExpr(RexParser::RangeExprContext* ctx) { 
+    auto rng = std::make_shared<binary_expr>();
+    rng->loc = loc(ctx);
+
+    rng->operation = binary_expr::op::pipe; // or add op::range later
+    rng->lhs = std::any_cast<std::shared_ptr<expr>>(visit(ctx->expr(0)));
+    rng->rhs = std::any_cast<std::shared_ptr<expr>>(visit(ctx->expr(1)));
+
+    return std::dynamic_pointer_cast<expr>(rng);
+
+}
+
+antlrcpp::Any rex_ast_build::visitIndexExpr(RexParser::IndexExprContext* ctx) {  
+    auto idx = std::make_shared<index_expr>();
+    idx->loc = loc(ctx);
+
+    idx->base = std::any_cast<std::shared_ptr<expr>>(visit(ctx->expr(0)));
+    idx->index = std::any_cast<std::shared_ptr<expr>>(visit(ctx->expr(1)));
+
+    return std::dynamic_pointer_cast<expr>(idx);
+}
+antlrcpp::Any rex_ast_build::visitTupleExpr(RexParser::TupleExprContext* ctx) {
+    auto t = std::make_shared<tuple_expr>();
+    t->loc = loc(ctx);
+    for (auto e : ctx->expr())
+        t->elements.push_back(
+            std::any_cast<std::shared_ptr<expr>>(visit(e))
+        );
+    return std::dynamic_pointer_cast<expr>(t);
+}
 antlrcpp::Any rex_ast_build::visitCallExpr(RexParser::CallExprContext* ctx) {
     auto call = std::make_shared<call_expr>();
     call->loc = loc(ctx);

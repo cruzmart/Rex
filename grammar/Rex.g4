@@ -77,7 +77,7 @@ statement
     ;
 
 letStmt
-    : LET pattern '=' expr ';'
+    : LET pattern (':' type)? '=' expr ';'
     ;
 
 assignStmt
@@ -125,6 +125,7 @@ block
 
 expr
     : '(' expr ')'                         #ParenExpr
+    |'(' expr (',' expr)+ ')'              #TupleExpr
     | expr '[' expr ']'                    #IndexExpr
     | expr '..' expr                       #RangeExpr
     | expr op=('*' | '/' | '%') expr       #MulExpr

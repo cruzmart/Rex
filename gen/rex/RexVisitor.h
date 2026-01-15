@@ -72,6 +72,8 @@ public:
 
     virtual std::any visitRangeExpr(RexParser::RangeExprContext *context) = 0;
 
+    virtual std::any visitTupleExpr(RexParser::TupleExprContext *context) = 0;
+
     virtual std::any visitOrExpr(RexParser::OrExprContext *context) = 0;
 
     virtual std::any visitIndexExpr(RexParser::IndexExprContext *context) = 0;

@@ -94,6 +94,9 @@ public:
   virtual void enterRangeExpr(RexParser::RangeExprContext *ctx) = 0;
   virtual void exitRangeExpr(RexParser::RangeExprContext *ctx) = 0;
 
+  virtual void enterTupleExpr(RexParser::TupleExprContext *ctx) = 0;
+  virtual void exitTupleExpr(RexParser::TupleExprContext *ctx) = 0;
+
   virtual void enterOrExpr(RexParser::OrExprContext *ctx) = 0;
   virtual void exitOrExpr(RexParser::OrExprContext *ctx) = 0;
 
