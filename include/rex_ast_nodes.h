@@ -142,10 +142,6 @@ struct tuple_type : type_node {
     }
 };
 
-
-
-
-
 // ---------- Expressions ----------
 
 struct block_expr : expr {
@@ -206,13 +202,21 @@ void dump(std::ostream& os, int i) const override {
 
 struct let_stmt : stmt {
     std::string name;
+    std::shared_ptr<type_node> explicit_type; // may be null
     std::shared_ptr<expr> init;
 
-    void dump(std::ostream& os, int i) const override {
-        indent(os, i);
-        os << "let " << name << "\n";
-        init->dump(os, i + 1);
+ void dump(std::ostream& os, int i) const override {
+    indent(os, i);
+    os << "let " << name;
+
+    if (explicit_type) {
+        os << " : ";
+        explicit_type->dump(os, 0);
     }
+
+    os << "\n";
+    init->dump(os, i + 1);
+}
 };
 
 struct assign_stmt : stmt {
@@ -295,7 +299,7 @@ struct binary_expr : expr {
     enum class op {
         add, sub, mul, div, mod,
         eq, neq, lt, gt, le, ge,
-        and_, or_, pipe
+        and_, or_, pipe, range_
     };
 
     op operation;
@@ -312,8 +316,8 @@ struct binary_expr : expr {
 };
 
 struct call_expr : expr {
-    std::string callee;
-    std::vector<std::shared_ptr<expr>> args;
+    std::string callee; // This is the function name
+    std::vector<std::shared_ptr<expr>> args; // This is the argument passed inside the function call
 
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
