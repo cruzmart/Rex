@@ -7,13 +7,25 @@ namespace rex {
 
 // ---------- Forward declarations ----------
 struct file_ast;
-struct param_decl;
-struct function_decl;
+struct type_decl;
+struct type_node;
+struct primitive_type;
+struct named_type;
+struct array_type;
+struct slice_type;
+struct tuple_type;
+struct pattern_node;
 
 struct stmt;
-struct expr;
+struct let_stmt;
+struct assign_stmt;
+struct return_stmt;
+struct expr_stmt;
+struct while_stmt;
+struct for_stmt;
+struct loop_stmt;
 
-// Expressions 
+struct expr;
 struct block_expr;
 struct id_expr;
 struct literal_expr;
@@ -21,6 +33,9 @@ struct binary_expr;
 struct call_expr;
 struct index_expr;
 struct tuple_expr;
+
+struct param;
+struct function_decl;
 
 // ---------- Top level ----------
 
@@ -142,6 +157,26 @@ struct tuple_type : type_node {
     }
 };
 
+struct pattern_node : ast_node {
+    std::string name; // valid if leaf
+    std::vector<std::shared_ptr<pattern_node>> elements; // valid if tuple
+
+    bool is_tuple() const { return !elements.empty(); } // To check if the pattern is a ID else a tuple of ID's
+
+    void dump(std::ostream& os, int i) const override {
+        indent(os, i);
+        if (is_tuple()) {
+            os << "pattern tuple\n";
+            for (auto& e : elements)
+                e->dump(os, i + 1);
+        } else {
+            os << "pattern " << name << "\n";
+        }
+    }
+};
+
+
+
 // ---------- Expressions ----------
 
 struct block_expr : expr {
@@ -262,6 +297,30 @@ struct while_stmt : stmt {
         body->dump(os, i + 1);
     }
 };
+
+struct for_stmt : stmt {
+    std::string iter_var;
+    std::shared_ptr<expr> iterable;
+    std::shared_ptr<block_expr> body;
+
+    void dump(std::ostream& os, int i) const override {
+       indent(os, i);
+        os << "for " << iter_var << " in\n";
+        iterable->dump(os, i + 1);    // print the iterable expression
+        body->dump(os, i + 1);        // print the loop body
+    }
+};
+
+struct loop_stmt : stmt {   // infinite loop
+    std::shared_ptr<block_expr> body;
+
+    void dump(std::ostream& os, int i) const override {
+        indent(os, i);
+        os << "loop\n";
+        body->dump(os, i + 1);   // print the block body
+    }
+};
+
 
 
 // ---------- Expressions ----------
