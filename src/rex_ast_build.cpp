@@ -299,7 +299,6 @@ antlrcpp::Any rex_ast_build::visitReturnStmt(RexParser::ReturnStmtContext* ctx) 
 }
 
 antlrcpp::Any rex_ast_build::visitExprStmt(RexParser::ExprStmtContext* ctx) {
-    std::cout << "Visiting expression statement\n";
     auto es = std::make_shared<expr_stmt>();
     es->loc = loc(ctx);
     es->value = std::any_cast<std::shared_ptr<expr>>(visit(ctx->expr()));
@@ -307,11 +306,48 @@ antlrcpp::Any rex_ast_build::visitExprStmt(RexParser::ExprStmtContext* ctx) {
 }
 
 antlrcpp::Any rex_ast_build::visitPattern(RexParser::PatternContext* ctx) {
-    return nullptr;
+    if (ctx->ID()) {
+        auto p = std::make_shared<pattern_node>();
+        p->name = ctx->ID()->getText();
+        return p;
+    } else {
+        auto p = std::make_shared<pattern_node>();
+        for (auto sub : ctx->pattern()) {
+            p->elements.push_back(std::any_cast<std::shared_ptr<pattern_node>>(visit(sub)));
+        }
+        return p;
+    }
 }
 
 antlrcpp::Any rex_ast_build::visitLoopStmt(RexParser::LoopStmtContext* ctx) {
-    return nullptr;
+       if (ctx->WHILE()) {
+        // WHILE expr block
+        auto w = std::make_shared<while_stmt>();
+        w->loc = loc(ctx);
+        w->cond = std::any_cast<std::shared_ptr<expr>>(visit(ctx->expr()));
+        w->body = std::any_cast<std::shared_ptr<block_expr>>(visit(ctx->block()));
+        return w;
+    }
+    
+    if (ctx->FOR()) {
+        // FOR ID IN expr block
+        auto f = std::make_shared<for_stmt>();
+        f->loc = loc(ctx);
+        f->iter_var = ctx->ID()->getText();
+        f->iterable = std::any_cast<std::shared_ptr<expr>>(visit(ctx->expr()));
+        f->body = std::any_cast<std::shared_ptr<block_expr>>(visit(ctx->block()));
+        return f;
+    }
+
+    if (ctx->LOOP()) {
+        // LOOP block
+        auto l = std::make_shared<loop_stmt>();
+        l->loc = loc(ctx);
+        l->body = std::any_cast<std::shared_ptr<block_expr>>(visit(ctx->block()));
+        return l;
+    }
+
+    throw std::runtime_error("Unknown loop kind");
 }
 
 // --------------------------------------------------
@@ -338,7 +374,6 @@ antlrcpp::Any rex_ast_build::visitBlock(RexParser::BlockContext* ctx) {
 // --------------------------------------------------
 
 antlrcpp::Any rex_ast_build::visitIdExpr(RexParser::IdExprContext* ctx) {
-    std::cout << "Visiting identifier expression\n";
     auto id = std::make_shared<id_expr>();
     id->loc = loc(ctx);
     id->name = ctx->ID()->getText();
