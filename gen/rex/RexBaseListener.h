@@ -96,6 +96,9 @@ public:
   virtual void enterRangeExpr(RexParser::RangeExprContext * /*ctx*/) override { }
   virtual void exitRangeExpr(RexParser::RangeExprContext * /*ctx*/) override { }
 
+  virtual void enterTupleExpr(RexParser::TupleExprContext * /*ctx*/) override { }
+  virtual void exitTupleExpr(RexParser::TupleExprContext * /*ctx*/) override { }
+
   virtual void enterOrExpr(RexParser::OrExprContext * /*ctx*/) override { }
   virtual void exitOrExpr(RexParser::OrExprContext * /*ctx*/) override { }
 

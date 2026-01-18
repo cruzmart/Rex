@@ -121,6 +121,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual std::any visitTupleExpr(RexParser::TupleExprContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual std::any visitOrExpr(RexParser::OrExprContext *ctx) override {
     return visitChildren(ctx);
   }

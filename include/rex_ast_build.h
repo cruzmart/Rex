@@ -20,6 +20,7 @@ private:
   virtual antlrcpp::Any visitNamedType(RexParser::NamedTypeContext *ctx) override;
   virtual antlrcpp::Any visitPrimeType(RexParser::PrimeTypeContext *ctx) override;
   virtual antlrcpp::Any visitTupleType(RexParser::TupleTypeContext *ctx) override;
+  virtual antlrcpp::Any visitTupleExpr(RexParser::TupleExprContext *ctx) override;
   virtual antlrcpp::Any visitSliceType(RexParser::SliceTypeContext *ctx) override;
   virtual antlrcpp::Any visitPrimitiveType(RexParser::PrimitiveTypeContext *ctx) override;
   virtual antlrcpp::Any visitFunctionDef(RexParser::FunctionDefContext *ctx) override;

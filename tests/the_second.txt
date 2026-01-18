@@ -1,0 +1,60 @@
+let x = 3;
+let y = 4.5;
+let z = x + y * 2;
+
+let a = (x + 1) * 2;
+let b = a - 4 / 2;
+
+let c = true;
+let d = false;
+
+let e = x < 10;
+let f = x == 3;
+
+let g = foo(x, y, z);
+
+function add(a : Int , b : Int) {
+    let sum = a + b;
+    sum
+}
+
+// ---------- Type aliases ----------
+type MyInt = Int;
+type Vec = Int[];
+type Pair = (Int, Int);
+type Matrix = Int[3][3];
+
+// ---------- Simple lets ----------
+let a = 1;
+let b: Int = 2 + 3;
+let c = a * b;
+
+// ---------- Tuple destructuring ----------
+let (x, y, z) = (1, 1.1, true);
+
+// ---------- Index expression ----------
+let arr = (1, 2, 3);
+let first = arr[0];
+
+// ---------- Range expression ----------
+let r = 0 .. 10;
+
+// ---------- Pipe expression ----------
+let piped = 5 |> inc |> double;
+
+// ---------- Function definitions ----------
+function inc(x: Int) -> Int {
+    x + 1
+}
+
+function double(x: Int) -> Int {
+    x * 2
+}
+
+function add_pair(p: Pair) -> Int {
+    let (a, b) = p;
+    a + b
+}
+
+// ---------- Function call ----------
+let result = add_pair((10, 20));
