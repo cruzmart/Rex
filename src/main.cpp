@@ -11,12 +11,12 @@ using namespace antlr4;
 using namespace rex;
 
 int main() {
-      std::ifstream file("tests/the_first.txt");
+      std::ifstream file("tests/the_third.txt");
     if (!file) {
         std::cerr << "Failed to open tests/the_first.txt\n";
         return 1;
     }
-
+    
     std::stringstream buffer;
     buffer << file.rdbuf();
 
@@ -25,6 +25,7 @@ int main() {
     CommonTokenStream tokens(&lexer);
     RexParser parser(&tokens);
 
+    
     RexParser::FileContext* parse_tree = parser.file();
 
     rex_ast_build builder;
