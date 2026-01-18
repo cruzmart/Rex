@@ -1,6 +1,0 @@
-type MyInt = Int;
-type Vec = Int[];
-type Pair = (Int, Int);
-let x = 2 + 3;
-let y: Int = 5;
-let (x,y,z) = (1, 1.1, true);
