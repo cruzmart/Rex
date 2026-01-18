@@ -5,7 +5,6 @@
 #include "rex_ast_nodes.h"
 
 #include <cstddef>
-#include <iostream>
 #include <memory>
 
 using namespace rex;
@@ -312,9 +311,7 @@ antlrcpp::Any rex_ast_build::visitPattern(RexParser::PatternContext* ctx) {
 }
 
 antlrcpp::Any rex_ast_build::visitLoopStmt(RexParser::LoopStmtContext* ctx) {
-    std::cout << "inside general loop statement\n";
        if (ctx->WHILE()) {
-        std::cout << "inside while loop statement\n";
         // WHILE expr block
         auto w = std::make_shared<while_stmt>();
         w->loc = loc(ctx);
@@ -324,7 +321,6 @@ antlrcpp::Any rex_ast_build::visitLoopStmt(RexParser::LoopStmtContext* ctx) {
     }
     
     if (ctx->FOR()) {
-        std::cout << "inside for loop statement\n";
         // FOR ID IN expr block
         auto f = std::make_shared<for_stmt>();
         f->loc = loc(ctx);
@@ -335,7 +331,6 @@ antlrcpp::Any rex_ast_build::visitLoopStmt(RexParser::LoopStmtContext* ctx) {
     }
 
     if (ctx->LOOP()) {
-        std::cout << "inside inf loop statement\n";
         // LOOP block
         auto l = std::make_shared<loop_stmt>();
         l->loc = loc(ctx);
