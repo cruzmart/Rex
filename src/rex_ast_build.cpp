@@ -85,7 +85,6 @@ antlrcpp::Any build_binary_expr(
     rex_ast_build* self,
     Ctx* ctx
 ) {
-    std::cout << "Building binary expression\n";
     auto bin = std::make_shared<binary_expr>();
     bin->loc = self->loc(ctx);
     bin->operation = operation_type(ctx->op->getType());
@@ -101,16 +100,13 @@ antlrcpp::Any build_binary_expr(
 
 antlrcpp::Any rex_ast_build::visitFile(RexParser::FileContext* ctx) {
     
-    std::cout << "visit file\n";
     auto file = std::make_shared<file_ast>();
     file->loc = loc(ctx);
 
     for (auto item : ctx->item()) {
         file->items.push_back(as_ast_node(visit(item)));
-        std::cout << "Added item to file AST\n";
     }
 
-    std::cout << "AST file node created with " << file->items.size() << " items.\n";
 
     return file;
 }
@@ -118,16 +114,12 @@ antlrcpp::Any rex_ast_build::visitFile(RexParser::FileContext* ctx) {
 antlrcpp::Any rex_ast_build::visitItem(RexParser::ItemContext* ctx) {
     
     if (ctx->functionDef()){
-        std::cout << "visit function\n";
         return visit(ctx->functionDef());
 
-    }
-
-        
+    }   
 
     if (ctx->typeDef())
         return visit(ctx->typeDef());
-    std::cout << "Visiting statement item\n";
     return visit(ctx->statement());
 }
 
@@ -320,32 +312,37 @@ antlrcpp::Any rex_ast_build::visitPattern(RexParser::PatternContext* ctx) {
 }
 
 antlrcpp::Any rex_ast_build::visitLoopStmt(RexParser::LoopStmtContext* ctx) {
+    std::cout << "inside general loop statement\n";
        if (ctx->WHILE()) {
+        std::cout << "inside while loop statement\n";
         // WHILE expr block
         auto w = std::make_shared<while_stmt>();
         w->loc = loc(ctx);
         w->cond = std::any_cast<std::shared_ptr<expr>>(visit(ctx->expr()));
         w->body = std::any_cast<std::shared_ptr<block_expr>>(visit(ctx->block()));
-        return w;
+        return std::dynamic_pointer_cast<stmt>(w);
     }
     
     if (ctx->FOR()) {
+        std::cout << "inside for loop statement\n";
         // FOR ID IN expr block
         auto f = std::make_shared<for_stmt>();
         f->loc = loc(ctx);
         f->iter_var = ctx->ID()->getText();
         f->iterable = std::any_cast<std::shared_ptr<expr>>(visit(ctx->expr()));
         f->body = std::any_cast<std::shared_ptr<block_expr>>(visit(ctx->block()));
-        return f;
+        return std::dynamic_pointer_cast<stmt>(f);
     }
 
     if (ctx->LOOP()) {
+        std::cout << "inside inf loop statement\n";
         // LOOP block
         auto l = std::make_shared<loop_stmt>();
         l->loc = loc(ctx);
         l->body = std::any_cast<std::shared_ptr<block_expr>>(visit(ctx->block()));
-        return l;
+        return std::dynamic_pointer_cast<stmt>(l);
     }
+
 
     throw std::runtime_error("Unknown loop kind");
 }
