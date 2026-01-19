@@ -127,14 +127,14 @@ expr
     : '(' expr ')'                         #ParenExpr
     |'(' expr (',' expr)+ ')'              #TupleExpr
     | expr '[' expr ']'                    #IndexExpr
-    | expr '..' expr                       #RangeExpr
-    | expr op=('*' | '/' | '%') expr       #MulExpr
-    | expr op=('+' | '-') expr             #AddExpr
-    | expr op=('<' | '>' | '<=' | '>=') expr #CompareExpr
-    | expr op=('==' | '!=') expr            #EqualityExpr
+    | expr RANGE expr                       #RangeExpr
+    | expr op=(STAR | DIV | MOD) expr       #MulExpr
+    | expr op=(PLUS | MINUS) expr             #AddExpr
+    | expr op=(LT | GT | LTE | GTE) expr #CompareExpr
+    | expr op=(EQ | NEQ) expr            #EqualityExpr
     | expr op=AND expr                     #AndExpr
     | expr op=OR expr                      #OrExpr
-    | expr '|>' expr                       #PipeExpr
+    | expr PIPE expr                       #PipeExpr
     | ID '(' argList? ')'                  #CallExpr
     | literal                              #LiteralExpr
     | ID                                   #IdExpr
