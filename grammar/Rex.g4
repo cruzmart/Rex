@@ -72,6 +72,7 @@ statement
     : letStmt
     | assignStmt
     | returnStmt
+    | ifStmt          
     | loopStmt
     | exprStmt
     ;
@@ -90,6 +91,17 @@ returnStmt
 
 exprStmt
     : expr ';'
+    ;
+ifStmt
+    : IF  expr block elifxChain? elseBlock?  
+    ;
+
+elifxChain
+    : (ELIFX expr block)+                   
+    ;
+
+elseBlock
+    : ELSE block                            
     ;
 
 // -------------------------------------------------
@@ -124,7 +136,8 @@ block
 // -------------------------------------------------
 
 expr
-    : '(' expr ')'                         #ParenExpr
+    : op=(MINUS | PLUS) expr               #UnaryExpr
+    | '(' expr ')'                         #ParenExpr
     |'(' expr (',' expr)+ ')'              #TupleExpr
     | expr '[' expr ']'                    #IndexExpr
     | expr RANGE expr                       #RangeExpr
@@ -162,6 +175,9 @@ literal
 // Keywords
 // -------------------------------------------------
 
+IF      : 'if';
+ELIFX   : 'elifx';
+ELSE    : 'else';
 FN      : 'function';
 LET     : 'let';
 MUT     : 'mut';

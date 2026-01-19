@@ -89,6 +89,18 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual std::any visitIfStmt(RexParser::IfStmtContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitElifxChain(RexParser::ElifxChainContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitElseBlock(RexParser::ElseBlockContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual std::any visitPattern(RexParser::PatternContext *ctx) override {
     return visitChildren(ctx);
   }
@@ -118,6 +130,10 @@ public:
   }
 
   virtual std::any visitRangeExpr(RexParser::RangeExprContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitUnaryExpr(RexParser::UnaryExprContext *ctx) override {
     return visitChildren(ctx);
   }
 

@@ -1,0 +1,1 @@
+/usr/bin/c++  -Wall CMakeFiles/rex.dir/main.cpp.o CMakeFiles/rex.dir/rex_ast.cpp.o CMakeFiles/rex.dir/rex_ast_build.cpp.o -o rex  ../libparser.a /home/unknown/antlr/antlr4-install/lib/libantlr4-runtime.a 
