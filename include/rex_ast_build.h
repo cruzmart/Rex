@@ -1,5 +1,6 @@
 
 #pragma once
+#include "Any.h"
 #include "RexParser.h"
 #include "RexBaseVisitor.h"
 #include "rex_ast_nodes.h"
@@ -47,6 +48,6 @@ private:
   virtual antlrcpp::Any visitLiteralExpr(RexParser::LiteralExprContext *ctx) override;
   virtual antlrcpp::Any visitCallExpr(RexParser::CallExprContext *ctx) override;
   virtual antlrcpp::Any visitParenExpr(RexParser::ParenExprContext *ctx) override;
-  virtual antlrcpp::Any visitArgList(RexParser::ArgListContext *ctx) override;
   virtual antlrcpp::Any visitLiteral(RexParser::LiteralContext *ctx) override;
+  virtual antlrcpp::Any visitAssignStmt(RexParser::AssignStmtContext *ctx) override;
 };
