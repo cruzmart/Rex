@@ -41,37 +41,37 @@ static std::shared_ptr<ast_node> as_ast_node(const antlrcpp::Any& a) {
 }
 
 // Building binary expression operation type from token type instead of using string comparisons 
-binary_expr::op operation_type (const size_t op_token_type) {
-    // Map token types to binary_expr::op enum values
+binary_op operation_type (const size_t op_token_type) {
+    // Map token types to binary_op enum values
     // 🔑 Make sure these token types match those defined in RexParser.
     // faster with switch-case than if-else chain and enums instead of strings
     switch(op_token_type) {
         case RexParser::PLUS:
-            return binary_expr::op::add;
+            return binary_op::add;
         case RexParser::MINUS:
-            return binary_expr::op::sub;
+            return binary_op::sub;
         case RexParser::STAR:
-            return binary_expr::op::mul;
+            return binary_op::mul;
         case RexParser::DIV:
-            return binary_expr::op::div;
+            return binary_op::div;
         case RexParser::MOD:
-            return binary_expr::op::mod;
+            return binary_op::mod;
         case RexParser::EQ:
-            return binary_expr::op::eq;
+            return binary_op::eq;
         case RexParser::NEQ:
-            return binary_expr::op::neq;
+            return binary_op::neq;
         case RexParser::LT:    
-            return binary_expr::op::lt;
+            return binary_op::lt;
         case RexParser::GT:
-            return binary_expr::op::gt;
+            return binary_op::gt;
         case RexParser::LTE:
-            return binary_expr::op::le;
+            return binary_op::le;
         case RexParser::GTE:
-            return binary_expr::op::ge;
+            return binary_op::ge;
         case RexParser::AND:
-            return binary_expr::op::and_;
+            return binary_op::and_;
         case RexParser::OR:
-            return binary_expr::op::or_; 
+            return binary_op::or_; 
         default:
             throw std::runtime_error("Unknown operation token type");
     }
@@ -259,7 +259,8 @@ antlrcpp::Any rex_ast_build::visitStatement(RexParser::StatementContext* ctx) {
     if (ctx->returnStmt()) return visit(ctx->returnStmt());
     if (ctx->exprStmt()) return visit(ctx->exprStmt());
     if (ctx->loopStmt()) return visit(ctx->loopStmt());
-    return nullptr;
+    if (ctx->assignStmt()) return visit(ctx->assignStmt());
+    throw std::runtime_error("Unknown statement type");
 }
 
 antlrcpp::Any rex_ast_build::visitLetStmt(RexParser::LetStmtContext* ctx) {
@@ -391,7 +392,7 @@ antlrcpp::Any rex_ast_build::visitPipeExpr(RexParser::PipeExprContext* ctx) {
 
     auto pip = std::make_shared<binary_expr>();
     pip->loc = loc(ctx);
-    pip->operation = binary_expr::op::pipe;
+    pip->operation = binary_op::pipe;
     pip->lhs = std::any_cast<std::shared_ptr<expr>>(visit(ctx->expr(0)));
     pip->rhs = std::any_cast<std::shared_ptr<expr>>(visit(ctx->expr(1)));
 
@@ -403,7 +404,7 @@ antlrcpp::Any rex_ast_build::visitRangeExpr(RexParser::RangeExprContext* ctx) {
     auto rng = std::make_shared<binary_expr>();
     rng->loc = loc(ctx);
 
-    rng->operation = binary_expr::op::pipe; // or add op::range later
+    rng->operation = binary_op::range_; // or add op::range later
     rng->lhs = std::any_cast<std::shared_ptr<expr>>(visit(ctx->expr(0)));
     rng->rhs = std::any_cast<std::shared_ptr<expr>>(visit(ctx->expr(1)));
 
@@ -448,8 +449,12 @@ antlrcpp::Any rex_ast_build::visitParenExpr(RexParser::ParenExprContext* ctx) {
     return visit(ctx->expr());
 }
 
-antlrcpp::Any rex_ast_build::visitArgList(RexParser::ArgListContext* ctx) {
-    return nullptr;
+antlrcpp::Any rex_ast_build::visitAssignStmt(RexParser::AssignStmtContext *ctx) {
+    auto asg = std::make_shared<assign_stmt>();
+    asg->target = std::any_cast<std::shared_ptr<expr>>(visit(ctx->expr(0)));
+    asg->value = std::any_cast<std::shared_ptr<expr>>(visit(ctx->expr(1)));
+    return std::dynamic_pointer_cast<stmt>(asg);
+
 }
 
 antlrcpp::Any rex_ast_build::visitLiteral(RexParser::LiteralContext* ctx) {

@@ -5,6 +5,13 @@
 
 namespace rex {
 
+// ------------- Class Helpers -------------------
+enum class binary_op {
+    add, sub, mul, div, mod,
+    eq, neq, lt, gt, le, ge,
+    and_, or_, pipe, range_
+};
+
 // ---------- Forward declarations ----------
 struct file_ast;
 struct type_decl;
@@ -30,12 +37,38 @@ struct block_expr;
 struct id_expr;
 struct literal_expr;
 struct binary_expr;
+const char* binop_name(binary_op);
+
+
 struct call_expr;
 struct index_expr;
 struct tuple_expr;
 
 struct param;
 struct function_decl;
+
+// ---------- Function Helpers -----------
+
+inline const char* binop_name(binary_op o) {
+    switch (o) {
+        case binary_op::add:    return "+";
+        case binary_op::sub:    return "-";
+        case binary_op::mul:    return "*";
+        case binary_op::div:    return "/";
+        case binary_op::mod:    return "%";
+        case binary_op::eq:     return "==";
+        case binary_op::neq:    return "!=";
+        case binary_op::lt:     return "<";
+        case binary_op::gt:     return ">";
+        case binary_op::le:     return "<=";
+        case binary_op::ge:     return ">=";
+        case binary_op::and_:   return "and";
+        case binary_op::or_:    return "or";
+        case binary_op::pipe:   return "|>";
+        case binary_op::range_: return "..";
+    }
+    return "?";
+}
 
 // ---------- Top level ----------
 
@@ -230,9 +263,6 @@ void dump(std::ostream& os, int i) const override {
 }
 };
 
-
-
-
 // ---------- Statements ----------
 
 struct let_stmt : stmt {
@@ -354,25 +384,22 @@ struct literal_expr : expr {
     }
 };
 
-struct binary_expr : expr {
-    enum class op {
-        add, sub, mul, div, mod,
-        eq, neq, lt, gt, le, ge,
-        and_, or_, pipe, range_
-    };
 
-    op operation;
+struct binary_expr : expr {
+
+    binary_op operation;
     std::shared_ptr<expr> lhs;
     std::shared_ptr<expr> rhs;
-
+    
+    
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
-        os << "binary ";
-        os << static_cast<int>(operation) << "\n";
+        os << "binary " << binop_name(operation) << "\n";
         lhs->dump(os, i + 1);
         rhs->dump(os, i + 1);
     }
 };
+
 
 struct call_expr : expr {
     std::string callee; // This is the function name
