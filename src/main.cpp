@@ -6,14 +6,15 @@
 
 #include "rex_ast_build.h"
 #include "rex_ast_nodes.h"
+#include "rex_resolver.h"
 
 using namespace antlr4;
 using namespace rex;
 
 int main() {
-      std::ifstream file("tests/the_second.txt");
+      std::ifstream file("tests/the_third.txt");
     if (!file) {
-        std::cerr << "Failed to open tests/the_first.txt\n";
+        std::cerr << "Failed to open .txt file\n";
         return 1;
     }
     
@@ -31,7 +32,12 @@ int main() {
     rex_ast_build builder;
     auto ast_any = builder.visit(parse_tree);
     auto ast = std::any_cast<std::shared_ptr<file_ast>>(ast_any);
-    ast->dump(std::cout, 0); // Dump the AST to standard output.
+    // ast->dump(std::cout, 0); // Dump the AST to standard output.
+    bool debug = false;
+
+    resolver res(debug);
+    res.resolve(*ast);
+
 
   
 

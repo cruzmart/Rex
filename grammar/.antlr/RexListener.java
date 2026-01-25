@@ -197,6 +197,36 @@ public interface RexListener extends ParseTreeListener {
 	 */
 	void exitExprStmt(RexParser.ExprStmtContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link RexParser#ifStmt}.
+	 * @param ctx the parse tree
+	 */
+	void enterIfStmt(RexParser.IfStmtContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RexParser#ifStmt}.
+	 * @param ctx the parse tree
+	 */
+	void exitIfStmt(RexParser.IfStmtContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link RexParser#elifxChain}.
+	 * @param ctx the parse tree
+	 */
+	void enterElifxChain(RexParser.ElifxChainContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RexParser#elifxChain}.
+	 * @param ctx the parse tree
+	 */
+	void exitElifxChain(RexParser.ElifxChainContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link RexParser#elseBlock}.
+	 * @param ctx the parse tree
+	 */
+	void enterElseBlock(RexParser.ElseBlockContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RexParser#elseBlock}.
+	 * @param ctx the parse tree
+	 */
+	void exitElseBlock(RexParser.ElseBlockContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link RexParser#pattern}.
 	 * @param ctx the parse tree
 	 */
@@ -286,6 +316,18 @@ public interface RexListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitRangeExpr(RexParser.RangeExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code UnaryExpr}
+	 * labeled alternative in {@link RexParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterUnaryExpr(RexParser.UnaryExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code UnaryExpr}
+	 * labeled alternative in {@link RexParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitUnaryExpr(RexParser.UnaryExprContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code TupleExpr}
 	 * labeled alternative in {@link RexParser#expr}.

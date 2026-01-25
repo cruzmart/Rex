@@ -1,3 +1,7 @@
+type ArtificialInt = Int;
+let x = 1;
+let y: ArtificialInt = 2 + 3;
+
 if x > 0 {
     y = 1;
 } elifx (x < 2) {
