@@ -3,6 +3,7 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/rex_ast.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/rex_ast_build.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/rex_resolver.cpp"
 )
 
 add_executable(rex ${rex_src_files})

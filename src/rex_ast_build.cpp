@@ -140,6 +140,7 @@ antlrcpp::Any rex_ast_build::visitFunctionDef(RexParser::FunctionDefContext* ctx
     auto fn = std::make_shared<function_decl>();
     fn->loc = loc(ctx);
     fn->name = ctx->ID()->getText();
+    
 
     if (ctx->paramList())
         fn->params = std::any_cast<std::vector<param>>(visit(ctx->paramList()));

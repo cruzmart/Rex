@@ -33,7 +33,7 @@ function double(x: Int) -> Int {
 
 function add_pair(p: Pair) -> Int {
     let (a, b) = p;
-    a + b
+    return a + b;
 }
 
 // ---------- Function call ----------
