@@ -4,6 +4,7 @@
 bin/                    # compiled executables
 build/                  # build folder
 .bin/                   # optional binaries
+./build/
 
 # -------------------------------
 # Generated ANTLR sources
