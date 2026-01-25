@@ -56,6 +56,12 @@ public:
 
     virtual std::any visitExprStmt(RexParser::ExprStmtContext *context) = 0;
 
+    virtual std::any visitIfStmt(RexParser::IfStmtContext *context) = 0;
+
+    virtual std::any visitElifxChain(RexParser::ElifxChainContext *context) = 0;
+
+    virtual std::any visitElseBlock(RexParser::ElseBlockContext *context) = 0;
+
     virtual std::any visitPattern(RexParser::PatternContext *context) = 0;
 
     virtual std::any visitLoopStmt(RexParser::LoopStmtContext *context) = 0;
@@ -71,6 +77,8 @@ public:
     virtual std::any visitAddExpr(RexParser::AddExprContext *context) = 0;
 
     virtual std::any visitRangeExpr(RexParser::RangeExprContext *context) = 0;
+
+    virtual std::any visitUnaryExpr(RexParser::UnaryExprContext *context) = 0;
 
     virtual std::any visitTupleExpr(RexParser::TupleExprContext *context) = 0;
 

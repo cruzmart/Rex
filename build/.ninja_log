@@ -1,0 +1,26 @@
+# ninja log v5
+1131	1145	0	/home/unknown/projects/Rex/build/src/CMakeFiles/symlink_rex	93ca65d2a9e88b4e
+2	801	1768802774198084212	/home/unknown/projects/Rex/gen/rex/RexLexer.cpp	f0a7b258312552c8
+2	801	1768802774198084212	/home/unknown/projects/Rex/gen/rex/RexVisitor.cpp	f0a7b258312552c8
+2	801	1768802774198084212	/home/unknown/projects/Rex/gen/rex/RexListener.cpp	f0a7b258312552c8
+3	971	1768804169513529591	src/CMakeFiles/rex.dir/main.cpp.o	610eb55c6fb23aac
+2	801	1768802774198084212	/home/unknown/projects/Rex/gen/rex/RexParser.cpp	f0a7b258312552c8
+2	801	1768802774198084212	/home/unknown/projects/Rex/gen/rex/RexBaseVisitor.h	f0a7b258312552c8
+802	3636	1768802777052100901	CMakeFiles/parser.dir/gen/rex/RexVisitor.cpp.o	8bfd018fc8eb88c7
+2	801	1768802774198084212	/home/unknown/projects/Rex/gen/rex/RexBaseListener.h	f0a7b258312552c8
+801	3543	1768802776958468659	CMakeFiles/parser.dir/gen/rex/RexBaseListener.cpp.o	18ef50be5e1a222e
+2	801	1768802774198084212	/home/unknown/projects/Rex/gen/rex/RexBaseListener.cpp	f0a7b258312552c8
+2	801	1768802774198084212	/home/unknown/projects/Rex/gen/rex/RexParser.h	f0a7b258312552c8
+801	3547	1768802776962716729	CMakeFiles/parser.dir/gen/rex/RexBaseVisitor.cpp.o	e84d5eab137fc69d
+802	3925	1768802777341322925	CMakeFiles/parser.dir/gen/rex/RexLexer.cpp.o	995db0d7ae63e2c8
+972	1131	1768804169670157307	src/rex	c9f837b21391cacc
+2	801	1768802774198084212	/home/unknown/projects/Rex/gen/rex/RexListener.h	f0a7b258312552c8
+802	5003	1768802778417091552	CMakeFiles/parser.dir/gen/rex/RexParser.cpp.o	b762cb68c7f4a162
+2	801	1768802774198084212	/home/unknown/projects/Rex/gen/rex/RexLexer.h	f0a7b258312552c8
+5003	5046	1768802778462732212	libparser.a	c1f2f9d46149f143
+802	3504	1768802776918635926	CMakeFiles/parser.dir/gen/rex/RexListener.cpp.o	b553dd7a78bb0cf7
+1131	1145	0	src/CMakeFiles/symlink_rex	93ca65d2a9e88b4e
+3	2346	1768804156354429830	src/CMakeFiles/rex.dir/rex_ast_build.cpp.o	6085a691ecc26482
+609	1587	1768798437662317324	src/CMakeFiles/rex.dir/rex_ast.cpp.o	312405f3330e8139
+2	801	1768802774198084212	/home/unknown/projects/Rex/gen/rex/RexBaseVisitor.cpp	f0a7b258312552c8
+2	801	1768802774198084212	/home/unknown/projects/Rex/gen/rex/RexVisitor.h	f0a7b258312552c8

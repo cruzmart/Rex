@@ -13,22 +13,24 @@ namespace rex {
 class  RexParser : public antlr4::Parser {
 public:
   enum {
-    FN = 1, LET = 2, MUT = 3, FOR = 4, WHILE = 5, LOOP = 6, IN = 7, RETURN = 8, 
-    TYPE = 9, INT = 10, BOOL = 11, CHAR = 12, REAL = 13, STRING = 14, TRUE = 15, 
-    FALSE = 16, AND = 17, OR = 18, ARROW = 19, PIPE = 20, ASSIGN = 21, EQ = 22, 
-    NEQ = 23, LT = 24, GT = 25, LTE = 26, GTE = 27, PLUS = 28, MINUS = 29, 
-    STAR = 30, DIV = 31, MOD = 32, RANGE = 33, LPAREN = 34, RPAREN = 35, 
-    LBRACE = 36, RBRACE = 37, LBRACK = 38, RBRACK = 39, COMMA = 40, SEMI = 41, 
-    COLON = 42, ID = 43, INT_LITERAL = 44, REAL_LITERAL = 45, STRING_LITERAL = 46, 
-    CHAR_LITERAL = 47, WS = 48, LINE_COMMENT = 49, BLOCK_COMMENT = 50
+    IF = 1, ELIFX = 2, ELSE = 3, FN = 4, LET = 5, MUT = 6, FOR = 7, WHILE = 8, 
+    LOOP = 9, IN = 10, RETURN = 11, TYPE = 12, INT = 13, BOOL = 14, CHAR = 15, 
+    REAL = 16, STRING = 17, TRUE = 18, FALSE = 19, AND = 20, OR = 21, ARROW = 22, 
+    PIPE = 23, ASSIGN = 24, EQ = 25, NEQ = 26, LT = 27, GT = 28, LTE = 29, 
+    GTE = 30, PLUS = 31, MINUS = 32, STAR = 33, DIV = 34, MOD = 35, RANGE = 36, 
+    LPAREN = 37, RPAREN = 38, LBRACE = 39, RBRACE = 40, LBRACK = 41, RBRACK = 42, 
+    COMMA = 43, SEMI = 44, COLON = 45, ID = 46, INT_LITERAL = 47, REAL_LITERAL = 48, 
+    STRING_LITERAL = 49, CHAR_LITERAL = 50, WS = 51, LINE_COMMENT = 52, 
+    BLOCK_COMMENT = 53
   };
 
   enum {
     RuleFile = 0, RuleItem = 1, RuleTypeDef = 2, RuleType = 3, RulePrimitiveType = 4, 
     RuleFunctionDef = 5, RuleParamList = 6, RuleParam = 7, RuleReturnType = 8, 
     RuleStatement = 9, RuleLetStmt = 10, RuleAssignStmt = 11, RuleReturnStmt = 12, 
-    RuleExprStmt = 13, RulePattern = 14, RuleLoopStmt = 15, RuleBlock = 16, 
-    RuleExpr = 17, RuleArgList = 18, RuleLiteral = 19
+    RuleExprStmt = 13, RuleIfStmt = 14, RuleElifxChain = 15, RuleElseBlock = 16, 
+    RulePattern = 17, RuleLoopStmt = 18, RuleBlock = 19, RuleExpr = 20, 
+    RuleArgList = 21, RuleLiteral = 22
   };
 
   explicit RexParser(antlr4::TokenStream *input);
@@ -62,6 +64,9 @@ public:
   class AssignStmtContext;
   class ReturnStmtContext;
   class ExprStmtContext;
+  class IfStmtContext;
+  class ElifxChainContext;
+  class ElseBlockContext;
   class PatternContext;
   class LoopStmtContext;
   class BlockContext;
@@ -301,6 +306,7 @@ public:
     LetStmtContext *letStmt();
     AssignStmtContext *assignStmt();
     ReturnStmtContext *returnStmt();
+    IfStmtContext *ifStmt();
     LoopStmtContext *loopStmt();
     ExprStmtContext *exprStmt();
 
@@ -384,6 +390,61 @@ public:
   };
 
   ExprStmtContext* exprStmt();
+
+  class  IfStmtContext : public antlr4::ParserRuleContext {
+  public:
+    IfStmtContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *IF();
+    ExprContext *expr();
+    BlockContext *block();
+    ElifxChainContext *elifxChain();
+    ElseBlockContext *elseBlock();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  IfStmtContext* ifStmt();
+
+  class  ElifxChainContext : public antlr4::ParserRuleContext {
+  public:
+    ElifxChainContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    std::vector<antlr4::tree::TerminalNode *> ELIFX();
+    antlr4::tree::TerminalNode* ELIFX(size_t i);
+    std::vector<ExprContext *> expr();
+    ExprContext* expr(size_t i);
+    std::vector<BlockContext *> block();
+    BlockContext* block(size_t i);
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  ElifxChainContext* elifxChain();
+
+  class  ElseBlockContext : public antlr4::ParserRuleContext {
+  public:
+    ElseBlockContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *ELSE();
+    BlockContext *block();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  ElseBlockContext* elseBlock();
 
   class  PatternContext : public antlr4::ParserRuleContext {
   public:
@@ -522,6 +583,20 @@ public:
     std::vector<ExprContext *> expr();
     ExprContext* expr(size_t i);
     antlr4::tree::TerminalNode *RANGE();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+  };
+
+  class  UnaryExprContext : public ExprContext {
+  public:
+    UnaryExprContext(ExprContext *ctx);
+
+    antlr4::Token *op = nullptr;
+    ExprContext *expr();
+    antlr4::tree::TerminalNode *MINUS();
+    antlr4::tree::TerminalNode *PLUS();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
 

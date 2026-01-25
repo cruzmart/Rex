@@ -70,6 +70,15 @@ public:
   virtual void enterExprStmt(RexParser::ExprStmtContext *ctx) = 0;
   virtual void exitExprStmt(RexParser::ExprStmtContext *ctx) = 0;
 
+  virtual void enterIfStmt(RexParser::IfStmtContext *ctx) = 0;
+  virtual void exitIfStmt(RexParser::IfStmtContext *ctx) = 0;
+
+  virtual void enterElifxChain(RexParser::ElifxChainContext *ctx) = 0;
+  virtual void exitElifxChain(RexParser::ElifxChainContext *ctx) = 0;
+
+  virtual void enterElseBlock(RexParser::ElseBlockContext *ctx) = 0;
+  virtual void exitElseBlock(RexParser::ElseBlockContext *ctx) = 0;
+
   virtual void enterPattern(RexParser::PatternContext *ctx) = 0;
   virtual void exitPattern(RexParser::PatternContext *ctx) = 0;
 
@@ -93,6 +102,9 @@ public:
 
   virtual void enterRangeExpr(RexParser::RangeExprContext *ctx) = 0;
   virtual void exitRangeExpr(RexParser::RangeExprContext *ctx) = 0;
+
+  virtual void enterUnaryExpr(RexParser::UnaryExprContext *ctx) = 0;
+  virtual void exitUnaryExpr(RexParser::UnaryExprContext *ctx) = 0;
 
   virtual void enterTupleExpr(RexParser::TupleExprContext *ctx) = 0;
   virtual void exitTupleExpr(RexParser::TupleExprContext *ctx) = 0;
