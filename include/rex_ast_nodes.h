@@ -1,6 +1,5 @@
 #pragma once
 #include "rex_ast.h"
-#include "rex_symbols.h"
 #include <iostream>
 #include <memory>
 
@@ -346,7 +345,6 @@ struct if_stmt : stmt {
 // ---------------------- EXPRESSIONS --------------------
 struct id_expr : expr {
     std::string name;
-    symbol* sym = nullptr; // resolved symbol
     void dump(std::ostream& os, int i) const override { indent(os, i); os << "id " << name << "\n"; }
 };
 
