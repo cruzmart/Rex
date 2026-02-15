@@ -6,6 +6,7 @@ namespace rex {
 
 struct resolver {
     std::shared_ptr<scope> current;
+    bool debug = false;
 
     resolver();
 

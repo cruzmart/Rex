@@ -9,24 +9,14 @@ namespace rex {
 struct scope : std::enable_shared_from_this<scope> {
     std::shared_ptr<scope> parent;
     std::map<std::string, std::shared_ptr<symbol>> table;
+    bool debug = false;
 
-    explicit scope(std::shared_ptr<scope> p = nullptr)
-        : parent(std::move(p)) {}
+    explicit scope(std::shared_ptr<scope> p = nullptr);
 
-    void define(std::shared_ptr<symbol> sym) {
-        table[sym->name] = sym;
-    }
+    void define(std::shared_ptr<symbol> sym);
+    std::shared_ptr<symbol> resolve(const std::string& n);
 
-    std::shared_ptr<symbol> resolve(const std::string& n) {
-        auto it = table.find(n);
-        if (it != table.end())
-            return it->second;
-        return parent ? parent->resolve(n) : nullptr;
-    }
-
-    std::shared_ptr<scope> push() {
-        return std::make_shared<scope>(shared_from_this());
-    }
+    std::shared_ptr<scope> push();
 };
 
 } // namespace rex
