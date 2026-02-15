@@ -1,52 +1,52 @@
 #include "rex_scope.h"
+#include <iostream>
 
 namespace rex {
 
-// --------------------------------------------------------
-// define
-// --------------------------------------------------------
-bool Scope::define(const Symbol& sym) {
+scope::scope(std::shared_ptr<scope> p)
+    : parent(std::move(p)) {}
+
+void scope::define(std::shared_ptr<symbol> sym) {
     if (debug) {
-        std::cerr
-            << indent()
-            << "[declare] " << to_string(sym.kind)
-            << " " << sym.name
-            << " (depth " << depth << ")\n";
+        std::cout << "[scope] define '" << sym->name << "'\n";
     }
-
-    auto res = symbols.emplace(sym.name, sym);
-    if (res.second)
-        res.first->second.defining_scope = this;
-
-    return res.second;
+    table[sym->name] = sym;
 }
 
-// --------------------------------------------------------
-// lookup
-// --------------------------------------------------------
-Symbol* Scope::lookup(const std::string& name) {
-    for (Scope* s = this; s; s = s->parent) {
-        auto it = s->symbols.find(name);
-        if (it != s->symbols.end()) {
-            if (debug) {
-                std::cerr
-                    << indent()
-                    << "[lookup] " << name
-                    << " -> depth " << s->depth
-                    << " (" << to_string(it->second.kind) << ")\n";
-            }
-            return &it->second;
+std::shared_ptr<symbol> scope::resolve(const std::string& n) {
+    if (debug) {
+        std::cout << "[scope] resolve '" << n << "' in scope " << this << "\n";
+    }
+
+    auto it = table.find(n);
+    if (it != table.end()) {
+        if (debug) {
+            std::cout << "[scope]   found in this scope\n";
         }
+        return it->second;
+    }
+
+    if (parent) {
+        if (debug) {
+            std::cout << "[scope]   not found, checking parent\n";
+        }
+        return parent->resolve(n);
     }
 
     if (debug) {
-        std::cerr
-            << indent()
-            << "[lookup] " << name
-            << " -> NOT FOUND\n";
+        std::cout << "[scope]   not found in any scope\n";
+    }
+    return nullptr;
+}
+
+std::shared_ptr<scope> scope::push() {
+    if (debug) {
+        std::cout << "[scope] pushing new child scope\n";
     }
 
-    return nullptr;
+    auto child = std::make_shared<scope>(shared_from_this());
+    child->debug = debug; // inherit debug flag
+    return child;
 }
 
 } // namespace rex
