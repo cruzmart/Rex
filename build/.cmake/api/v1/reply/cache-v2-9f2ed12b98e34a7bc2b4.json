@@ -1187,7 +1187,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "[/usr/bin/java][cfound components: Runtime ][v17.0.17()]"
+			"value" : "[/usr/bin/java][cfound components: Runtime ][v17.0.18()]"
 		},
 		{
 			"name" : "FIND_PACKAGE_MESSAGE_DETAILS_Threads",

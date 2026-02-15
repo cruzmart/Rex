@@ -404,7 +404,7 @@ CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
 //Details about finding Git
 FIND_PACKAGE_MESSAGE_DETAILS_Git:INTERNAL=[/usr/bin/git][v2.43.0()]
 //Details about finding Java
-FIND_PACKAGE_MESSAGE_DETAILS_Java:INTERNAL=[/usr/bin/java][cfound components: Runtime ][v17.0.17()]
+FIND_PACKAGE_MESSAGE_DETAILS_Java:INTERNAL=[/usr/bin/java][cfound components: Runtime ][v17.0.18()]
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 //ADVANCED property for variable: GIT_EXECUTABLE

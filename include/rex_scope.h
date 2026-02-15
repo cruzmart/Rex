@@ -1,31 +1,31 @@
 #pragma once
-#include <unordered_map>
+#include <map>
 #include <string>
-#include <iostream>
+#include <memory>
 #include "rex_symbol.h"
 
 namespace rex {
 
-struct Scope {
-    Scope* parent = nullptr;
-    int depth = 0;
+struct scope : std::enable_shared_from_this<scope> {
+    std::shared_ptr<scope> parent;
+    std::map<std::string, std::shared_ptr<symbol>> table;
 
-    std::unordered_map<std::string, Symbol> symbols;
+    explicit scope(std::shared_ptr<scope> p = nullptr)
+        : parent(std::move(p)) {}
 
-    bool debug = false;
+    void define(std::shared_ptr<symbol> sym) {
+        table[sym->name] = sym;
+    }
 
-    explicit Scope(Scope* p = nullptr, bool dbg = false)
-        : parent(p), depth(p ? p->depth + 1 : 0), debug(dbg) {}
+    std::shared_ptr<symbol> resolve(const std::string& n) {
+        auto it = table.find(n);
+        if (it != table.end())
+            return it->second;
+        return parent ? parent->resolve(n) : nullptr;
+    }
 
-    // Add symbol to this scope
-    bool define(const Symbol& sym);
-
-    // Lookup symbol
-    Symbol* lookup(const std::string& name);
-
-private:
-    std::string indent() const {
-        return std::string(depth * 2, ' ');
+    std::shared_ptr<scope> push() {
+        return std::make_shared<scope>(shared_from_this());
     }
 };
 
