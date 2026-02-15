@@ -3,6 +3,8 @@
 #include <iostream>
 #include <memory>
 
+#include "rex_symbol.h"
+
 namespace rex {
 
 // ---------------------- ENUMS -----------------------
@@ -178,6 +180,11 @@ struct tuple_type : type_node {
 struct type_decl : ast_node {
     std::string name;
     std::shared_ptr<type_node> aliased;
+
+
+    // NEW:
+    symbol* resolved = nullptr;
+
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
         os << "type " << name << " = ";
@@ -220,6 +227,10 @@ struct block_expr : expr {
 struct param {
     std::string name;
     std::shared_ptr<type_node> type;
+
+    // NEW:
+    symbol* resolved = nullptr;
+    
 };
 
 struct function_decl : ast_node {
@@ -227,6 +238,9 @@ struct function_decl : ast_node {
     std::shared_ptr<type_node> func_return_type;
     std::vector<param> params;
     std::shared_ptr<block_expr> body;
+
+    // NEW:
+    symbol* resolved = nullptr;
 
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
@@ -249,6 +263,9 @@ struct let_stmt : stmt {
     std::string name;
     std::shared_ptr<type_node> explicit_type;
     std::shared_ptr<expr> init;
+
+    // NEW:
+    symbol* resolved = nullptr;
 
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
@@ -303,6 +320,11 @@ struct for_stmt : stmt {
     std::string iter_var;
     std::shared_ptr<expr> iterable;
     std::shared_ptr<block_expr> body;
+
+
+    // NEW for the iterable variable:
+    symbol* resolved = nullptr;
+
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
         os << "for " << iter_var << " in\n";
@@ -345,6 +367,8 @@ struct if_stmt : stmt {
 // ---------------------- EXPRESSIONS --------------------
 struct id_expr : expr {
     std::string name;
+    // NEW:
+    symbol* resolved = nullptr;
     void dump(std::ostream& os, int i) const override { indent(os, i); os << "id " << name << "\n"; }
 };
 
@@ -390,6 +414,8 @@ struct binary_expr : expr {
 struct call_expr : expr {
     std::string callee;
     std::vector<std::shared_ptr<expr>> args;
+    // NEW:
+    symbol* resolved = nullptr;
     void dump(std::ostream& os, int i) const override {
         indent(os, i); os << "call " << callee << "\n";
         for (auto& a : args) a->dump(os, i + 1);
