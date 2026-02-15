@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include "rex_types.h"
 
 namespace rex {
 
@@ -35,7 +36,7 @@ struct type_node : ast_node {
 
 
 struct expr : ast_node {
-    // Type type;  // later
+    type ty;
 };
 
 struct stmt : ast_node {};

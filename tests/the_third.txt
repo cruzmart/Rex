@@ -19,9 +19,6 @@ let first = arr[0];
 // ---------- Range expression ----------
 let r = 0 .. 10;
 
-// ---------- Pipe expression ----------
-let piped = 5 |> inc |> double;
-
 // ---------- Function definitions ----------
 function inc(x: Int) -> Int {
     x + 1
@@ -56,4 +53,8 @@ loop {
 
 // ------------ Reassignment -----------
 a = 4;
-(1 + 2) = 3;
+// (1 + 2) = 3;
+
+
+// ---------- Pipe expression ----------
+let piped = 5 |> inc |> double;
