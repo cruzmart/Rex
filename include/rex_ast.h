@@ -7,39 +7,44 @@
 
 namespace rex {
 
+struct SourceLocation;
+struct TypeNode;
+struct AstNode;
+struct Expr;
+struct Stmt;
+
 inline void indent(std::ostream& os, int n) {
     for (int i = 0; i < n; ++i) os << "  ";
 }
 
-struct source_location {
+struct SourceLocation {
     size_t line;
     size_t column;
 };
 
-struct ast_node {
-    source_location loc;
-    virtual ~ast_node() = default;
+struct AstNode {
+    SourceLocation loc;
+    virtual ~AstNode() = default;
     virtual void dump(std::ostream& os, int indent = 0) const = 0;
     
 };
 
-struct type_node : ast_node {
-    enum class kind { primitive, named, array, slice, tuple };
-    kind node_kind;
+struct TypeNode: AstNode {
 
-    explicit type_node(kind k) : node_kind(k) {}
-    virtual ~type_node() = default;
+    std::shared_ptr<rex::Type> type;
+
+    explicit TypeNode() {}
+    virtual ~TypeNode() = default;
 
     virtual void dump(std::ostream& os, int i) const = 0;
 };
 
 
-
-struct expr : ast_node {
-    type ty;
+struct Expr : AstNode {
+    std::shared_ptr<rex::Type> type;
 };
 
-struct stmt : ast_node {};
+struct Stmt : AstNode {};
 
 
 } // namespace rex

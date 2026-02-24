@@ -81,9 +81,6 @@ public:
   virtual void enterElseBlock(RexParser::ElseBlockContext * /*ctx*/) override { }
   virtual void exitElseBlock(RexParser::ElseBlockContext * /*ctx*/) override { }
 
-  virtual void enterPattern(RexParser::PatternContext * /*ctx*/) override { }
-  virtual void exitPattern(RexParser::PatternContext * /*ctx*/) override { }
-
   virtual void enterLoopStmt(RexParser::LoopStmtContext * /*ctx*/) override { }
   virtual void exitLoopStmt(RexParser::LoopStmtContext * /*ctx*/) override { }
 

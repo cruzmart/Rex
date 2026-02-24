@@ -12,7 +12,7 @@ using namespace antlr4;
 using namespace rex;
 
 int main() {
-    std::ifstream file("tests/the_sixth.txt");
+    std::ifstream file("tests/the_second.txt");
     if (!file) {
         std::cerr << "Failed to open .txt file\n";
         return 1;
@@ -30,17 +30,11 @@ int main() {
 
     rex_ast_build builder;
     auto ast_any = builder.visit(parse_tree);
-    auto ast = std::any_cast<std::shared_ptr<file_ast>>(ast_any);
+    auto ast = std::any_cast<std::shared_ptr<FileAst>>(ast_any);
 
-    // ---------------------------------------------------
-    // RUN THE RESOLVER
-    // ---------------------------------------------------
-    resolver R;
-    R.debug = false;   // Optional: show scope + lookup logs
 
-    std::cout << ">>> RESOLVE\n";
-    R.resolve(*ast);
-    std::cout << ">>> DONE\n";
+    ast->dump(std::cout, 0);
+
 
     return 0;
 }

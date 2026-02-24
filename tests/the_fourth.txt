@@ -1,6 +1,12 @@
+
 type ArtificialInt = Int;
+type Matrix = Int[3][3];
+type TuplePair = (Int, String);
+
+
 let x = 1;
-let y: ArtificialInt = 2 + 3;
+let y: ArtificialInt = 3 + 2;
+
 
 if x > 0 {
     y = 1;

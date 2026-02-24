@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <memory>
+#include "rex_types.h"
 
 namespace rex {
 
@@ -22,6 +23,8 @@ enum class symbol_kind {
 struct symbol {
     symbol_kind kind;
     std::string name;
+
+    type_ptr typ;
 
     // Bound AST node
     std::shared_ptr<type_node> type;      // for variables & params

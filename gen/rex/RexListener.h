@@ -79,9 +79,6 @@ public:
   virtual void enterElseBlock(RexParser::ElseBlockContext *ctx) = 0;
   virtual void exitElseBlock(RexParser::ElseBlockContext *ctx) = 0;
 
-  virtual void enterPattern(RexParser::PatternContext *ctx) = 0;
-  virtual void exitPattern(RexParser::PatternContext *ctx) = 0;
-
   virtual void enterLoopStmt(RexParser::LoopStmtContext *ctx) = 0;
   virtual void exitLoopStmt(RexParser::LoopStmtContext *ctx) = 0;
 
