@@ -6,17 +6,17 @@
 
 namespace rex {
 
-struct scope : std::enable_shared_from_this<scope> {
-    std::shared_ptr<scope> parent;
+struct Scope : std::enable_shared_from_this<Scope> {
+    std::shared_ptr<Scope> parent;
     std::map<std::string, std::shared_ptr<symbol>> table;
     bool debug = false;
 
-    explicit scope(std::shared_ptr<scope> p = nullptr);
+    explicit Scope(std::shared_ptr<Scope> p = nullptr);
 
     void define(std::shared_ptr<symbol> sym);
     std::shared_ptr<symbol> resolve(const std::string& n);
 
-    std::shared_ptr<scope> push();
+    std::shared_ptr<Scope> push();
 };
 
 } // namespace rex

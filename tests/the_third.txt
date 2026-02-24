@@ -10,7 +10,7 @@ let b: Int = 2 + 3;
 let c = a * b;
 
 // ---------- Tuple destructuring ----------
-let (x, y, z) = (1, 1.1, true);
+// let (x, y, z) = (1, 1.1, true);
 
 // ---------- Index expression ----------
 let arr = (1, 2, 3);

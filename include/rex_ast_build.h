@@ -9,8 +9,8 @@ using namespace rex;
 class rex_ast_build : public RexBaseVisitor {
 public:
     // ---------------------- TOP LEVEL ----------------------
-    std::unique_ptr<file_ast> build(RexParser::FileContext* ctx);
-    source_location loc(antlr4::ParserRuleContext* ctx);
+    std::unique_ptr<FileAst> build(RexParser::FileContext* ctx);
+    SourceLocation loc(antlr4::ParserRuleContext* ctx);
 
 private:
     virtual antlrcpp::Any visitFile(RexParser::FileContext *ctx) override;
@@ -39,7 +39,6 @@ private:
     virtual antlrcpp::Any visitAssignStmt(RexParser::AssignStmtContext *ctx) override;
     virtual antlrcpp::Any visitIfStmt(RexParser::IfStmtContext *ctx) override;
     virtual antlrcpp::Any visitLoopStmt(RexParser::LoopStmtContext *ctx) override;
-    virtual antlrcpp::Any visitPattern(RexParser::PatternContext *ctx) override;
 
     // ------------------------ BLOCKS -----------------------
     virtual antlrcpp::Any visitBlock(RexParser::BlockContext *ctx) override;

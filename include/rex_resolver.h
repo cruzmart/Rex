@@ -5,21 +5,21 @@
 namespace rex {
 
 struct resolver {
-    std::shared_ptr<scope> current;
+    std::shared_ptr<Scope> current;
     bool debug = false;
 
     resolver();
 
-    void resolve(file_ast& file);
+    void resolve(FileAst& file);
 
     // ---- helpers ----
-    void predeclare(file_ast& file);
-    void declare_function(function_decl& fn);
-    void declare_params(function_decl& fn);
+    void predeclare(FileAst& file);
+    void declare_function(FunctionDecl& fn);
+    void declare_params(FunctionDecl& fn);
 
     // ---- visitors ----
-    void resolve_stmt(std::shared_ptr<stmt> s);
-    void resolve_expr(std::shared_ptr<expr> e);
+    void resolve_stmt(std::shared_ptr<Stmt> s);
+    void resolve_expr(std::shared_ptr<Expr> e);
 };
 
 } // namespace rex

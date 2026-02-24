@@ -4,111 +4,93 @@
 #include <memory>
 
 #include "rex_symbol.h"
+#include "rex_types.h"
 
 namespace rex {
 
 // ---------------------- ENUMS -----------------------
-enum class binary_op {
-    add, sub, mul, div, mod,
-    eq, neq, lt, gt, le, ge,
-    and_, or_, pipe, range_
+
+enum class BinaryOp{
+    ADD, SUB, MUL, DIV, MOD, EQ, NEQ, LT, GT, LE, GE, AND, OR, PIPE, RANGE
 };
 
-enum class uni_op {
-    pos, neg
+enum class UniOp{
+    POS, NEG
 };
 
- enum class literal_kind { 
-    int_lit, real_lit, bool_lit,
-    char_lit, string_lit, null_lit 
-};
 
- enum class prim_type { 
-    int_, real_, bool_, 
-    char_, string_, void_ 
-};
 
 // ------------------- FORWARD DECLARATIONS -------------------
-struct file_ast;
-struct type_decl;
-struct type_node;
-struct primitive_type;
-struct named_type;
-struct array_type;
-struct slice_type;
-struct tuple_type;
-struct pattern_node;
 
-struct stmt;
-struct let_stmt;
-struct assign_stmt;
-struct return_stmt;
-struct expr_stmt;
-struct while_stmt;
-struct for_stmt;
-struct loop_stmt;
-struct if_stmt;
+struct FileAst;
+struct TypeDelc;
+struct TypeNode;
+struct PrimType;
+struct NamedType;
+struct ArrayType;
+struct SliceType;
+struct TupleType;
 
-struct expr;
-struct block_expr;
-struct id_expr;
-struct literal_expr;
-struct binary_expr;
-struct unary_expr;
-struct call_expr;
-struct index_expr;
-struct tuple_expr;
+struct Stmt;
+struct LetStmt;
+struct AssignStmt;
+struct ReturnStmt;
+struct ExprStmt;
+struct WhileStmt;
+struct ForStmt;
+struct LoopStmt;
+struct IfStmt;
 
-struct param;
-struct function_decl;
+struct Expr;
+struct BlockExpr;
+struct IdExpr;
+struct LiteralExpr;
+struct BinaryExpr;
+struct UnaryExpr;
+struct CallExpr;
+struct IndexExpr;
+struct TupleExpr;
+struct RangeExpr;
+struct PipeExpr;
+
+
+struct Parameter;
+struct FunctionDecleration;
 
 // ---------------------- UTILITY FUNCTIONS -------------------
-inline const char* binop_name(binary_op o) {
+inline const char* binop_name(BinaryOp o) {
     switch (o) {
-        case binary_op::add:    return "+";
-        case binary_op::sub:    return "-";
-        case binary_op::mul:    return "*";
-        case binary_op::div:    return "/";
-        case binary_op::mod:    return "%";
-        case binary_op::eq:     return "==";
-        case binary_op::neq:    return "!=";
-        case binary_op::lt:     return "<";
-        case binary_op::gt:     return ">";
-        case binary_op::le:     return "<=";
-        case binary_op::ge:     return ">=";
-        case binary_op::and_:   return "and";
-        case binary_op::or_:    return "or";
-        case binary_op::pipe:   return "|>";
-        case binary_op::range_: return "..";
+        case BinaryOp::ADD:    return "+";
+        case BinaryOp::SUB:    return "-";
+        case BinaryOp::MUL:    return "*";
+        case BinaryOp::DIV:    return "/";
+        case BinaryOp::MOD:    return "%";
+        case BinaryOp::EQ:     return "==";
+        case BinaryOp::NEQ:    return "!=";
+        case BinaryOp::LT:     return "<";
+        case BinaryOp::GT:     return ">";
+        case BinaryOp::LE:     return "<=";
+        case BinaryOp::GE:     return ">=";
+        case BinaryOp::AND:   return "and";
+        case BinaryOp::OR:    return "or";
+        case BinaryOp::PIPE:   return "|>";
+        case BinaryOp::RANGE: return "..";
     }
     return "?";
 }
 
-inline const char* uniop_name(uni_op o){
+inline const char* uniop_name(UniOp o){
      switch (o) {
-        case uni_op::pos:    return "+";
-        case uni_op::neg:    return "-";
+        case UniOp::POS:    return "+";
+        case UniOp::NEG:    return "-";
     }
     return "?";
 }
 
-inline literal_kind classify_literal(const std::string& txt) {
-    if(txt.empty()) 
-        return literal_kind::null_lit;
-    if (txt.size() >= 2 && txt.front() == '"' && txt.back() == '"')
-        return literal_kind::string_lit;
-    if (txt.size() >= 3 && txt.front() == '\'' && txt.back() == '\'')
-        return literal_kind::char_lit;
-    if (txt == "true" || txt == "false")
-        return literal_kind::bool_lit;
-    if (txt.find('.') != std::string::npos)
-        return literal_kind::real_lit;
-    return literal_kind::int_lit;
-}
 
 // ---------------------- TOP LEVEL -----------------------
-struct file_ast : ast_node {
-    std::vector<std::shared_ptr<ast_node>> items;
+struct FileAst : AstNode {
+    std::vector<std::shared_ptr<AstNode>> items;
 
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
@@ -119,97 +101,58 @@ struct file_ast : ast_node {
 };
 
 // ---------------------- TYPES --------------------------
-struct primitive_type : type_node {
-    prim_type value;
 
-    explicit primitive_type(prim_type k) : type_node(kind::primitive), value(k) {}
-
-    static prim_type from_name(const std::string& n) {
-        if (n == "Int") return prim_type::int_;
-        if (n == "Real") return prim_type::real_;
-        if (n == "Bool") return prim_type::bool_;
-        if (n == "Char") return prim_type::char_;
-        if (n == "String") return prim_type::string_;
-        return prim_type::void_;
-    }
-
-    void dump(std::ostream& os, int) const override {
-        switch (value) {
-            case prim_type::int_:    os << "Int"; break;
-            case prim_type::real_:   os << "Real"; break;
-            case prim_type::bool_:   os << "Bool"; break;
-            case prim_type::char_:   os << "Char"; break;
-            case prim_type::string_: os << "String"; break;
-            case prim_type::void_:   os << "Void"; break;
-        }
+struct NamedType : TypeNode {
+    void dump(std::ostream& os, int i) const override {
+        indent(os, i); os << "type aliased: " << type->alias << ")\n";
     }
 };
+struct ArrayType : TypeNode {
 
-struct named_type : type_node {
-    std::string name;
-    explicit named_type(std::string n) : type_node(kind::named), name(std::move(n)) {}
-    void dump(std::ostream& os, int) const override { os << "(" << name << ")\n"; }
-};
-
-struct array_type : type_node {
-    std::shared_ptr<type_node> element;
-    int size;
-    array_type(std::shared_ptr<type_node> elem, int s) : type_node(kind::array), element(std::move(elem)), size(s) {}
-    void dump(std::ostream& os, int) const override { element->dump(os, 0); os << "[" << size << "]\n"; }
-};
-
-struct slice_type : type_node {
-    std::shared_ptr<type_node> element;
-    explicit slice_type(std::shared_ptr<type_node> elem) : type_node(kind::slice), element(std::move(elem)) {}
-    void dump(std::ostream& os, int) const override { element->dump(os, 0); os << "[]\n"; }
-};
-
-struct tuple_type : type_node {
-    std::vector<std::shared_ptr<type_node>> elements;
-    tuple_type() : type_node(kind::tuple) {}
-    void dump(std::ostream& os, int) const override {
-        os << "(";
-        for (size_t i = 0; i < elements.size(); ++i) {
-            elements[i]->dump(os, 0);
-            if (i + 1 < elements.size()) os << ", ";
-        }
-        os << ")\n";
+   void dump(std::ostream& os, int i) const override {
+        indent(os, i); os << "array type: " << type->to_string() << "\n";
     }
+
+
 };
-
-struct type_decl : ast_node {
-    std::string name;
-    std::shared_ptr<type_node> aliased;
-
-
-    // NEW:
-    symbol* resolved = nullptr;
+struct SliceType : TypeNode {
 
     void dump(std::ostream& os, int i) const override {
+        indent(os,i);
+        os << "slice type: " << type->to_string() << "\n";
+    }
+
+};
+struct TupleType : TypeNode {
+
+    void dump(std::ostream& os, int i) const override {
+        indent(os,i);
+        os << "tuple type: " << type->to_string() << "\n";
+    }
+
+};
+struct PrimType  : TypeNode {
+
+    void dump(std::ostream& os, int i) const override {
+        indent(os, i); os << "prim type: " << type->to_string()<< "\n";
+    }
+
+};
+ 
+
+struct TypeDecl : TypeNode {
+    symbol* resolved = nullptr; // will have to be saved in the symbole table
+    void dump(std::ostream& os, int i) const override {
         indent(os, i);
-        os << "type " << name << " = ";
-        aliased->dump(os, 0);
+        os << "type decl " << type->alias << " -> " << type->to_string() << "\n";
     }
 };
 
-// ---------------------- PATTERNS ----------------------
-struct pattern_node : ast_node {
-    std::string name;
-    std::vector<std::shared_ptr<pattern_node>> elements;
-    bool is_tuple() const { return !elements.empty(); }
-    void dump(std::ostream& os, int i) const override {
-        indent(os, i);
-        if (is_tuple()) {
-            os << "pattern tuple\n";
-            for (auto& e : elements) e->dump(os, i + 1);
-        } else os << "pattern " << name << "\n";
-    }
-};
 
 // ---------------------- BLOCKS ------------------------
-struct block_expr : expr {
-    std::vector<std::shared_ptr<stmt>> statements;
-    std::shared_ptr<expr> result;
+struct BlockExpr : Expr {
+    std::vector<std::shared_ptr<Stmt>> statements;
+    std::shared_ptr<Expr> result;
 
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
@@ -224,61 +167,87 @@ struct block_expr : expr {
 };
 
 // ---------------------- FUNCTIONS ---------------------
-struct param {
+struct Parameter : TypeNode {
     std::string name;
-    std::shared_ptr<type_node> type;
-
-    // NEW:
-    symbol* resolved = nullptr;
-    
-};
-
-struct function_decl : ast_node {
-    std::string name;
-    std::shared_ptr<type_node> func_return_type;
-    std::vector<param> params;
-    std::shared_ptr<block_expr> body;
 
     // NEW:
     symbol* resolved = nullptr;
 
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
-        os << "function " << name << "(";
-        for (size_t p = 0; p < params.size(); ++p) {
-            os << params[p].name << " : ";
-            params[p].type->dump(os, 0);
-            if (p + 1 < params.size()) os << ", ";
+        os << "param " << name << " -> " << type->to_string();
+
+    }
+    
+};
+
+struct FunctionDecl : AstNode {
+    std::string name;
+    std::shared_ptr<TypeNode> funcReturnType;
+    std::vector<std::shared_ptr<Parameter>> params;
+    std::shared_ptr<BlockExpr> body;
+
+    // NEW:
+    symbol* resolved = nullptr;
+
+    void dump(std::ostream& os, int i) const override {
+        
+           indent(os, i);
+        os << "func " << name << "\n";
+
+        // Return type
+        indent(os, i + 1);
+        os << "return_type: \n";
+        if (funcReturnType) 
+            funcReturnType->dump(os, i + 2);
+        else {
+            indent(os, i + 2);
+            os << "<void>\n";
         }
-        os << ") -> ";
-        if (func_return_type) func_return_type->dump(os, 0);
-        else os << "Void";
+
+        // Parameters
+        indent(os, i + 1);
+        os << "params: \n";
+        if (params.empty()) {
+            indent(os, i + 2);
+            os << "(none)\n";
+        } else {
+            for (auto &p : params)
+                p->dump(os, i + 2);
+        }
+
+        // Body
         os << "\n";
-        body->dump(os, i + 1);
+
+        if (body)
+            body->dump(os, i + 1);
+        else {
+            indent(os, i + 1);
+            os << "(empty)\n";
+        }
     }
 };
 
 // ---------------------- STATEMENTS --------------------
-struct let_stmt : stmt {
+struct LetStmt : Stmt {
     std::string name;
-    std::shared_ptr<type_node> explicit_type;
-    std::shared_ptr<expr> init;
+    std::shared_ptr<Type> explicitType;
+    std::shared_ptr<Expr> init;
 
     // NEW:
     symbol* resolved = nullptr;
 
     void dump(std::ostream& os, int i) const override {
+        std::string isType = (explicitType) ? explicitType->to_string() : "<?>";
         indent(os, i);
-        os << "let " << name;
-        if (explicit_type) { os << " : "; explicit_type->dump(os, 0); }
-        os << "\n";
+        os << "let " << name <<  " : " << isType << "\n";
         init->dump(os, i + 1);
     }
 };
 
-struct assign_stmt : stmt {
-    std::shared_ptr<expr> target;
-    std::shared_ptr<expr> value;
+struct AssignStmt : Stmt {
+    std::shared_ptr<Expr> target;
+    std::shared_ptr<Expr> value;
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
         os << "assign\n";
@@ -287,8 +256,8 @@ struct assign_stmt : stmt {
     }
 };
 
-struct return_stmt : stmt {
-    std::shared_ptr<expr> value;
+struct ReturnStmt : Stmt {
+    std::shared_ptr<Expr> value;
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
         os << "return\n";
@@ -296,8 +265,8 @@ struct return_stmt : stmt {
     }
 };
 
-struct expr_stmt : stmt {
-    std::shared_ptr<expr> value;
+struct ExprStmt : Stmt {
+    std::shared_ptr<Expr> value;
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
         os << "expr_stmt\n";
@@ -305,9 +274,9 @@ struct expr_stmt : stmt {
     }
 };
 
-struct while_stmt : stmt {
-    std::shared_ptr<expr> cond;
-    std::shared_ptr<block_expr> body;
+struct WhileStmt : Stmt {
+    std::shared_ptr<Expr> cond;
+    std::shared_ptr<BlockExpr> body;
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
         os << "while\n";
@@ -316,10 +285,10 @@ struct while_stmt : stmt {
     }
 };
 
-struct for_stmt : stmt {
+struct ForStmt : Stmt {
     std::string iter_var;
-    std::shared_ptr<expr> iterable;
-    std::shared_ptr<block_expr> body;
+    std::shared_ptr<Expr> iterable;
+    std::shared_ptr<BlockExpr> body;
 
 
     // NEW for the iterable variable:
@@ -333,8 +302,8 @@ struct for_stmt : stmt {
     }
 };
 
-struct loop_stmt : stmt {
-    std::shared_ptr<block_expr> body;
+struct LoopStmt : Stmt {
+    std::shared_ptr<BlockExpr> body;
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
         os << "loop\n";
@@ -342,11 +311,11 @@ struct loop_stmt : stmt {
     }
 };
 
-struct if_stmt : stmt {
-    std::shared_ptr<expr> condition;
-    std::shared_ptr<block_expr> then_block;
-    std::vector<std::pair<std::shared_ptr<expr>, std::shared_ptr<block_expr>>> elifx_blocks;
-    std::shared_ptr<block_expr> else_block;
+struct IfStmt : Stmt {
+    std::shared_ptr<Expr> condition;
+    std::shared_ptr<BlockExpr> then_block;
+    std::vector<std::pair<std::shared_ptr<Expr>, std::shared_ptr<BlockExpr>>> elifx_blocks;
+    std::shared_ptr<BlockExpr> else_block;
 
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
@@ -365,45 +334,35 @@ struct if_stmt : stmt {
 };
 
 // ---------------------- EXPRESSIONS --------------------
-struct id_expr : expr {
+struct IdExpr : Expr {
     std::string name;
     // NEW:
     symbol* resolved = nullptr;
     void dump(std::ostream& os, int i) const override { indent(os, i); os << "id " << name << "\n"; }
 };
 
-struct literal_expr : expr {
-    enum class kind { int_lit, real_lit, bool_lit, char_lit, string_lit, null_lit };
-    literal_kind value_kind;
-    std::string text;
+struct LiteralExpr : Expr {
+    std::string value;
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
-        os << "literal ";
-        switch (value_kind) {
-            case literal_kind::int_lit:    os << "Int "; break;
-            case literal_kind::real_lit:   os << "Real "; break;
-            case literal_kind::bool_lit:   os << "Bool "; break;
-            case literal_kind::char_lit:   os << "Char "; break;
-            case literal_kind::string_lit: os << "String "; break;
-            case literal_kind::null_lit:   os << "Null "; break;
-        }
-        os << text << "\n";
+        os << "literal_value " << value << " : " << type->to_string() << "\n";
     }
 };
 
-struct unary_expr : expr {
-    uni_op operation;
-    std::shared_ptr<expr> rhs;
+struct UnaryExpr : Expr {
+    UniOp operation;
+    std::shared_ptr<Expr> rhs;
     void dump(std::ostream& os, int i) const override {
         indent(os, i); os << "unary " << uniop_name(operation) << "\n";
         rhs->dump(os, i + 1);
     }
 };
 
-struct binary_expr : expr {
-    binary_op operation;
-    std::shared_ptr<expr> lhs;
-    std::shared_ptr<expr> rhs;
+struct BinaryExpr : Expr {
+    
+    BinaryOp operation;
+    std::shared_ptr<Expr> lhs;
+    std::shared_ptr<Expr> rhs;
     void dump(std::ostream& os, int i) const override {
         indent(os, i); os << "binary " << binop_name(operation) << "\n";
         lhs->dump(os, i + 1);
@@ -411,9 +370,28 @@ struct binary_expr : expr {
     }
 };
 
-struct call_expr : expr {
+struct RangeExpr: BinaryExpr{
+
+     void dump(std::ostream& os, int i) const override {
+        indent(os, i); 
+        os << "ranges:" << "\n";
+        lhs->dump(os, i + 1);
+        rhs->dump(os, i + 1);
+    }
+};
+
+struct PipeExpr: BinaryExpr{
+
+     void dump(std::ostream& os, int i) const override {
+        indent(os, i); 
+        os << "pipe:" << "\n";
+        lhs->dump(os, i + 1);
+        rhs->dump(os, i + 1);
+    }
+};
+struct CallExpr : Expr {
     std::string callee;
-    std::vector<std::shared_ptr<expr>> args;
+    std::vector<std::shared_ptr<Expr>> args;
     // NEW:
     symbol* resolved = nullptr;
     void dump(std::ostream& os, int i) const override {
@@ -422,9 +400,9 @@ struct call_expr : expr {
     }
 };
 
-struct index_expr : expr {
-    std::shared_ptr<expr> base;
-    std::shared_ptr<expr> index;
+struct IndexExpr : Expr {
+    std::shared_ptr<Expr> base;
+    std::shared_ptr<Expr> index;
     void dump(std::ostream& os, int i) const override {
         indent(os, i); os << "index\n";
         base->dump(os, i + 1);
@@ -432,8 +410,8 @@ struct index_expr : expr {
     }
 };
 
-struct tuple_expr : expr {
-    std::vector<std::shared_ptr<expr>> elements;
+struct TupleExpr : Expr {
+    std::vector<std::shared_ptr<Expr>> elements;
     void dump(std::ostream& os, int i) const override {
         indent(os, i); os << "tuple\n";
         for (auto& e : elements) e->dump(os, i + 1);
