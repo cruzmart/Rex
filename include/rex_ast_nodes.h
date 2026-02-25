@@ -229,20 +229,18 @@ struct FunctionDecl : AstNode {
 };
 
 // ---------------------- STATEMENTS --------------------
-struct LetStmt : Stmt {
-    std::string name;
-    std::shared_ptr<Type> explicitType;
+struct LetStmt {
+    std::string variableName;
+    std::shared_ptr<Type> typeExplicit;
     std::shared_ptr<Expr> init;
 
     // NEW:
     symbol* resolved = nullptr;
+};
 
-    void dump(std::ostream& os, int i) const override {
-        std::string isType = (explicitType) ? explicitType->to_string() : "<?>";
-        indent(os, i);
-        os << "let " << name <<  " : " << isType << "\n";
-        init->dump(os, i + 1);
-    }
+struct LetStmts : Stmt {
+    std::vector<std::shared_ptr<LetStmt>> letStmts;
+    void dump(std::ostream& os, int i) const override {}
 };
 
 struct AssignStmt : Stmt {
