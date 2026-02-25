@@ -242,23 +242,64 @@ antlrcpp::Any rex_ast_build::visitStatement(RexParser::StatementContext* ctx) {
 }
 
 antlrcpp::Any rex_ast_build::visitLetStmt(RexParser::LetStmtContext* ctx) {
-    auto let = std::make_shared<LetStmt>();
-    let->loc = loc(ctx);
 
-    auto letName = ctx->ID()->getText();
-    let->name = letName;
 
-    auto letTypeExplicit = ctx->type();
+    std::shared_ptr<LetStmts> l = std::make_shared<LetStmts>();
+    
+    size_t size = ctx->ID().size();
+    l->letStmts.reserve(size);
 
-    auto initExpr = std::any_cast<std::shared_ptr<Expr>>(visit(ctx->expr()));
-    let->init = initExpr;
-
-    if(letTypeExplicit){
-        auto expTy = std::any_cast<std::shared_ptr<TypeNode>>(visit(letTypeExplicit));
-        let->explicitType = expTy->type;
+    for(auto i = 0; i < size; i++){
+        auto id = ctx->ID()[i]->getText();
+        l->letStmts[i]->variableName = id;
     }
+
+    // check if it is a tuple of id's but no type was given, than its fine
+
+    if(ctx->type()){
+       auto typ = std::any_cast<std::shared_ptr<TypeNode>>(visit(ctx->type()));
+
+        if(auto tup = std::dynamic_pointer_cast<TupleType>(typ)){
+            for(auto s  = 0; s < size; s ++){
+                l->letStmts[s]->typeExplicit = tup->type->elements[s];
+            }
+        } 
+    } else {
+
+         for(auto letCell : l->letStmts){
+            letCell->typeExplicit = rex::Type::Error();
+        }
+    }
+
+    if(ctx->expr()){
+       // No need to check the children of Expr, just copy and paste it.
+    }
+    
+
+    // check if it is a tuple of id's AND types
+
+    // check if it is singular but with no type
+
+    // check if it is singular with type given
+
+
+    // check if it is a singular type
+
+    // check if it is a tuple of types
+
    
-    return std::dynamic_pointer_cast<Stmt>(let);
+
+
+    // l->letStmts.reserve(size);
+
+    // for(size_t i ; i < size ; i++){
+    //     std::shared_ptr<LetStmt> sinLet = std::make_shared<LetStmt>();
+    //     auto sinId = ctx->ID()[i]->getText();
+    //     auto sinTy =        
+    // }
+
+    // for(auto var : )
+    return std::dynamic_pointer_cast<Stmt>(l);
 }
 
 antlrcpp::Any rex_ast_build::visitReturnStmt(RexParser::ReturnStmtContext* ctx) {

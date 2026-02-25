@@ -78,7 +78,7 @@ statement
     ;
 
 letStmt
-    : LET pattern (':' type)? '=' expr ';'
+    : LET '(' ID (',' ID)* ')'  (':' type)? '=' expr ';'
     ;
 
 assignStmt
@@ -104,14 +104,6 @@ elseBlock
     : ELSE block                            
     ;
 
-// -------------------------------------------------
-// Patterns (for destructuring)
-// -------------------------------------------------
-
-pattern
-    : ID
-    | '(' pattern (',' pattern)+ ')'
-    ;
 
 
 // -------------------------------------------------
