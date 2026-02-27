@@ -40,6 +40,11 @@ let r = 0 .. 10;
 // ---------- Pipe expression ----------
 let piped = 5 |> inc |> double;
 
+let arr = (1, 2, 3);
+let arr : Int[3] = [1,2,3];
+let arr : Int = (2,3,4);
+let d : Int = 2 < true;
+let (a, b, c) : (Int, Real, String) = (2,3.5,"Hello World");
 
 
 // ---------- Function definitions ----------

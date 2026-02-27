@@ -81,6 +81,9 @@ public:
   virtual void enterElseBlock(RexParser::ElseBlockContext * /*ctx*/) override { }
   virtual void exitElseBlock(RexParser::ElseBlockContext * /*ctx*/) override { }
 
+  virtual void enterPattern(RexParser::PatternContext * /*ctx*/) override { }
+  virtual void exitPattern(RexParser::PatternContext * /*ctx*/) override { }
+
   virtual void enterLoopStmt(RexParser::LoopStmtContext * /*ctx*/) override { }
   virtual void exitLoopStmt(RexParser::LoopStmtContext * /*ctx*/) override { }
 
@@ -113,6 +116,9 @@ public:
 
   virtual void enterIndexExpr(RexParser::IndexExprContext * /*ctx*/) override { }
   virtual void exitIndexExpr(RexParser::IndexExprContext * /*ctx*/) override { }
+
+  virtual void enterArrayExpr(RexParser::ArrayExprContext * /*ctx*/) override { }
+  virtual void exitArrayExpr(RexParser::ArrayExprContext * /*ctx*/) override { }
 
   virtual void enterEqualityExpr(RexParser::EqualityExprContext * /*ctx*/) override { }
   virtual void exitEqualityExpr(RexParser::EqualityExprContext * /*ctx*/) override { }

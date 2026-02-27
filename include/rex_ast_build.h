@@ -3,6 +3,7 @@
 #include "RexParser.h"
 #include "RexBaseVisitor.h"
 #include "rex_ast_nodes.h"
+#include <stdexcept>
 
 using namespace rex;
 
@@ -48,6 +49,7 @@ private:
     virtual antlrcpp::Any visitLiteralExpr(RexParser::LiteralExprContext *ctx) override;
     virtual antlrcpp::Any visitLiteral(RexParser::LiteralContext *ctx) override;
     virtual antlrcpp::Any visitTupleExpr(RexParser::TupleExprContext *ctx) override;
+    virtual antlrcpp::Any visitArrayExpr(RexParser::ArrayExprContext *ctx) override;
     virtual antlrcpp::Any visitCallExpr(RexParser::CallExprContext *ctx) override;
     virtual antlrcpp::Any visitParenExpr(RexParser::ParenExprContext *ctx) override;
     virtual antlrcpp::Any visitUnaryExpr(RexParser::UnaryExprContext *ctx) override;

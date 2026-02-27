@@ -62,6 +62,8 @@ public:
 
     virtual std::any visitElseBlock(RexParser::ElseBlockContext *context) = 0;
 
+    virtual std::any visitPattern(RexParser::PatternContext *context) = 0;
+
     virtual std::any visitLoopStmt(RexParser::LoopStmtContext *context) = 0;
 
     virtual std::any visitBlock(RexParser::BlockContext *context) = 0;
@@ -83,6 +85,8 @@ public:
     virtual std::any visitOrExpr(RexParser::OrExprContext *context) = 0;
 
     virtual std::any visitIndexExpr(RexParser::IndexExprContext *context) = 0;
+
+    virtual std::any visitArrayExpr(RexParser::ArrayExprContext *context) = 0;
 
     virtual std::any visitEqualityExpr(RexParser::EqualityExprContext *context) = 0;
 

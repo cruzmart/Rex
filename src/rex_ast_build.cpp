@@ -110,6 +110,8 @@ antlrcpp::Any rex_ast_build::visitPrimitiveType(RexParser::PrimitiveTypeContext 
         pt->type = rex::Type::Bool();
     if(ctx->INT())
         pt->type = rex::Type::Int();
+    if(ctx->REAL())
+        pt->type = rex::Type::Real();
     if(ctx->CHAR())
         pt->type = rex::Type::Char();
     if(ctx->STRING())
@@ -245,13 +247,18 @@ antlrcpp::Any rex_ast_build::visitLetStmt(RexParser::LetStmtContext* ctx) {
 
 
     std::shared_ptr<LetStmts> l = std::make_shared<LetStmts>();
-    
-    size_t size = ctx->ID().size();
+
+    auto ids = ctx->pattern();
+    size_t size = ctx->pattern()->ID().size();
     l->letStmts.reserve(size);
 
-    for(auto i = 0; i < size; i++){
-        auto id = ctx->ID()[i]->getText();
-        l->letStmts[i]->variableName = id;
+    for(size_t s = 0; s < size; s++){
+        l->letStmts.push_back(std::make_shared<LetStmt>());   
+    }
+
+    for(size_t i = 0; i < size; i++){
+        auto id = ids->ID()[i]->getText();
+        l->letStmts[i]->variable_name = id;
     }
 
     // check if it is a tuple of id's but no type was given, than its fine
@@ -260,45 +267,46 @@ antlrcpp::Any rex_ast_build::visitLetStmt(RexParser::LetStmtContext* ctx) {
        auto typ = std::any_cast<std::shared_ptr<TypeNode>>(visit(ctx->type()));
 
         if(auto tup = std::dynamic_pointer_cast<TupleType>(typ)){
-            for(auto s  = 0; s < size; s ++){
-                l->letStmts[s]->typeExplicit = tup->type->elements[s];
+            for(size_t s  = 0; s < size; s ++){
+                l->letStmts[s]->type_exp= tup->type->elements[s];
             }
-        } 
+        }  else {
+            l->letStmts[0]->type_exp = typ->type;
+        }
     } else {
 
          for(auto letCell : l->letStmts){
-            letCell->typeExplicit = rex::Type::Error();
+            letCell->type_exp = rex::Type::Error();
         }
     }
 
-    if(ctx->expr()){
-       // No need to check the children of Expr, just copy and paste it.
+
+    auto exprs = ctx->expr();
+    if(exprs){
+
+        // if size is equal to 1, and it is a tuple or anything else we directly add it as is
+        // if size of ids is >1, and it is a tuple we got to iterate it
+        // the rest will go through type checking of the many combos, we will have "checkLetStmt" function in a pass to see if it is properly done
+
+        auto typ_exp = std::any_cast<std::shared_ptr<Expr>>(visit(exprs));
+       
+        // if tuple
+       if(auto tup_expr = std::dynamic_pointer_cast<TupleExpr>(typ_exp)){
+
+            if(size == 1){
+                l->letStmts[0]->init_exp = typ_exp;
+            } else {
+                size_t tup_exp_size = tup_expr->elements.size();
+                    for(size_t t = 0; t < tup_exp_size; t++){
+                        l->letStmts[t]->init_exp = tup_expr->elements[t];
+                    }
+            }
+          
+       } else {
+            l->letStmts[0]->init_exp = typ_exp;
+       }
     }
-    
-
-    // check if it is a tuple of id's AND types
-
-    // check if it is singular but with no type
-
-    // check if it is singular with type given
-
-
-    // check if it is a singular type
-
-    // check if it is a tuple of types
-
-   
-
-
-    // l->letStmts.reserve(size);
-
-    // for(size_t i ; i < size ; i++){
-    //     std::shared_ptr<LetStmt> sinLet = std::make_shared<LetStmt>();
-    //     auto sinId = ctx->ID()[i]->getText();
-    //     auto sinTy =        
-    // }
-
-    // for(auto var : )
+ 
     return std::dynamic_pointer_cast<Stmt>(l);
 }
 
@@ -476,6 +484,15 @@ antlrcpp::Any rex_ast_build::visitTupleExpr(RexParser::TupleExprContext* ctx) {
         t->elements.push_back(std::any_cast<std::shared_ptr<Expr>>(visit(e)));
     t->type = rex::Type::Error();
     return std::dynamic_pointer_cast<Expr>(t);
+}
+
+antlrcpp::Any rex_ast_build::visitArrayExpr(RexParser::ArrayExprContext *ctx) {
+    auto a = std::make_shared<ArrayExpr>();
+    a->loc = loc(ctx);
+    for (auto l : ctx->expr())
+        a->elements.push_back(std::any_cast<std::shared_ptr<Expr>>(visit(l)));
+    a->type = rex::Type::Error();
+    return std::dynamic_pointer_cast<Expr>(a);
 }
 
 antlrcpp::Any rex_ast_build::visitCallExpr(RexParser::CallExprContext* ctx) {

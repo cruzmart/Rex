@@ -79,6 +79,9 @@ public:
   virtual void enterElseBlock(RexParser::ElseBlockContext *ctx) = 0;
   virtual void exitElseBlock(RexParser::ElseBlockContext *ctx) = 0;
 
+  virtual void enterPattern(RexParser::PatternContext *ctx) = 0;
+  virtual void exitPattern(RexParser::PatternContext *ctx) = 0;
+
   virtual void enterLoopStmt(RexParser::LoopStmtContext *ctx) = 0;
   virtual void exitLoopStmt(RexParser::LoopStmtContext *ctx) = 0;
 
@@ -111,6 +114,9 @@ public:
 
   virtual void enterIndexExpr(RexParser::IndexExprContext *ctx) = 0;
   virtual void exitIndexExpr(RexParser::IndexExprContext *ctx) = 0;
+
+  virtual void enterArrayExpr(RexParser::ArrayExprContext *ctx) = 0;
+  virtual void exitArrayExpr(RexParser::ArrayExprContext *ctx) = 0;
 
   virtual void enterEqualityExpr(RexParser::EqualityExprContext *ctx) = 0;
   virtual void exitEqualityExpr(RexParser::EqualityExprContext *ctx) = 0;

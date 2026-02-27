@@ -101,6 +101,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual std::any visitPattern(RexParser::PatternContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual std::any visitLoopStmt(RexParser::LoopStmtContext *ctx) override {
     return visitChildren(ctx);
   }
@@ -142,6 +146,10 @@ public:
   }
 
   virtual std::any visitIndexExpr(RexParser::IndexExprContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitArrayExpr(RexParser::ArrayExprContext *ctx) override {
     return visitChildren(ctx);
   }
 

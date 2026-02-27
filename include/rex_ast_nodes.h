@@ -55,7 +55,7 @@ struct PipeExpr;
 
 
 struct Parameter;
-struct FunctionDecleration;
+struct FunctionDecl;
 
 // ---------------------- UTILITY FUNCTIONS -------------------
 inline const char* binop_name(BinaryOp o) {
@@ -230,17 +230,47 @@ struct FunctionDecl : AstNode {
 
 // ---------------------- STATEMENTS --------------------
 struct LetStmt {
-    std::string variableName;
-    std::shared_ptr<Type> typeExplicit;
-    std::shared_ptr<Expr> init;
+    std::string variable_name;
+    std::shared_ptr<Type> type_exp;
+    std::shared_ptr<Expr> init_exp;
 
     // NEW:
     symbol* resolved = nullptr;
+
+    void dump(std::ostream& os, int i) const {
+        indent(os, i);
+        os << "let\n";
+
+        indent(os, i + 1);
+        os << "name " << variable_name << "\n";
+
+        indent(os, i + 1);
+        if (type_exp)
+            os << "explicit_type " << type_exp->to_string() << "\n";
+        else
+            os << "explicit_type <none>\n";
+
+        indent(os, i + 1);
+        os << "init\n";
+
+        if (init_exp)
+            init_exp->dump(os, i + 2);
+        else {
+            indent(os, i + 2);
+            os << "<no init>\n";
+        }
+    }
 };
 
 struct LetStmts : Stmt {
     std::vector<std::shared_ptr<LetStmt>> letStmts;
-    void dump(std::ostream& os, int i) const override {}
+    void dump(std::ostream& os, int i) const override {
+        indent(os, i);
+        os << "let_stmt_group\n";
+
+        for (auto& s : letStmts)
+            s->dump(os, i + 1);
+    }
 };
 
 struct AssignStmt : Stmt {
@@ -362,7 +392,7 @@ struct BinaryExpr : Expr {
     std::shared_ptr<Expr> lhs;
     std::shared_ptr<Expr> rhs;
     void dump(std::ostream& os, int i) const override {
-        indent(os, i); os << "binary " << binop_name(operation) << "\n";
+        indent(os, i); os << "binary " << binop_name(operation) << " " << type->to_string() << "\n";
         lhs->dump(os, i + 1);
         rhs->dump(os, i + 1);
     }
@@ -412,6 +442,14 @@ struct TupleExpr : Expr {
     std::vector<std::shared_ptr<Expr>> elements;
     void dump(std::ostream& os, int i) const override {
         indent(os, i); os << "tuple\n";
+        for (auto& e : elements) e->dump(os, i + 1);
+    }
+};
+
+struct ArrayExpr : Expr {
+    std::vector<std::shared_ptr<Expr>> elements;
+    void dump(std::ostream& os, int i) const override {
+        indent(os, i); os << "array:\n";
         for (auto& e : elements) e->dump(os, i + 1);
     }
 };
