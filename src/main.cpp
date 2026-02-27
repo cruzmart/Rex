@@ -12,7 +12,7 @@ using namespace antlr4;
 using namespace rex;
 
 int main() {
-    std::ifstream file("tests/the_tenth.txt");
+    std::ifstream file("tests/the_nineth.txt");
     if (!file) {
         std::cerr << "Failed to open .txt file\n";
         return 1;

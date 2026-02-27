@@ -651,9 +651,9 @@ public:
     ArrayExprContext(ExprContext *ctx);
 
     antlr4::tree::TerminalNode *LBRACK();
+    antlr4::tree::TerminalNode *RBRACK();
     std::vector<ExprContext *> expr();
     ExprContext* expr(size_t i);
-    antlr4::tree::TerminalNode *RBRACK();
     std::vector<antlr4::tree::TerminalNode *> COMMA();
     antlr4::tree::TerminalNode* COMMA(size_t i);
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;

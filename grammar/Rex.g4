@@ -136,7 +136,7 @@ expr
     : op=(MINUS | PLUS) expr               #UnaryExpr
     | '(' expr ')'                         #ParenExpr
     |'(' expr (',' expr)+ ')'              #TupleExpr
-    | '[' expr (',' expr)+ ']'             #ArrayExpr
+    |'[' (expr (',' expr)*)? ']'            #ArrayExpr
     | expr '[' expr ']'                    #IndexExpr
     | expr RANGE expr                       #RangeExpr
     | expr op=(STAR | DIV | MOD) expr       #MulExpr
