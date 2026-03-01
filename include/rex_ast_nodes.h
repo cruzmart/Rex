@@ -165,6 +165,18 @@ struct PrimType  : Type {
 
     PrimType(Prims d) : Type(TypeKind::Primitive), prim_type(d) {}
     PrimType() : Type(TypeKind::Primitive) {}
+
+    std::string prim_to_string(){
+        switch(prim_type){
+            case Prims::Int: return "Int";
+            case Prims::Bool: return "Bool";
+            case Prims::Char: return "Char";
+            case Prims::Real: return "Real";
+            case Prims::String: return "String";
+            default:
+                return "<?>";
+        }
+    }
 };
 
 struct FunctionType : Type {
@@ -177,13 +189,23 @@ struct FunctionType : Type {
         : Type(TypeKind::Function), params_type(std::move(params)), return_type(ret) {}
 };
  
-struct TypeDecl : AstNode {
+struct TypeDecl :Stmt {
     std::string name;                    // name of alias
     std::shared_ptr<Type> type;             // type of the alias 
     std::shared_ptr<rex::Symbol> resolved = nullptr; // will have to be saved in the symbole table
 
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
+        os << "new type:  " << name;
+        if (type) {
+            os << " -> " << type->to_string();
+        } else {
+            os << " -> <error>";
+        }
+        if (resolved) {
+            os << " [resolved]";
+        }
+        os << "\n";
     }
 
 };
@@ -256,7 +278,7 @@ struct LetStmt : Stmt {
 
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
-        os << "let statement:\n";
+        os << "let:\n";
 
         // Dump pattern
         indent(os, i + 1);
@@ -393,7 +415,12 @@ struct LiteralExpr : Expr {
     std::string value;
     void dump(std::ostream& os, int i) const override {
         indent(os, i);
-        os << "literal " << value << " : " << type->to_string() << "\n";
+        
+        if(auto prim = std::dynamic_pointer_cast<PrimType>(type)){
+            os << "literal " << value << " -> " << prim->prim_to_string() <<" : " << type->to_string() << "\n";
+        } else {
+            os << "literal " << value << " -> <?> " << " : " << type->to_string() << "\n";
+        }
     }
 };
 
@@ -411,10 +438,18 @@ struct BinaryExpr : Expr {
     BinaryOp operation;
     std::shared_ptr<Expr> lhs;
     std::shared_ptr<Expr> rhs;
-    void dump(std::ostream& os, int i) const override {
-        indent(os, i); os << "binary " << binop_name(operation) << " " << type->to_string() << "\n";
-        lhs->dump(os, i + 1);
-        rhs->dump(os, i + 1);
+     void dump(std::ostream& os, int i) const override {
+        indent(os, i);
+        os << "binary " << binop_name(operation) << " : ";
+        if(type) os << type->to_string();
+        else os << "<no type>";
+        os << "\n";
+
+        if(lhs) lhs->dump(os, i + 1);
+        else indent(os, i + 1), os << "<null lhs>\n";
+
+        if(rhs) rhs->dump(os, i + 1);
+        else indent(os, i + 1), os << "<null rhs>\n";
     }
 };
 
