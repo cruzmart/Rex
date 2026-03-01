@@ -1,0 +1,178 @@
+#include "rex_type_checker.h"
+#include "rex_ast_nodes.h"
+#include "rex_scope.h"
+#include "rex_types.h"
+#include <stdexcept>
+#include <iostream>
+
+using namespace rex;
+
+rex_type_checker::rex_type_checker() {
+    current_scope = std::make_shared<Scope>();
+}
+
+void rex_type_checker::check(std::shared_ptr<FileAst> file) {
+    for (auto& item : file->items) {
+        if (auto stmt = std::dynamic_pointer_cast<Stmt>(item)) {
+            check_stmt(stmt);
+        } else if (auto fn = std::dynamic_pointer_cast<FunctionDecl>(item)) {
+            check_function(fn);
+        } else if (auto type_decl = std::dynamic_pointer_cast<TypeDecl>(item)) {
+            check_type_decl(type_decl);
+        } else {
+            throw std::runtime_error("Unknown top-level AST node");
+        }
+    }
+}
+
+void rex_type_checker::check_type_decl(std::shared_ptr<TypeDecl> td) {
+    auto sym = std::make_shared<Symbol>(SymbolType::typealias, td->type->alias);
+    sym->type = td->type;
+    current_scope->define(sym);
+    td->resolved = sym;
+}
+
+void rex_type_checker::check_function(std::shared_ptr<FunctionDecl> fn) {
+    auto sym = std::make_shared<Symbol>(SymbolType::function, fn->name);
+    current_scope->define(sym);
+    fn->resolved = sym;
+
+    auto old_scope = current_scope;
+    current_scope = current_scope->push();
+
+    for (auto& param : fn->params) {
+        auto psym = std::make_shared<Symbol>(SymbolType::variable, param->name);
+        psym->type = param->type;
+        current_scope->define(psym);
+        param->resolved = psym;
+    }
+
+    check_block(fn->body);
+
+    current_scope = old_scope;
+}
+
+void rex_type_checker::check_block(std::shared_ptr<BlockExpr> block) {
+    auto old_scope = current_scope;
+    current_scope = current_scope->push();
+
+    for (auto& stmt : block->statements) check_stmt(stmt);
+
+    if (block->result) check_expr(block->result);
+
+    current_scope = old_scope;
+}
+
+void rex_type_checker::check_stmt(std::shared_ptr<Stmt> stmt) {
+    if (auto let_group = std::dynamic_pointer_cast<LetStmts>(stmt)) {
+        for (auto& let : let_group->letStmts) check_let_stmt(let);
+    } else if (auto assign = std::dynamic_pointer_cast<AssignStmt>(stmt)) {
+        check_expr(assign->target);
+        check_expr(assign->value);
+        if (*assign->target->type != *assign->value->type) throw std::runtime_error("Type mismatch in assignment");
+    } else if (auto ret = std::dynamic_pointer_cast<ReturnStmt>(stmt)) {
+        if (ret->value) check_expr(ret->value);
+    } else if (auto expr_stmt = std::dynamic_pointer_cast<ExprStmt>(stmt)) {
+        check_expr(expr_stmt->value);
+    } else if (auto while_stmt = std::dynamic_pointer_cast<WhileStmt>(stmt)) {
+        check_expr(while_stmt->cond);
+        check_block(while_stmt->body);
+    } else if (auto for_stmt = std::dynamic_pointer_cast<ForStmt>(stmt)) {
+        check_expr(for_stmt->iterable);
+        auto fsym = std::make_shared<Symbol>(SymbolType::variable, for_stmt->iter_var);
+        fsym->type = for_stmt->iterable->type;
+        current_scope->define(fsym);
+        for_stmt->resolved = fsym;
+        check_block(for_stmt->body);
+    } else if (auto loop_stmt = std::dynamic_pointer_cast<LoopStmt>(stmt)) {
+        check_block(loop_stmt->body);
+    } else if (auto if_stmt = std::dynamic_pointer_cast<IfStmt>(stmt)) {
+        check_expr(if_stmt->condition);
+        check_block(if_stmt->then_block);
+        for (auto& [cond, blk] : if_stmt->elifx_blocks) {
+            check_expr(cond);
+            check_block(blk);
+        }
+        if (if_stmt->else_block) check_block(if_stmt->else_block);
+    } else {
+        throw std::runtime_error("Unknown statement type in type checker");
+    }
+}
+
+void rex_type_checker::check_let_stmt(std::shared_ptr<LetStmt> let) {
+    if (let->init_exp) {
+        check_expr(let->init_exp);
+        if (*let->type_exp != *let->init_exp->type) throw std::runtime_error("Type mismatch in let statement for variable: " + let->variable_name);
+    }
+
+    auto sym = std::make_shared<Symbol>(SymbolType::variable, let->variable_name);
+    sym->type = let->type_exp;
+    current_scope->define(sym);
+    let->resolved = sym;
+}
+
+void rex_type_checker::check_expr(std::shared_ptr<Expr> expr) {
+    if (auto id = std::dynamic_pointer_cast<IdExpr>(expr)) {
+        check_id_expr(id);
+    } else if (auto lit = std::dynamic_pointer_cast<LiteralExpr>(expr)) {
+        // already has type
+    } else if (auto bin = std::dynamic_pointer_cast<BinaryExpr>(expr)) {
+        check_expr(bin->lhs);
+        check_expr(bin->rhs);
+        if (*bin->lhs->type != *bin->rhs->type) {
+            bin->type = Type::Error();
+            throw std::runtime_error("Type mismatch in binary expression");
+        } else {
+            bin->type = bin->lhs->type;
+        }
+    } else if (auto unary = std::dynamic_pointer_cast<UnaryExpr>(expr)) {
+        check_expr(unary->rhs);
+        unary->type = unary->rhs->type;
+    } else if (auto call = std::dynamic_pointer_cast<CallExpr>(expr)) {
+        auto sym = current_scope->resolve(call->callee);
+        if (!sym || sym->symbol_type != SymbolType::function) throw std::runtime_error("Undefined function: " + call->callee);
+        for (auto& arg : call->args) check_expr(arg);
+        call->type = Type::Error(); // extend for real function type
+    } else if (auto tup = std::dynamic_pointer_cast<TupleExpr>(expr)) {
+        for (auto& e : tup->elements) check_expr(e);
+        std::vector<std::shared_ptr<Type>> types;
+        for (auto& e : tup->elements) types.push_back(e->type);
+        tup->type = Type::Tuple(types);
+    } else if (auto arr = std::dynamic_pointer_cast<ArrayExpr>(expr)) {
+        for (auto& e : arr->elements) check_expr(e);
+        if (!arr->elements.empty()) arr->type = Type::Array(arr->elements[0]->type, arr->elements.size());
+    } else if (auto idx = std::dynamic_pointer_cast<IndexExpr>(expr)) {
+        check_index_expr(idx);
+    } else if (auto rng = std::dynamic_pointer_cast<RangeExpr>(expr)) {
+        check_expr(rng->lhs);
+        check_expr(rng->rhs);
+        rng->type = Type::Range();
+    } else if (auto pip = std::dynamic_pointer_cast<PipeExpr>(expr)) {
+        check_expr(pip->lhs);
+        check_expr(pip->rhs);
+        pip->type = pip->rhs->type;
+    } else if (auto blk = std::dynamic_pointer_cast<BlockExpr>(expr)) {
+        check_block(blk);
+        expr->type = blk->result ? blk->result->type : Type::Void();
+    } else {
+        throw std::runtime_error("Unknown expression type in type checker");
+    }
+}
+
+void rex_type_checker::check_id_expr(std::shared_ptr<IdExpr> id) {
+    auto sym = current_scope->resolve(id->name);
+    if (!sym) throw std::runtime_error("Undefined variable: " + id->name);
+    id->type = sym->type;
+    id->resolved = sym;
+}
+
+void rex_type_checker::check_index_expr(std::shared_ptr<IndexExpr> idx) {
+    check_expr(idx->base);
+    check_expr(idx->index);
+    if (idx->base->type->kind == type_kind::Array || idx->base->type->kind == type_kind::Slice) {
+        idx->type = idx->base->type->element;
+    } else {
+        idx->type = Type::Error();
+        throw std::runtime_error("Cannot index non-array type");
+    }
+}

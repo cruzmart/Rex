@@ -52,5 +52,17 @@
   "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support  -Wall -g -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/rex_ast_build.cpp.o -c /home/unknown/projects/Rex/src/rex_ast_build.cpp",
   "file": "/home/unknown/projects/Rex/src/rex_ast_build.cpp",
   "output": "src/CMakeFiles/rex.dir/rex_ast_build.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support  -Wall -g -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/rex_scope.cpp.o -c /home/unknown/projects/Rex/src/rex_scope.cpp",
+  "file": "/home/unknown/projects/Rex/src/rex_scope.cpp",
+  "output": "src/CMakeFiles/rex.dir/rex_scope.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support  -Wall -g -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/rex_type_checker.cpp.o -c /home/unknown/projects/Rex/src/rex_type_checker.cpp",
+  "file": "/home/unknown/projects/Rex/src/rex_type_checker.cpp",
+  "output": "src/CMakeFiles/rex.dir/rex_type_checker.cpp.o"
 }
 ]
