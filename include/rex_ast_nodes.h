@@ -129,6 +129,22 @@ struct SliceType : Type {
     SliceType(std::shared_ptr<Type> elem) : Type(TypeKind::Slice), slice_type(elem) {}
 };
 
+struct RangeType : Type {
+    std::shared_ptr<Type> lower_type;
+    std::shared_ptr<Type> upper_type;
+
+    RangeType() : Type(TypeKind::Range), lower_type(std::make_shared<Type>()), upper_type(std::make_shared<Type>()) {}
+    RangeType(std::shared_ptr<Type> l, std::shared_ptr<Type> u) : Type(TypeKind::Range), lower_type(l), upper_type(u) {}
+};
+
+struct PipeType : Type {
+    std::shared_ptr<Type> func_left_type;
+    std::shared_ptr<Type> func_right_type;
+
+    PipeType() : Type(TypeKind::Pipe) {}
+    PipeType(std::shared_ptr<Type> l, std::shared_ptr<Type> u) : Type(TypeKind::Pipe),func_left_type(l), func_right_type(u) {}
+};
+
 struct TupleType : Type {
 
      // For Tuple
@@ -163,7 +179,7 @@ struct FunctionType : Type {
  
 struct TypeDecl : AstNode {
     std::string name;                    // name of alias
-    std::shared_ptr<Type> exp_type;             // type of the alias 
+    std::shared_ptr<Type> type;             // type of the alias 
     std::shared_ptr<rex::Symbol> resolved = nullptr; // will have to be saved in the symbole table
 
     void dump(std::ostream& os, int i) const override {
@@ -201,7 +217,9 @@ struct Parameter : AstNode {
     Parameter() :para_name("") , para_type(std::make_shared<Type>()) {}
     Parameter(std::string name, std::shared_ptr<Type> type) : para_name(name), para_type(type) {}
 
-    
+     void dump(std::ostream& os, int i) const override {
+            indent(os, i);
+    }
 };
 
 struct FunctionDecl : AstNode {
@@ -217,37 +235,58 @@ struct FunctionDecl : AstNode {
 };
 
 // ---------------------- STATEMENTS --------------------
+struct Pattern {
+    virtual ~Pattern() = default; // makes it polymorphic, else I cannot dynamic cast 
+};
+
+struct PatternId : Pattern {
+    std::string id;
+    PatternId(std::string id) : id(id) {}
+};
+
+struct PatternIds : Pattern {
+    std::vector<std::string> ids;
+};
+
 struct LetStmt : Stmt {
 
-    std::vector<std::string> name;
+    std::shared_ptr<Pattern> id_pattern;
     std::shared_ptr<Type> type; 
     std::shared_ptr<Expr> exp; 
 
     void dump(std::ostream& os, int i) const override {
-        
         indent(os, i);
-        os << "let stmt:\n";
+        os << "let statement:\n";
 
-        // Print variable names + types
+        // Dump pattern
         indent(os, i + 1);
-
-
-        auto tuple_type = std::dynamic_pointer_cast<TupleType>(type);
-        if (tuple_type && tuple_type->tuple_types.size() > 1) {
-            for (size_t idx = 0; idx < tuple_type->tuple_types.size(); idx++) {
-                indent(os, i + 1);
-                std::cout << tuple_type->tuple_types[idx]->to_string();
+        os << "pattern: ";
+        if (auto p = std::dynamic_pointer_cast<PatternId>(id_pattern)) {
+            os << p->id << "\n";
+        } else if (auto p = std::dynamic_pointer_cast<PatternIds>(id_pattern)) {
+            for (size_t idx = 0; idx < p->ids.size(); ++idx) {
+                
+                os << p->ids[idx];
+                if (idx < p->ids.size() - 1) os << ", ";
             }
+            os << "\n";
         } else {
-            indent(os, i + 1);
-            os << type->to_string() << "\n";
+            os << "<unknown pattern>\n";
         }
 
-        // Print initializer expression
-        indent(os, i + 1);
-        os << "init:\n";
-        exp->dump(os, i + 2);
+        // Dump type
+        if (type) {
+            indent(os, i + 1);
+            os << "type: " << type->to_string() << "\n";
         }
+
+        // Dump initializer
+        if (exp) {
+            indent(os, i + 1);
+            os << "initializer:\n";
+            exp->dump(os, i + 2);
+        }
+    }
 
 };
 
@@ -344,6 +383,9 @@ struct IdExpr : Expr {
     std::string name;
     // NEW:
     std::shared_ptr<rex::Symbol> resolved = nullptr;
+
+    IdExpr() {}
+    IdExpr(std::string name) : name(name) {}
     void dump(std::ostream& os, int i) const override { indent(os, i); os << "id " << name << "\n"; }
 };
 
