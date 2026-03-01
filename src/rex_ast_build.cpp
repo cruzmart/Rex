@@ -104,73 +104,59 @@ antlrcpp::Any rex_ast_build::visitPrimeType(RexParser::PrimeTypeContext* ctx) {
 }
 
 antlrcpp::Any rex_ast_build::visitPrimitiveType(RexParser::PrimitiveTypeContext *ctx)  {
-    auto pt = std::make_shared<PrimType>();
-    auto type = pt->type;
-    if(ctx->BOOL())
-        pt->type = rex::Type::Bool();
-    if(ctx->INT())
-        pt->type = rex::Type::Int();
-    if(ctx->REAL())
-        pt->type = rex::Type::Real();
-    if(ctx->CHAR())
-        pt->type = rex::Type::Char();
-    if(ctx->STRING())
-        pt->type = rex::Type::String();
 
-    pt->loc = loc(ctx);
-    return std::dynamic_pointer_cast<TypeNode>(pt);
+    std::shared_ptr<PrimType> pt;
+
+    if(ctx->BOOL())
+        pt  = std::make_shared<PrimType>(rex::PrimType::Prims::Bool);
+    if(ctx->INT())
+        pt  = std::make_shared<PrimType>(rex::PrimType::Prims::Int);
+    if(ctx->REAL())
+        pt  = std::make_shared<PrimType>(rex::PrimType::Prims::Real);
+    if(ctx->CHAR())
+        pt  = std::make_shared<PrimType>(rex::PrimType::Prims::Char);
+    if(ctx->STRING())
+        pt  = std::make_shared<PrimType>(rex::PrimType::Prims::String);
+
+    return std::dynamic_pointer_cast<Type>(pt);
 
 }
 
 antlrcpp::Any rex_ast_build::visitNamedType(RexParser::NamedTypeContext* ctx) {
-    std::shared_ptr<rex::NamedType> nameType = std::make_shared<NamedType>();
-    auto name = ctx->ID()->getText();
+    std::shared_ptr<NamedType> nt = std::make_shared<NamedType>();
 
-    auto type = rex::Type::Named(name);
+    nt->alias = ctx->ID()->getText();
+    nt->fundamental_kind = rex::TypeKind::Named;
 
-    nameType->type = type;
-    nameType->loc = loc(ctx);
-
-    // we would have to find the id of this type in the symbol table to find the actual Type information, than copy that data and put it on this i think..
-    // because this only even exists if we do type def, and based on that we can put the proper information. If it is empty than it is a error..
-
-    
-    return std::dynamic_pointer_cast<TypeNode>(nameType);
+    return std::dynamic_pointer_cast<Type>(nt);
 }
 
 antlrcpp::Any rex_ast_build::visitArrayType(RexParser::ArrayTypeContext* ctx) {
-    int size = std::stoi(ctx->INT_LITERAL()->getText());
-    // get the base of the array which IS a type, but first we must make a array
-    // check if the base is a ID type first though, else we have to do something a bit differently. 
-    // we will fix this in another pass through the AST by using a symbol table.
-    auto base = std::any_cast<std::shared_ptr<TypeNode>>(visit(ctx->type())); // if it is a NamedType, than it will be empty, which is okay
-    auto arrayType = std::make_shared<ArrayType>();
-    arrayType->type = rex::Type::Array(base->type, size);
-    
-    return std::dynamic_pointer_cast<TypeNode>(arrayType);
+    auto array_size = std::stoi(ctx->INT_LITERAL()->getText());
+    auto array_type_prim = std::any_cast<std::shared_ptr<Type>>(visit(ctx->type()));
+
+    std::shared_ptr<ArrayType> at = std::make_shared<ArrayType>(array_size, array_type_prim);
+    return std::dynamic_pointer_cast<Type>(at);
 }
 
 antlrcpp::Any rex_ast_build::visitSliceType(RexParser::SliceTypeContext* ctx) { 
-    auto elem = std::any_cast<std::shared_ptr<TypeNode>>(visit(ctx->type()));
-    auto slice = std::make_shared<SliceType>();
-    auto sliceType = rex::Type::Slice(elem->type);
-    slice->type = sliceType;
-    slice->loc = loc(ctx);
-    return std::dynamic_pointer_cast<TypeNode>(slice);
+   
+    auto slice_type_prim = std::any_cast<std::shared_ptr<Type>>(visit(ctx->type()));
+    std::shared_ptr<SliceType> st = std::make_shared<SliceType>(slice_type_prim);
+  
+    return std::dynamic_pointer_cast<Type>(st);
 }
 
 antlrcpp::Any rex_ast_build::visitTupleType(RexParser::TupleTypeContext* ctx) { 
-    std::vector<std::shared_ptr<Type>> elemTypes;
-    for (auto ty : ctx->type()){
-        auto tp = std::any_cast<std::shared_ptr<TypeNode>>(visit(ty));
-        elemTypes.push_back(tp->type);
-    }
 
-    auto tupleType = std::make_shared<rex::TupleType>();
-    tupleType->type = rex::Type::Tuple(elemTypes);
-    tupleType->loc = loc(ctx);
+    std::shared_ptr<TupleType> tt = std::make_shared<TupleType>();
+    for(auto type : ctx->type()){
+        auto tp = std::any_cast<std::shared_ptr<Type>>(visit(type));
+        tt->tuple_types.push_back(tp);
+
+    }
     
-    return std::dynamic_pointer_cast<TypeNode>(tupleType);
+    return std::dynamic_pointer_cast<Type>(tt);
 }
 
 // ==================================================
@@ -179,44 +165,32 @@ antlrcpp::Any rex_ast_build::visitTupleType(RexParser::TupleTypeContext* ctx) {
 
 antlrcpp::Any rex_ast_build::visitFunctionDef(RexParser::FunctionDefContext* ctx) {
     auto fn = std::make_shared<FunctionDecl>();
-    fn->loc = loc(ctx);
-    fn->name = ctx->ID()->getText();
+    auto fn_type = std::make_shared<FunctionType>();
+    fn->func_type = fn_type;
 
-    // get the list of parameters what they are
-    if (ctx->paramList())
-        fn->params = std::any_cast<std::vector<std::shared_ptr<Parameter>>>(visit(ctx->paramList()));
-    
-    // if the  function HAS a return type else it must be void type
-    if(ctx->returnType() && ctx->returnType()->type()){
-        fn->funcReturnType = std::any_cast<std::shared_ptr<TypeNode>>(visit(ctx->returnType()->type()));
+    fn->loc = loc(ctx);
+    fn->func_name = ctx->ID()->getText();
+
+    // if it has parameters, get the list of them.
+    if (ctx->paramList()){
+        fn->parameters = std::any_cast<std::vector<std::shared_ptr<Parameter>>>(visit(ctx->paramList()));
     }
+   
+    // if the function HAS a return type else it must be void type
+    if(ctx->returnType()){
+        fn->func_type->return_type = std::any_cast<std::shared_ptr<Type>>(visit(ctx->returnType()));
+    } 
 
     fn->body = std::any_cast<std::shared_ptr<BlockExpr>>(visit(ctx->block()));
     return fn;
 }
 
 antlrcpp::Any rex_ast_build::visitParam(RexParser::ParamContext* ctx) {
-    std::shared_ptr<rex::Parameter> param = std::make_shared<rex::Parameter>();
-
-
-    auto paramName = ctx->ID()->getText();
-    param->name = paramName;
-
-
-    auto contextType = ctx->type();
-
-    if(contextType){
-        param->type = std::any_cast<std::shared_ptr<TypeNode>>(visit(contextType))->type;
-    } else {
-        param->type = rex::Type::Void();
-    }
-
-    return param;
+    return std::make_shared<Parameter>(ctx->ID()->getText(), std::any_cast<Type>(visit(ctx->type()));)
 }
 
 antlrcpp::Any rex_ast_build::visitParamList(RexParser::ParamListContext* ctx) {
    std::vector<std::shared_ptr<Parameter>> params;
-    params.reserve(ctx->param().size());
 
     for (auto p : ctx->param()) {
         params.push_back(std::any_cast<std::shared_ptr<Parameter>>(visit(p)));
@@ -246,66 +220,26 @@ antlrcpp::Any rex_ast_build::visitStatement(RexParser::StatementContext* ctx) {
 antlrcpp::Any rex_ast_build::visitLetStmt(RexParser::LetStmtContext* ctx) {
 
 
-    std::shared_ptr<LetStmts> l = std::make_shared<LetStmts>();
-
-    auto ids = ctx->pattern();
-    size_t size = ctx->pattern()->ID().size();
-    l->letStmts.reserve(size);
-
-    for(size_t s = 0; s < size; s++){
-        l->letStmts.push_back(std::make_shared<LetStmt>());   
+    auto l = std::make_shared<LetStmt>();
+    
+    for(auto name : ctx->pattern()->ID()){
+        l->variable_names.push_back(name->getText());
     }
 
-    for(size_t i = 0; i < size; i++){
-        auto id = ids->ID()[i]->getText();
-        l->letStmts[i]->variable_name = id;
-    }
-
-    // check if it is a tuple of id's but no type was given, than its fine
-
-    if(ctx->type()){
-       auto typ = std::any_cast<std::shared_ptr<TypeNode>>(visit(ctx->type()));
-
-        if(auto tup = std::dynamic_pointer_cast<TupleType>(typ)){
-            for(size_t s  = 0; s < size; s ++){
-                l->letStmts[s]->type_exp= tup->type->elements[s];
-            }
-        }  else {
-            l->letStmts[0]->type_exp = typ->type;
-        }
+    if(ctx->type()) {
+        l->type_node = std::any_cast<std::shared_ptr<Type>>(visit(ctx->type()));
     } else {
-
-         for(auto letCell : l->letStmts){
-            letCell->type_exp = rex::Type::Error();
-        }
+        l->type_node = rex::Type::Error();
     }
 
 
-    auto exprs = ctx->expr();
-    if(exprs){
-
-        // if size is equal to 1, and it is a tuple or anything else we directly add it as is
-        // if size of ids is >1, and it is a tuple we got to iterate it
-        // the rest will go through type checking of the many combos, we will have "checkLetStmt" function in a pass to see if it is properly done
-
-        auto typ_exp = std::any_cast<std::shared_ptr<Expr>>(visit(exprs));
-       
-        // if tuple
-       if(auto tup_expr = std::dynamic_pointer_cast<TupleExpr>(typ_exp)){
-
-            if(size == 1){
-                l->letStmts[0]->init_exp = typ_exp;
-            } else {
-                size_t tup_exp_size = tup_expr->elements.size();
-                    for(size_t t = 0; t < tup_exp_size; t++){
-                        l->letStmts[t]->init_exp = tup_expr->elements[t];
-                    }
-            }
-          
-       } else {
-            l->letStmts[0]->init_exp = typ_exp;
-       }
+    if(ctx->expr()){
+        l->init_exp = std::any_cast<std::shared_ptr<Expr>>(visit(ctx->expr()));
+    } else {
+        l->init_exp = nullptr;
     }
+
+    l->loc = loc(ctx);
  
     return std::dynamic_pointer_cast<Stmt>(l);
 }
