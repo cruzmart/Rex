@@ -59,7 +59,7 @@ antlrcpp::Any build_binary_expr(rex_ast_build* self, Ctx* ctx) {
     size_t op = ctx->op->getType();
     bin->loc = self->loc(ctx);
     bin->operation = operationType(op);
-    bin->type = rex::Type::Error();
+    bin->type = std::make_shared<Type>(rex::TypeKind::Error);
     bin->lhs = std::any_cast<std::shared_ptr<Expr>>(self->visit(ctx->expr(0)));
     bin->rhs = std::any_cast<std::shared_ptr<Expr>>(self->visit(ctx->expr(1)));
     return std::dynamic_pointer_cast<Expr>(bin);
@@ -89,12 +89,9 @@ antlrcpp::Any rex_ast_build::visitItem(RexParser::ItemContext* ctx) {
 
 antlrcpp::Any rex_ast_build::visitTypeDef(RexParser::TypeDefContext* ctx) {
     auto td = std::make_shared<TypeDecl>();
-    auto alias_name = ctx->ID()->getText();
-    auto line_location = loc(ctx);
-
-    td->loc = line_location;
-    td->type = std::any_cast<std::shared_ptr<TypeNode>>(visit(ctx->type()))->type;
-    td->type->alias = alias_name;
+    td->name = ctx->ID()->getText();
+    td->loc = loc(ctx);
+    td->type = std::any_cast<std::shared_ptr<Type>>(visit(ctx->type()));
 
     return std::dynamic_pointer_cast<TypeNode>(td);
 }
@@ -135,7 +132,7 @@ antlrcpp::Any rex_ast_build::visitArrayType(RexParser::ArrayTypeContext* ctx) {
     auto array_size = std::stoi(ctx->INT_LITERAL()->getText());
     auto array_type_prim = std::any_cast<std::shared_ptr<Type>>(visit(ctx->type()));
 
-    std::shared_ptr<ArrayType> at = std::make_shared<ArrayType>(array_size, array_type_prim);
+    std::shared_ptr<ArrayType> at = std::make_shared<ArrayType>(array_type_prim, array_size);
     return std::dynamic_pointer_cast<Type>(at);
 }
 
@@ -186,7 +183,7 @@ antlrcpp::Any rex_ast_build::visitFunctionDef(RexParser::FunctionDefContext* ctx
 }
 
 antlrcpp::Any rex_ast_build::visitParam(RexParser::ParamContext* ctx) {
-    return std::make_shared<Parameter>(ctx->ID()->getText(), std::any_cast<Type>(visit(ctx->type()));)
+    return std::make_shared<Parameter>(ctx->ID()->getText(), std::any_cast<std::shared_ptr<Type>>(visit(ctx->type())));
 }
 
 antlrcpp::Any rex_ast_build::visitParamList(RexParser::ParamListContext* ctx) {
@@ -217,27 +214,29 @@ antlrcpp::Any rex_ast_build::visitStatement(RexParser::StatementContext* ctx) {
     throw std::runtime_error("Unknown statement type");
 }
 
+antlrcpp::Any rex_ast_build::visitPattern(RexParser::PatternContext* ctx) {
+    if(ctx->ID().size() > 1){
+        auto pattern_ids = std::make_shared<PatternIds>();
+        for(auto id : ctx->ID()){
+            pattern_ids->ids.push_back(id->getText());
+        }
+        return std::dynamic_pointer_cast<Pattern>(pattern_ids);
+    } else {
+        auto pattern_id = std::make_shared<PatternId>(ctx->ID()[0]->getText());
+        return std::dynamic_pointer_cast<Pattern>(pattern_id);
+    }
+
+}
+
 antlrcpp::Any rex_ast_build::visitLetStmt(RexParser::LetStmtContext* ctx) {
 
-
     auto l = std::make_shared<LetStmt>();
-    
-    for(auto name : ctx->pattern()->ID()){
-        l->variable_names.push_back(name->getText());
-    }
 
-    if(ctx->type()) {
-        l->type_node = std::any_cast<std::shared_ptr<Type>>(visit(ctx->type()));
-    } else {
-        l->type_node = rex::Type::Error();
-    }
-
-
-    if(ctx->expr()){
-        l->init_exp = std::any_cast<std::shared_ptr<Expr>>(visit(ctx->expr()));
-    } else {
-        l->init_exp = nullptr;
-    }
+    l->id_pattern = std::any_cast<std::shared_ptr<Pattern>>(visit(ctx->pattern()));
+    if(ctx->expr())
+        l->type = std::any_cast<std::shared_ptr<Type>>(visit(ctx->type()));
+    if(ctx->expr())
+        l->exp = std::any_cast<std::shared_ptr<Expr>>(visit(ctx->expr()));
 
     l->loc = loc(ctx);
  
@@ -337,10 +336,9 @@ antlrcpp::Any rex_ast_build::visitBlock(RexParser::BlockContext* ctx) {
 
 antlrcpp::Any rex_ast_build::visitIdExpr(RexParser::IdExprContext* ctx) {
 
-    auto id = std::make_shared<IdExpr>();
+    auto id = std::make_shared<IdExpr>(ctx->ID()->getText());
     id->loc = loc(ctx);
-    id->name = ctx->ID()->getText();
-    id->type = rex::Type::Error();
+    id->type = std::make_shared<Type>(rex::TypeKind::Error);
 
     // Note when we do type checking, we will use the resolver in order to populate the ID Expr.
     return std::dynamic_pointer_cast<Expr>(id);
@@ -352,23 +350,20 @@ antlrcpp::Any rex_ast_build::visitLiteralExpr(RexParser::LiteralExprContext* ctx
 
 antlrcpp::Any rex_ast_build::visitLiteral(RexParser::LiteralContext* ctx) {
     auto lit = std::make_shared<LiteralExpr>();
-    auto textValue = ctx->getText();
-    std::shared_ptr<Type> type;
-   
+    lit->value = ctx->getText();
+
     if(ctx->INT_LITERAL())
-        type = rex::Type::Int();
+        lit->type = std::make_shared<PrimType>(rex::PrimType::Prims::Int);
     if(ctx->REAL_LITERAL())
-        type = rex::Type::Real();
+       lit->type = std::make_shared<PrimType>(rex::PrimType::Prims::Real);
     if(ctx->STRING_LITERAL())
-        type = rex::Type::String();
+        lit->type = std::make_shared<PrimType>(rex::PrimType::Prims::String);
     if(ctx->CHAR_LITERAL())
-        type = rex::Type::Char();
+        lit->type = std::make_shared<PrimType>(rex::PrimType::Prims::Char);
     if(ctx->TRUE() || ctx->FALSE())
-        type = rex::Type::Bool();
+        std::make_shared<PrimType>(rex::PrimType::Prims::Bool);
 
     lit->loc = loc(ctx);
-    lit->value = textValue;
-    lit->type = type;
     
     return std::dynamic_pointer_cast<Expr>(lit);
 }
@@ -387,7 +382,7 @@ antlrcpp::Any rex_ast_build::visitPipeExpr(RexParser::PipeExprContext* ctx) {
     pip->operation = BinaryOp::PIPE;
     pip->lhs = std::any_cast<std::shared_ptr<Expr>>(visit(ctx->expr(0)));
     pip->rhs = std::any_cast<std::shared_ptr<Expr>>(visit(ctx->expr(1)));
-    pip->type = rex::Type::Error();
+    pip->type = std::make_shared<PipeType>(pip->lhs->type, pip->rhs->type);
     return std::dynamic_pointer_cast<Expr>(pip);
 }
 
@@ -397,7 +392,7 @@ antlrcpp::Any rex_ast_build::visitRangeExpr(RexParser::RangeExprContext* ctx) {
     rng->operation = BinaryOp::RANGE;
     rng->lhs = std::any_cast<std::shared_ptr<Expr>>(visit(ctx->expr(0)));
     rng->rhs = std::any_cast<std::shared_ptr<Expr>>(visit(ctx->expr(1)));
-    rng->type = rex::Type::Error();
+    rng->type =  std::make_shared<RangeType>(rng->lhs->type, rng->rhs->type);
     return std::dynamic_pointer_cast<Expr>(rng);
 }
 
@@ -407,7 +402,7 @@ antlrcpp::Any rex_ast_build::visitIndexExpr(RexParser::IndexExprContext* ctx) {
     idx->loc = loc(ctx);
     idx->base = std::any_cast<std::shared_ptr<Expr>>(visit(ctx->expr(0)));
     idx->index = std::any_cast<std::shared_ptr<Expr>>(visit(ctx->expr(1)));
-    idx->type = rex::Type::Error();
+    idx->type = std::make_shared<Type>(rex::TypeKind::Error);
     return std::dynamic_pointer_cast<Expr>(idx);
 }
 
@@ -416,7 +411,7 @@ antlrcpp::Any rex_ast_build::visitTupleExpr(RexParser::TupleExprContext* ctx) {
     t->loc = loc(ctx);
     for (auto e : ctx->expr())
         t->elements.push_back(std::any_cast<std::shared_ptr<Expr>>(visit(e)));
-    t->type = rex::Type::Error();
+    t->type = std::make_shared<Type>(rex::TypeKind::Error);
     return std::dynamic_pointer_cast<Expr>(t);
 }
 
@@ -425,7 +420,7 @@ antlrcpp::Any rex_ast_build::visitArrayExpr(RexParser::ArrayExprContext *ctx) {
     a->loc = loc(ctx);
     for (auto l : ctx->expr())
         a->elements.push_back(std::any_cast<std::shared_ptr<Expr>>(visit(l)));
-    a->type = rex::Type::Error();
+    a->type = std::make_shared<Type>(rex::TypeKind::Error);
     return std::dynamic_pointer_cast<Expr>(a);
 }
 
@@ -437,7 +432,7 @@ antlrcpp::Any rex_ast_build::visitCallExpr(RexParser::CallExprContext* ctx) {
         for (auto e : ctx->argList()->expr())
             call->args.push_back(std::any_cast<std::shared_ptr<Expr>>(visit(e)));
     }
-    call->type = rex::Type::Error();
+    call->type = std::make_shared<Type>(rex::TypeKind::Error);
     return std::dynamic_pointer_cast<Expr>(call);
 }
 
@@ -449,6 +444,6 @@ antlrcpp::Any rex_ast_build::visitUnaryExpr(RexParser::UnaryExprContext *ctx) {
     auto unary_exp = std::make_shared<UnaryExpr>();
     unary_exp->operation = ctx->op->getText() == "-" ? UniOp::NEG : UniOp::POS;
     unary_exp->rhs = std::any_cast<std::shared_ptr<Expr>>(visit(ctx->expr()));
-    unary_exp->type = rex::Type::Error();
+    unary_exp->type = std::make_shared<Type>(rex::TypeKind::Error);
     return std::dynamic_pointer_cast<Expr>(unary_exp);
 }

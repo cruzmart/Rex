@@ -35,6 +35,7 @@ private:
     // --------------------- STATEMENTS ---------------------
     virtual antlrcpp::Any visitStatement(RexParser::StatementContext *ctx) override;
     virtual antlrcpp::Any visitLetStmt(RexParser::LetStmtContext *ctx) override;
+    virtual antlrcpp::Any visitPattern(RexParser::PatternContext *ctx) override;
     virtual antlrcpp::Any visitReturnStmt(RexParser::ReturnStmtContext *ctx) override;
     virtual antlrcpp::Any visitExprStmt(RexParser::ExprStmtContext *ctx) override;
     virtual antlrcpp::Any visitAssignStmt(RexParser::AssignStmtContext *ctx) override;
