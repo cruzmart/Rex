@@ -45,6 +45,7 @@ struct Type {
     // ----------------------
     Type() : fundamental_kind(TypeKind::Error) {}               // default constructor
     explicit Type(TypeKind k) : fundamental_kind(k) {}         // kind-only constructor
+    virtual ~Type() = default;  // <--- makes Type polymorphic
 
     // ----------------------
     // Debug / printing
@@ -56,7 +57,7 @@ struct Type {
             case TypeKind::Range:  return "Range";
             case TypeKind::Error:  return "<error>";
             case TypeKind::Function: return "Function";
-            case TypeKind::Slice:  return "Slice_Array";
+            case TypeKind::Slice:  return "Slice";
             case TypeKind::Array:  return "Array";
             case TypeKind::Tuple:  return "Tuple";
             case TypeKind::Named: return "Named";

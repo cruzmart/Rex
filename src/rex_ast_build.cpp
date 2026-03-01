@@ -62,6 +62,7 @@ antlrcpp::Any build_binary_expr(rex_ast_build* self, Ctx* ctx) {
     bin->type = std::make_shared<Type>(rex::TypeKind::Error);
     bin->lhs = std::any_cast<std::shared_ptr<Expr>>(self->visit(ctx->expr(0)));
     bin->rhs = std::any_cast<std::shared_ptr<Expr>>(self->visit(ctx->expr(1)));
+
     return std::dynamic_pointer_cast<Expr>(bin);
 }
 
@@ -93,7 +94,7 @@ antlrcpp::Any rex_ast_build::visitTypeDef(RexParser::TypeDefContext* ctx) {
     td->loc = loc(ctx);
     td->type = std::any_cast<std::shared_ptr<Type>>(visit(ctx->type()));
 
-    return std::dynamic_pointer_cast<TypeNode>(td);
+    return std::dynamic_pointer_cast<Stmt>(td);
 }
 
 antlrcpp::Any rex_ast_build::visitPrimeType(RexParser::PrimeTypeContext* ctx) { 
@@ -233,7 +234,7 @@ antlrcpp::Any rex_ast_build::visitLetStmt(RexParser::LetStmtContext* ctx) {
     auto l = std::make_shared<LetStmt>();
 
     l->id_pattern = std::any_cast<std::shared_ptr<Pattern>>(visit(ctx->pattern()));
-    if(ctx->expr())
+    if(ctx->type())
         l->type = std::any_cast<std::shared_ptr<Type>>(visit(ctx->type()));
     if(ctx->expr())
         l->exp = std::any_cast<std::shared_ptr<Expr>>(visit(ctx->expr()));
@@ -361,7 +362,7 @@ antlrcpp::Any rex_ast_build::visitLiteral(RexParser::LiteralContext* ctx) {
     if(ctx->CHAR_LITERAL())
         lit->type = std::make_shared<PrimType>(rex::PrimType::Prims::Char);
     if(ctx->TRUE() || ctx->FALSE())
-        std::make_shared<PrimType>(rex::PrimType::Prims::Bool);
+        lit->type = std::make_shared<PrimType>(rex::PrimType::Prims::Bool);
 
     lit->loc = loc(ctx);
     
