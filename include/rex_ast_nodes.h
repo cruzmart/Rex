@@ -239,8 +239,21 @@ struct Parameter : AstNode {
     Parameter() :para_name("") , para_type(std::make_shared<Type>()) {}
     Parameter(std::string name, std::shared_ptr<Type> type) : para_name(name), para_type(type) {}
 
-     void dump(std::ostream& os, int i) const override {
-            indent(os, i);
+   void dump(std::ostream& os, int i) const override {
+        indent(os, i);
+        os << "param " << para_name;
+
+        if (para_type) {
+            os << " : " << para_type->to_string();
+        } else {
+            os << " : <unknown type>";
+        }
+
+        if (resolved) {
+            os << " [resolved]";
+        }
+
+        os << "\n";
     }
 };
 
@@ -253,7 +266,31 @@ struct FunctionDecl : AstNode {
     // NEW:
     std::shared_ptr<rex::Symbol> resolved = nullptr;
 
-    void dump(std::ostream& os, int i) const override {}
+     void dump(std::ostream& os, int i) const override {
+        indent(os, i);
+        os << "function " << func_name;
+        if (func_type && func_type->return_type) {
+            os << " -> " << func_type->return_type->to_string();
+        }
+        if (resolved) os << " [resolved]";
+        os << "\n";
+
+        // Parameters
+        if (!parameters.empty()) {
+            indent(os, i + 1);
+            os << "parameters:\n";
+            for (auto& p : parameters) {
+                if (p) p->dump(os, i + 2);
+            }
+        }
+
+        // Function body
+        if (body) {
+            indent(os, i + 1);
+            os << "body:\n";
+            body->dump(os, i + 2);
+        }
+    }
 };
 
 // ---------------------- STATEMENTS --------------------
