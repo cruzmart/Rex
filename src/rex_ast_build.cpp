@@ -1,8 +1,13 @@
-#include "rex_ast_build.h"
+
 #include "RexParser.h"
-#include "rex_ast.h"
+#include "rex_ast_build.h"
 #include "rex_ast_nodes.h"
+#include "rex_ast.h"
+#include "rex_ops.h"
+#include "rex_stmts.h"
 #include "rex_types.h"
+#include "rex_funcs.h"
+#include "rex_exps.h"
 #include <any>
 #include <cstddef>
 #include <memory>
@@ -30,7 +35,6 @@ static std::shared_ptr<AstNode> as_ast_node(const antlrcpp::Any& a) {
     if (auto r = try_cast_ast<Stmt>(a)) return r;
     if (auto r = try_cast_ast<TypeDecl>(a)) return r;
     if (auto r = try_cast_ast<FunctionDecl>(a)) return r;
-    if (auto r = try_cast_ast<TypeNode>(a)) return r;
     throw std::runtime_error("Unknown item type in as_ast_node");
 }
 
@@ -337,7 +341,8 @@ antlrcpp::Any rex_ast_build::visitBlock(RexParser::BlockContext* ctx) {
 
 antlrcpp::Any rex_ast_build::visitIdExpr(RexParser::IdExprContext* ctx) {
 
-    auto id = std::make_shared<IdExpr>(ctx->ID()->getText());
+    auto id = std::make_shared<IdExpr>();
+    id->name = ctx->ID()->getText();
     id->loc = loc(ctx);
     id->type = std::make_shared<Type>(rex::TypeKind::Error);
 

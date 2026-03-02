@@ -1,11 +1,23 @@
 #pragma once
-
+#include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
-#include <iostream>
+
+
 
 namespace rex {
+
+struct TypeNode;
+struct PrimType;
+struct NamedType;
+struct ArrayType;
+struct SliceType;
+struct TupleType;
+struct RangeType;
+struct PipeType;
+struct FunctionType;
+
 
 // -------------------------------------------------
 // Type kinds supported by Rex
@@ -46,6 +58,7 @@ struct Type {
     Type() : fundamental_kind(TypeKind::Error) {}               // default constructor
     explicit Type(TypeKind k) : fundamental_kind(k) {}         // kind-only constructor
     virtual ~Type() = default;  // <--- makes Type polymorphic
+    
 
     // ----------------------
     // Debug / printing
@@ -66,6 +79,100 @@ struct Type {
         }
         return "<?>";
     }
+
+      // NEW
+    virtual bool equals(const std::shared_ptr<Type> other) const {
+        return fundamental_kind == other->fundamental_kind;
+    }
+};
+
+// ---------------------- TYPES --------------------------
+
+struct NamedType : Type {
+    // type alias
+    std::string alias;
+
+    NamedType() : Type(TypeKind::Named) {}
+    NamedType(std::string name) : Type(TypeKind::Named), alias(name){}
+};
+
+struct ArrayType : Type {
+
+    // For Array / Slice
+    std::shared_ptr<Type> array_type; 
+    int size = -1;   
+
+    ArrayType() : Type(TypeKind::Array), array_type(std::make_shared<Type>()){}       
+    ArrayType(std::shared_ptr<Type> elem, int sz) : Type(TypeKind::Array), array_type(elem), size(sz) {}
+
+};
+
+struct SliceType : Type {
+     // For Array / Slice
+    std::shared_ptr<Type> slice_type;
+
+    SliceType() : Type(TypeKind::Slice), slice_type(std::make_shared<Type>()) {}       
+    SliceType(std::shared_ptr<Type> elem) : Type(TypeKind::Slice), slice_type(elem) {}
+};
+
+struct RangeType : Type {
+    std::shared_ptr<Type> lower_type;
+    std::shared_ptr<Type> upper_type;
+
+    RangeType() : Type(TypeKind::Range), lower_type(std::make_shared<Type>()), upper_type(std::make_shared<Type>()) {}
+    RangeType(std::shared_ptr<Type> l, std::shared_ptr<Type> u) : Type(TypeKind::Range), lower_type(l), upper_type(u) {}
+};
+
+struct PipeType : Type {
+    std::shared_ptr<Type> func_left_type;
+    std::shared_ptr<Type> func_right_type;
+
+    PipeType() : Type(TypeKind::Pipe) {}
+    PipeType(std::shared_ptr<Type> l, std::shared_ptr<Type> u) : Type(TypeKind::Pipe),func_left_type(l), func_right_type(u) {}
+};
+
+struct TupleType : Type {
+
+     // For Tuple
+    std::vector<std::shared_ptr<Type>> tuple_types;
+
+    TupleType() : Type(TypeKind::Tuple) {}
+
+};
+struct PrimType  : Type {
+    enum class Prims { 
+    Int,
+    Bool,
+    Char,
+    Real,
+    String};
+
+    Prims prim_type;
+
+    PrimType(Prims d) : Type(TypeKind::Primitive), prim_type(d) {}
+    PrimType() : Type(TypeKind::Primitive) {}
+
+    std::string prim_to_string(){
+        switch(prim_type){
+            case Prims::Int: return "Int";
+            case Prims::Bool: return "Bool";
+            case Prims::Char: return "Char";
+            case Prims::Real: return "Real";
+            case Prims::String: return "String";
+            default:
+                return "<?>";
+        }
+    }
+};
+
+struct FunctionType : Type {
+    std::vector<std::shared_ptr<Type>> params_type;
+    std::shared_ptr<Type> return_type;
+
+    FunctionType() : Type(TypeKind::Function) {}
+
+    FunctionType(std::vector<std::shared_ptr<Type>> params, std::shared_ptr<Type> ret)
+        : Type(TypeKind::Function), params_type(std::move(params)), return_type(ret) {}
 };
 
 using type_ptr = std::shared_ptr<Type>;

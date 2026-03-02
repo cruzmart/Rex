@@ -3,6 +3,8 @@
 #include <memory>
 #include "rex_ast.h"
 #include "rex_types.h"
+#include "rex_exps.h"
+#include "rex_ops.h"
 
 
 namespace rex {
