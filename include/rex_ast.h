@@ -4,8 +4,7 @@
 
 namespace rex {
 
-struct Type;
-struct TypeNode;
+// struct Type;
 struct AstNode;
 
 inline void indent(std::ostream& os, int n) {
