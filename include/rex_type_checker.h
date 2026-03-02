@@ -7,6 +7,12 @@
 #include "rex_scope.h"
 #include "rex_ast_nodes.h"
 
+#include "rex_exps.h"
+#include "rex_stmts.h"
+#include "rex_funcs.h"
+#include "rex_ops.h"
+
+
 namespace rex {
 
 struct TypeChecker {
@@ -20,10 +26,6 @@ struct TypeChecker {
     TypeChecker(std::shared_ptr<Scope> g);
 
 private:
-
-    // Visitor
-    void visit(std::shared_ptr<FileAst> file);
-
 
     // ---- Expressions ----
     type_ptr check_expr(std::shared_ptr<Expr> e);
