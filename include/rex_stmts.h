@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 #include "rex_ast.h"
-#include "rex_types.h" // or whatever header defines struct Type
+#include "rex_types.h" 
 
 
 namespace rex {

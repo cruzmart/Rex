@@ -8,7 +8,6 @@
 
 namespace rex {
 
-struct TypeNode;
 struct PrimType;
 struct NamedType;
 struct ArrayType;
