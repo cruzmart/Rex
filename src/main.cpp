@@ -34,6 +34,8 @@ int main() {
 
     ast->dump(std::cout, 0);
 
+    // 
+
     // Type Checking Pass
     // auto global_scope = std::make_shared<Scope>();
     // TypeChecker type_pass(global_scope);
