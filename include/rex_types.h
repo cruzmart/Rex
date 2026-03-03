@@ -90,9 +90,11 @@ struct Type {
 struct NamedType : Type {
     // type alias
     std::string alias;
+    std::shared_ptr<Type> actual_type;
 
     NamedType() : Type(TypeKind::Named) {}
     NamedType(std::string name) : Type(TypeKind::Named), alias(name){}
+    NamedType(std::string name, std::shared_ptr<Type> real_type) : Type(TypeKind::Named), alias(name), actual_type(real_type) {} 
 };
 
 struct ArrayType : Type {
@@ -104,6 +106,15 @@ struct ArrayType : Type {
     ArrayType() : Type(TypeKind::Array), array_type(std::make_shared<Type>()){}       
     ArrayType(std::shared_ptr<Type> elem, int sz) : Type(TypeKind::Array), array_type(elem), size(sz) {}
 
+    bool equals(const std::shared_ptr<Type> other) const override {
+        if (fundamental_kind != other->fundamental_kind) return false;
+
+        auto o = std::dynamic_pointer_cast<ArrayType>(other);
+        if (!o) return false;
+
+        return array_type->equals(o->array_type);
+    }
+
 };
 
 struct SliceType : Type {
@@ -112,6 +123,15 @@ struct SliceType : Type {
 
     SliceType() : Type(TypeKind::Slice), slice_type(std::make_shared<Type>()) {}       
     SliceType(std::shared_ptr<Type> elem) : Type(TypeKind::Slice), slice_type(elem) {}
+
+    bool equals(const std::shared_ptr<Type> other) const override {
+        if (fundamental_kind != other->fundamental_kind) return false;
+
+        auto o = std::dynamic_pointer_cast<SliceType>(other);
+        if (!o) return false;
+
+        return slice_type->equals(o->slice_type);
+    }
 };
 
 struct RangeType : Type {

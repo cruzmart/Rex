@@ -2,19 +2,19 @@
 #include <map>
 #include <string>
 #include <memory>
-#include "rex_symbol.h"
 
 namespace rex {
 
+struct Symbol;
+
 struct Scope : std::enable_shared_from_this<Scope> {
     std::shared_ptr<Scope> parent;
-    std::map<std::string, std::shared_ptr<Symbol>> table;
-    bool debug = false;
+    std::map<std::string, std::shared_ptr<Symbol>> symbols;
 
-    explicit Scope(std::shared_ptr<Scope> p = nullptr);
+    explicit Scope(std::shared_ptr<Scope> parent = nullptr);
 
-    void define(std::shared_ptr<Symbol> sym);
-    std::shared_ptr<Symbol> resolve(const std::string& n);
+    void define(const std::shared_ptr<Symbol>& sym);
+    std::shared_ptr<Symbol> resolve(const std::string& name);
 
     std::shared_ptr<Scope> push();
 };

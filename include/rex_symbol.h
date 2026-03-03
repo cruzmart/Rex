@@ -1,17 +1,15 @@
 #pragma once
-#include <string>
 #include <memory>
-#include "rex_ast.h"
-#include "rex_types.h"
-#include "rex_exps.h"
-#include "rex_ops.h"
-
+#include <string>
 
 namespace rex {
 
+struct Type;
+struct Expr;
+
 // ------------------ SYMBOL KIND -------------------
 
-enum class SymbolType{
+enum class SymbolType {
     variable,
     function,
     typealias
@@ -20,17 +18,17 @@ enum class SymbolType{
 // ------------------ SYMBOL -----------------------
 
 struct Symbol {
-    SymbolType symbol_type;          // store wether it is a variable (let stmt), function, or type alias 
-    std::string name;                // Store the name of the variable, type alias, or 
-    std::shared_ptr<rex::Type> type; // Will have all of the type information
-    // to preserve the exp value (could be a binary, array, tuple, index, and etc expression. We would have to dynamic cast). 
-    // I will prob not use this because the AST will hold i
-    std::shared_ptr<rex::Expr> exp;  
+    SymbolType kind;
+    std::string name;
 
+    // type: shared_type information
+    std::shared_ptr<Type> type;
 
+    // optional expression (initializer or function body)
+    std::shared_ptr<Expr> expr;
 
-    explicit Symbol(SymbolType k, std::string n)
-        : symbol_type(k), name(std::move(n)) {}
+    Symbol(SymbolType k, std::string n)
+        : kind(k), name(std::move(n)) {}
 };
 
 } // namespace rex

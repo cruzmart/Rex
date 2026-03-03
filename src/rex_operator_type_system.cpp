@@ -30,8 +30,11 @@ bool OperatorTypeSystem::is_bool(type_ptr T) {
 }
 
 bool OperatorTypeSystem::is_array(type_ptr T) {
-    return std::dynamic_pointer_cast<ArrayType>(T) != nullptr ||
-           std::dynamic_pointer_cast<SliceType>(T) != nullptr;
+    return std::dynamic_pointer_cast<ArrayType>(T) != nullptr;
+}
+
+bool OperatorTypeSystem::is_slice(type_ptr T){
+    return std::dynamic_pointer_cast<SliceType>(T) != nullptr;   
 }
 
 bool OperatorTypeSystem::is_tuple(type_ptr T) {

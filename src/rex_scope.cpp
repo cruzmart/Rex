@@ -1,4 +1,5 @@
 #include "rex_scope.h"
+#include "rex_symbol.h"
 #include <stdexcept>
 
 namespace rex {
@@ -6,20 +7,20 @@ namespace rex {
 Scope::Scope(std::shared_ptr<Scope> p)
     : parent(std::move(p)) {}
 
-void Scope::define(const std::shared_ptr<Symbol> sym) {
-    const auto& name = sym->name;
+void Scope::define(const std::shared_ptr<Symbol>& sym) {
+    const std::string& name = sym->name;
 
-    // Optional safety check:
-    if (table.find(name) != table.end()) {
-        throw std::runtime_error("Symbol '" + name + "' already defined in this scope.");
+    if (symbols.count(name)) {
+        throw std::runtime_error(
+            "Redefinition of symbol '" + name + "' in this scope");
     }
 
-    table[name] = sym;
+    symbols[name] = sym;
 }
 
 std::shared_ptr<Symbol> Scope::resolve(const std::string& name) {
-    auto it = table.find(name);
-    if (it != table.end()) {
+    auto it = symbols.find(name);
+    if (it != symbols.end()) {
         return it->second;
     }
     if (parent) {
@@ -29,7 +30,6 @@ std::shared_ptr<Symbol> Scope::resolve(const std::string& name) {
 }
 
 std::shared_ptr<Scope> Scope::push() {
-    // child scope whose parent is this scope
     return std::make_shared<Scope>(shared_from_this());
 }
 

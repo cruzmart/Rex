@@ -125,11 +125,7 @@ antlrcpp::Any rex_ast_build::visitPrimitiveType(RexParser::PrimitiveTypeContext 
 }
 
 antlrcpp::Any rex_ast_build::visitNamedType(RexParser::NamedTypeContext* ctx) {
-    std::shared_ptr<NamedType> nt = std::make_shared<NamedType>();
-
-    nt->alias = ctx->ID()->getText();
-    nt->fundamental_kind = rex::TypeKind::Named;
-
+    std::shared_ptr<NamedType> nt = std::make_shared<NamedType>(ctx->ID()->getText());
     return std::dynamic_pointer_cast<Type>(nt);
 }
 
