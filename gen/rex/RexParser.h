@@ -309,6 +309,7 @@ public:
     IfStmtContext *ifStmt();
     LoopStmtContext *loopStmt();
     ExprStmtContext *exprStmt();
+    TypeDefContext *typeDef();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;

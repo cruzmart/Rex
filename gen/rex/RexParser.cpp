@@ -78,7 +78,7 @@ void rexParserInitialize() {
     }
   );
   static const int32_t serializedATNSegment[] = {
-  	4,1,53,298,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
+  	4,1,53,299,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
   	7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,2,13,7,13,2,14,7,
   	14,2,15,7,15,2,16,7,16,2,17,7,17,2,18,7,18,2,19,7,19,2,20,7,20,2,21,7,
   	21,2,22,7,22,1,0,5,0,48,8,0,10,0,12,0,51,9,0,1,0,1,0,1,1,1,1,1,1,3,1,
@@ -86,28 +86,28 @@ void rexParserInitialize() {
   	11,3,12,3,74,1,3,1,3,3,3,79,8,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,5,3,88,8,
   	3,10,3,12,3,91,9,3,1,4,1,4,1,5,1,5,1,5,1,5,3,5,99,8,5,1,5,1,5,3,5,103,
   	8,5,1,5,1,5,1,6,1,6,1,6,5,6,110,8,6,10,6,12,6,113,9,6,1,7,3,7,116,8,7,
-  	1,7,1,7,1,7,1,7,1,8,1,8,1,8,1,9,1,9,1,9,1,9,1,9,1,9,3,9,131,8,9,1,10,
-  	1,10,1,10,1,10,3,10,137,8,10,1,10,1,10,1,10,1,10,1,11,1,11,1,11,1,11,
-  	1,11,1,12,1,12,3,12,150,8,12,1,12,1,12,1,13,1,13,1,13,1,14,1,14,1,14,
-  	1,14,3,14,161,8,14,1,14,3,14,164,8,14,1,15,1,15,1,15,1,15,4,15,170,8,
-  	15,11,15,12,15,171,1,16,1,16,1,16,1,17,1,17,1,17,1,17,1,17,4,17,182,8,
-  	17,11,17,12,17,183,1,17,3,17,187,8,17,1,18,1,18,1,18,1,18,1,18,1,18,1,
-  	18,1,18,1,18,1,18,1,18,1,18,3,18,201,8,18,1,19,1,19,5,19,205,8,19,10,
-  	19,12,19,208,9,19,1,19,3,19,211,8,19,1,19,1,19,1,20,1,20,1,20,1,20,1,
-  	20,1,20,1,20,1,20,1,20,1,20,1,20,4,20,226,8,20,11,20,12,20,227,1,20,1,
-  	20,1,20,1,20,1,20,1,20,5,20,236,8,20,10,20,12,20,239,9,20,3,20,241,8,
-  	20,1,20,1,20,1,20,1,20,3,20,247,8,20,1,20,1,20,1,20,3,20,252,8,20,1,20,
+  	1,7,1,7,1,7,1,7,1,8,1,8,1,8,1,9,1,9,1,9,1,9,1,9,1,9,1,9,3,9,132,8,9,1,
+  	10,1,10,1,10,1,10,3,10,138,8,10,1,10,1,10,1,10,1,10,1,11,1,11,1,11,1,
+  	11,1,11,1,12,1,12,3,12,151,8,12,1,12,1,12,1,13,1,13,1,13,1,14,1,14,1,
+  	14,1,14,3,14,162,8,14,1,14,3,14,165,8,14,1,15,1,15,1,15,1,15,4,15,171,
+  	8,15,11,15,12,15,172,1,16,1,16,1,16,1,17,1,17,1,17,1,17,1,17,4,17,183,
+  	8,17,11,17,12,17,184,1,17,3,17,188,8,17,1,18,1,18,1,18,1,18,1,18,1,18,
+  	1,18,1,18,1,18,1,18,1,18,1,18,3,18,202,8,18,1,19,1,19,5,19,206,8,19,10,
+  	19,12,19,209,9,19,1,19,3,19,212,8,19,1,19,1,19,1,20,1,20,1,20,1,20,1,
+  	20,1,20,1,20,1,20,1,20,1,20,1,20,4,20,227,8,20,11,20,12,20,228,1,20,1,
+  	20,1,20,1,20,1,20,1,20,5,20,237,8,20,10,20,12,20,240,9,20,3,20,242,8,
+  	20,1,20,1,20,1,20,1,20,3,20,248,8,20,1,20,1,20,1,20,3,20,253,8,20,1,20,
   	1,20,1,20,1,20,1,20,1,20,1,20,1,20,1,20,1,20,1,20,1,20,1,20,1,20,1,20,
   	1,20,1,20,1,20,1,20,1,20,1,20,1,20,1,20,1,20,1,20,1,20,1,20,1,20,1,20,
-  	5,20,283,8,20,10,20,12,20,286,9,20,1,21,1,21,1,21,5,21,291,8,21,10,21,
-  	12,21,294,9,21,1,22,1,22,1,22,0,2,6,40,23,0,2,4,6,8,10,12,14,16,18,20,
+  	5,20,284,8,20,10,20,12,20,287,9,20,1,21,1,21,1,21,5,21,292,8,21,10,21,
+  	12,21,295,9,21,1,22,1,22,1,22,0,2,6,40,23,0,2,4,6,8,10,12,14,16,18,20,
   	22,24,26,28,30,32,34,36,38,40,42,44,0,6,1,0,13,17,1,0,31,32,1,0,33,35,
-  	1,0,27,30,1,0,25,26,2,0,18,19,47,50,322,0,49,1,0,0,0,2,57,1,0,0,0,4,59,
+  	1,0,27,30,1,0,25,26,2,0,18,19,47,50,324,0,49,1,0,0,0,2,57,1,0,0,0,4,59,
   	1,0,0,0,6,78,1,0,0,0,8,92,1,0,0,0,10,94,1,0,0,0,12,106,1,0,0,0,14,115,
-  	1,0,0,0,16,121,1,0,0,0,18,130,1,0,0,0,20,132,1,0,0,0,22,142,1,0,0,0,24,
-  	147,1,0,0,0,26,153,1,0,0,0,28,156,1,0,0,0,30,169,1,0,0,0,32,173,1,0,0,
-  	0,34,186,1,0,0,0,36,200,1,0,0,0,38,202,1,0,0,0,40,251,1,0,0,0,42,287,
-  	1,0,0,0,44,295,1,0,0,0,46,48,3,2,1,0,47,46,1,0,0,0,48,51,1,0,0,0,49,47,
+  	1,0,0,0,16,121,1,0,0,0,18,131,1,0,0,0,20,133,1,0,0,0,22,143,1,0,0,0,24,
+  	148,1,0,0,0,26,154,1,0,0,0,28,157,1,0,0,0,30,170,1,0,0,0,32,174,1,0,0,
+  	0,34,187,1,0,0,0,36,201,1,0,0,0,38,203,1,0,0,0,40,252,1,0,0,0,42,288,
+  	1,0,0,0,44,296,1,0,0,0,46,48,3,2,1,0,47,46,1,0,0,0,48,51,1,0,0,0,49,47,
   	1,0,0,0,49,50,1,0,0,0,50,52,1,0,0,0,51,49,1,0,0,0,52,53,5,0,0,1,53,1,
   	1,0,0,0,54,58,3,10,5,0,55,58,3,4,2,0,56,58,3,18,9,0,57,54,1,0,0,0,57,
   	55,1,0,0,0,57,56,1,0,0,0,58,3,1,0,0,0,59,60,5,12,0,0,60,61,5,46,0,0,61,
@@ -126,58 +126,59 @@ void rexParserInitialize() {
   	0,0,0,111,109,1,0,0,0,111,112,1,0,0,0,112,13,1,0,0,0,113,111,1,0,0,0,
   	114,116,5,6,0,0,115,114,1,0,0,0,115,116,1,0,0,0,116,117,1,0,0,0,117,118,
   	5,46,0,0,118,119,5,45,0,0,119,120,3,6,3,0,120,15,1,0,0,0,121,122,5,22,
-  	0,0,122,123,3,6,3,0,123,17,1,0,0,0,124,131,3,20,10,0,125,131,3,22,11,
-  	0,126,131,3,24,12,0,127,131,3,28,14,0,128,131,3,36,18,0,129,131,3,26,
-  	13,0,130,124,1,0,0,0,130,125,1,0,0,0,130,126,1,0,0,0,130,127,1,0,0,0,
-  	130,128,1,0,0,0,130,129,1,0,0,0,131,19,1,0,0,0,132,133,5,5,0,0,133,136,
-  	3,34,17,0,134,135,5,45,0,0,135,137,3,6,3,0,136,134,1,0,0,0,136,137,1,
-  	0,0,0,137,138,1,0,0,0,138,139,5,24,0,0,139,140,3,40,20,0,140,141,5,44,
-  	0,0,141,21,1,0,0,0,142,143,3,40,20,0,143,144,5,24,0,0,144,145,3,40,20,
-  	0,145,146,5,44,0,0,146,23,1,0,0,0,147,149,5,11,0,0,148,150,3,40,20,0,
-  	149,148,1,0,0,0,149,150,1,0,0,0,150,151,1,0,0,0,151,152,5,44,0,0,152,
-  	25,1,0,0,0,153,154,3,40,20,0,154,155,5,44,0,0,155,27,1,0,0,0,156,157,
-  	5,1,0,0,157,158,3,40,20,0,158,160,3,38,19,0,159,161,3,30,15,0,160,159,
-  	1,0,0,0,160,161,1,0,0,0,161,163,1,0,0,0,162,164,3,32,16,0,163,162,1,0,
-  	0,0,163,164,1,0,0,0,164,29,1,0,0,0,165,166,5,2,0,0,166,167,3,40,20,0,
-  	167,168,3,38,19,0,168,170,1,0,0,0,169,165,1,0,0,0,170,171,1,0,0,0,171,
-  	169,1,0,0,0,171,172,1,0,0,0,172,31,1,0,0,0,173,174,5,3,0,0,174,175,3,
-  	38,19,0,175,33,1,0,0,0,176,187,5,46,0,0,177,178,5,37,0,0,178,181,5,46,
-  	0,0,179,180,5,43,0,0,180,182,5,46,0,0,181,179,1,0,0,0,182,183,1,0,0,0,
-  	183,181,1,0,0,0,183,184,1,0,0,0,184,185,1,0,0,0,185,187,5,38,0,0,186,
-  	176,1,0,0,0,186,177,1,0,0,0,187,35,1,0,0,0,188,189,5,8,0,0,189,190,3,
-  	40,20,0,190,191,3,38,19,0,191,201,1,0,0,0,192,193,5,7,0,0,193,194,5,46,
-  	0,0,194,195,5,10,0,0,195,196,3,40,20,0,196,197,3,38,19,0,197,201,1,0,
-  	0,0,198,199,5,9,0,0,199,201,3,38,19,0,200,188,1,0,0,0,200,192,1,0,0,0,
-  	200,198,1,0,0,0,201,37,1,0,0,0,202,206,5,39,0,0,203,205,3,18,9,0,204,
-  	203,1,0,0,0,205,208,1,0,0,0,206,204,1,0,0,0,206,207,1,0,0,0,207,210,1,
-  	0,0,0,208,206,1,0,0,0,209,211,3,40,20,0,210,209,1,0,0,0,210,211,1,0,0,
-  	0,211,212,1,0,0,0,212,213,5,40,0,0,213,39,1,0,0,0,214,215,6,20,-1,0,215,
-  	216,7,1,0,0,216,252,3,40,20,16,217,218,5,37,0,0,218,219,3,40,20,0,219,
-  	220,5,38,0,0,220,252,1,0,0,0,221,222,5,37,0,0,222,225,3,40,20,0,223,224,
-  	5,43,0,0,224,226,3,40,20,0,225,223,1,0,0,0,226,227,1,0,0,0,227,225,1,
-  	0,0,0,227,228,1,0,0,0,228,229,1,0,0,0,229,230,5,38,0,0,230,252,1,0,0,
-  	0,231,240,5,41,0,0,232,237,3,40,20,0,233,234,5,43,0,0,234,236,3,40,20,
-  	0,235,233,1,0,0,0,236,239,1,0,0,0,237,235,1,0,0,0,237,238,1,0,0,0,238,
-  	241,1,0,0,0,239,237,1,0,0,0,240,232,1,0,0,0,240,241,1,0,0,0,241,242,1,
-  	0,0,0,242,252,5,42,0,0,243,244,5,46,0,0,244,246,5,37,0,0,245,247,3,42,
-  	21,0,246,245,1,0,0,0,246,247,1,0,0,0,247,248,1,0,0,0,248,252,5,38,0,0,
-  	249,252,3,44,22,0,250,252,5,46,0,0,251,214,1,0,0,0,251,217,1,0,0,0,251,
-  	221,1,0,0,0,251,231,1,0,0,0,251,243,1,0,0,0,251,249,1,0,0,0,251,250,1,
-  	0,0,0,252,284,1,0,0,0,253,254,10,11,0,0,254,255,5,36,0,0,255,283,3,40,
-  	20,12,256,257,10,10,0,0,257,258,7,2,0,0,258,283,3,40,20,11,259,260,10,
-  	9,0,0,260,261,7,1,0,0,261,283,3,40,20,10,262,263,10,8,0,0,263,264,7,3,
-  	0,0,264,283,3,40,20,9,265,266,10,7,0,0,266,267,7,4,0,0,267,283,3,40,20,
-  	8,268,269,10,6,0,0,269,270,5,20,0,0,270,283,3,40,20,7,271,272,10,5,0,
-  	0,272,273,5,21,0,0,273,283,3,40,20,6,274,275,10,4,0,0,275,276,5,23,0,
-  	0,276,283,3,40,20,5,277,278,10,12,0,0,278,279,5,41,0,0,279,280,3,40,20,
-  	0,280,281,5,42,0,0,281,283,1,0,0,0,282,253,1,0,0,0,282,256,1,0,0,0,282,
-  	259,1,0,0,0,282,262,1,0,0,0,282,265,1,0,0,0,282,268,1,0,0,0,282,271,1,
-  	0,0,0,282,274,1,0,0,0,282,277,1,0,0,0,283,286,1,0,0,0,284,282,1,0,0,0,
-  	284,285,1,0,0,0,285,41,1,0,0,0,286,284,1,0,0,0,287,292,3,40,20,0,288,
-  	289,5,43,0,0,289,291,3,40,20,0,290,288,1,0,0,0,291,294,1,0,0,0,292,290,
-  	1,0,0,0,292,293,1,0,0,0,293,43,1,0,0,0,294,292,1,0,0,0,295,296,7,5,0,
-  	0,296,45,1,0,0,0,29,49,57,74,78,87,89,98,102,111,115,130,136,149,160,
-  	163,171,183,186,200,206,210,227,237,240,246,251,282,284,292
+  	0,0,122,123,3,6,3,0,123,17,1,0,0,0,124,132,3,20,10,0,125,132,3,22,11,
+  	0,126,132,3,24,12,0,127,132,3,28,14,0,128,132,3,36,18,0,129,132,3,26,
+  	13,0,130,132,3,4,2,0,131,124,1,0,0,0,131,125,1,0,0,0,131,126,1,0,0,0,
+  	131,127,1,0,0,0,131,128,1,0,0,0,131,129,1,0,0,0,131,130,1,0,0,0,132,19,
+  	1,0,0,0,133,134,5,5,0,0,134,137,3,34,17,0,135,136,5,45,0,0,136,138,3,
+  	6,3,0,137,135,1,0,0,0,137,138,1,0,0,0,138,139,1,0,0,0,139,140,5,24,0,
+  	0,140,141,3,40,20,0,141,142,5,44,0,0,142,21,1,0,0,0,143,144,3,40,20,0,
+  	144,145,5,24,0,0,145,146,3,40,20,0,146,147,5,44,0,0,147,23,1,0,0,0,148,
+  	150,5,11,0,0,149,151,3,40,20,0,150,149,1,0,0,0,150,151,1,0,0,0,151,152,
+  	1,0,0,0,152,153,5,44,0,0,153,25,1,0,0,0,154,155,3,40,20,0,155,156,5,44,
+  	0,0,156,27,1,0,0,0,157,158,5,1,0,0,158,159,3,40,20,0,159,161,3,38,19,
+  	0,160,162,3,30,15,0,161,160,1,0,0,0,161,162,1,0,0,0,162,164,1,0,0,0,163,
+  	165,3,32,16,0,164,163,1,0,0,0,164,165,1,0,0,0,165,29,1,0,0,0,166,167,
+  	5,2,0,0,167,168,3,40,20,0,168,169,3,38,19,0,169,171,1,0,0,0,170,166,1,
+  	0,0,0,171,172,1,0,0,0,172,170,1,0,0,0,172,173,1,0,0,0,173,31,1,0,0,0,
+  	174,175,5,3,0,0,175,176,3,38,19,0,176,33,1,0,0,0,177,188,5,46,0,0,178,
+  	179,5,37,0,0,179,182,5,46,0,0,180,181,5,43,0,0,181,183,5,46,0,0,182,180,
+  	1,0,0,0,183,184,1,0,0,0,184,182,1,0,0,0,184,185,1,0,0,0,185,186,1,0,0,
+  	0,186,188,5,38,0,0,187,177,1,0,0,0,187,178,1,0,0,0,188,35,1,0,0,0,189,
+  	190,5,8,0,0,190,191,3,40,20,0,191,192,3,38,19,0,192,202,1,0,0,0,193,194,
+  	5,7,0,0,194,195,5,46,0,0,195,196,5,10,0,0,196,197,3,40,20,0,197,198,3,
+  	38,19,0,198,202,1,0,0,0,199,200,5,9,0,0,200,202,3,38,19,0,201,189,1,0,
+  	0,0,201,193,1,0,0,0,201,199,1,0,0,0,202,37,1,0,0,0,203,207,5,39,0,0,204,
+  	206,3,18,9,0,205,204,1,0,0,0,206,209,1,0,0,0,207,205,1,0,0,0,207,208,
+  	1,0,0,0,208,211,1,0,0,0,209,207,1,0,0,0,210,212,3,40,20,0,211,210,1,0,
+  	0,0,211,212,1,0,0,0,212,213,1,0,0,0,213,214,5,40,0,0,214,39,1,0,0,0,215,
+  	216,6,20,-1,0,216,217,7,1,0,0,217,253,3,40,20,16,218,219,5,37,0,0,219,
+  	220,3,40,20,0,220,221,5,38,0,0,221,253,1,0,0,0,222,223,5,37,0,0,223,226,
+  	3,40,20,0,224,225,5,43,0,0,225,227,3,40,20,0,226,224,1,0,0,0,227,228,
+  	1,0,0,0,228,226,1,0,0,0,228,229,1,0,0,0,229,230,1,0,0,0,230,231,5,38,
+  	0,0,231,253,1,0,0,0,232,241,5,41,0,0,233,238,3,40,20,0,234,235,5,43,0,
+  	0,235,237,3,40,20,0,236,234,1,0,0,0,237,240,1,0,0,0,238,236,1,0,0,0,238,
+  	239,1,0,0,0,239,242,1,0,0,0,240,238,1,0,0,0,241,233,1,0,0,0,241,242,1,
+  	0,0,0,242,243,1,0,0,0,243,253,5,42,0,0,244,245,5,46,0,0,245,247,5,37,
+  	0,0,246,248,3,42,21,0,247,246,1,0,0,0,247,248,1,0,0,0,248,249,1,0,0,0,
+  	249,253,5,38,0,0,250,253,3,44,22,0,251,253,5,46,0,0,252,215,1,0,0,0,252,
+  	218,1,0,0,0,252,222,1,0,0,0,252,232,1,0,0,0,252,244,1,0,0,0,252,250,1,
+  	0,0,0,252,251,1,0,0,0,253,285,1,0,0,0,254,255,10,11,0,0,255,256,5,36,
+  	0,0,256,284,3,40,20,12,257,258,10,10,0,0,258,259,7,2,0,0,259,284,3,40,
+  	20,11,260,261,10,9,0,0,261,262,7,1,0,0,262,284,3,40,20,10,263,264,10,
+  	8,0,0,264,265,7,3,0,0,265,284,3,40,20,9,266,267,10,7,0,0,267,268,7,4,
+  	0,0,268,284,3,40,20,8,269,270,10,6,0,0,270,271,5,20,0,0,271,284,3,40,
+  	20,7,272,273,10,5,0,0,273,274,5,21,0,0,274,284,3,40,20,6,275,276,10,4,
+  	0,0,276,277,5,23,0,0,277,284,3,40,20,5,278,279,10,12,0,0,279,280,5,41,
+  	0,0,280,281,3,40,20,0,281,282,5,42,0,0,282,284,1,0,0,0,283,254,1,0,0,
+  	0,283,257,1,0,0,0,283,260,1,0,0,0,283,263,1,0,0,0,283,266,1,0,0,0,283,
+  	269,1,0,0,0,283,272,1,0,0,0,283,275,1,0,0,0,283,278,1,0,0,0,284,287,1,
+  	0,0,0,285,283,1,0,0,0,285,286,1,0,0,0,286,41,1,0,0,0,287,285,1,0,0,0,
+  	288,293,3,40,20,0,289,290,5,43,0,0,290,292,3,40,20,0,291,289,1,0,0,0,
+  	292,295,1,0,0,0,293,291,1,0,0,0,293,294,1,0,0,0,294,43,1,0,0,0,295,293,
+  	1,0,0,0,296,297,7,5,0,0,297,45,1,0,0,0,29,49,57,74,78,87,89,98,102,111,
+  	115,131,137,150,161,164,172,184,187,201,207,211,228,238,241,247,252,283,
+  	285,293
   };
   staticData->serializedATN = antlr4::atn::SerializedATNView(serializedATNSegment, sizeof(serializedATNSegment) / sizeof(serializedATNSegment[0]));
 
@@ -364,46 +365,30 @@ RexParser::ItemContext* RexParser::item() {
   try {
     setState(57);
     _errHandler->sync(this);
-    switch (_input->LA(1)) {
-      case RexParser::FN: {
-        enterOuterAlt(_localctx, 1);
-        setState(54);
-        functionDef();
-        break;
-      }
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 1, _ctx)) {
+    case 1: {
+      enterOuterAlt(_localctx, 1);
+      setState(54);
+      functionDef();
+      break;
+    }
 
-      case RexParser::TYPE: {
-        enterOuterAlt(_localctx, 2);
-        setState(55);
-        typeDef();
-        break;
-      }
+    case 2: {
+      enterOuterAlt(_localctx, 2);
+      setState(55);
+      typeDef();
+      break;
+    }
 
-      case RexParser::IF:
-      case RexParser::LET:
-      case RexParser::FOR:
-      case RexParser::WHILE:
-      case RexParser::LOOP:
-      case RexParser::RETURN:
-      case RexParser::TRUE:
-      case RexParser::FALSE:
-      case RexParser::PLUS:
-      case RexParser::MINUS:
-      case RexParser::LPAREN:
-      case RexParser::LBRACK:
-      case RexParser::ID:
-      case RexParser::INT_LITERAL:
-      case RexParser::REAL_LITERAL:
-      case RexParser::STRING_LITERAL:
-      case RexParser::CHAR_LITERAL: {
-        enterOuterAlt(_localctx, 3);
-        setState(56);
-        statement();
-        break;
-      }
+    case 3: {
+      enterOuterAlt(_localctx, 3);
+      setState(56);
+      statement();
+      break;
+    }
 
     default:
-      throw NoViableAltException(this);
+      break;
     }
    
   }
@@ -1287,6 +1272,10 @@ RexParser::ExprStmtContext* RexParser::StatementContext::exprStmt() {
   return getRuleContext<RexParser::ExprStmtContext>(0);
 }
 
+RexParser::TypeDefContext* RexParser::StatementContext::typeDef() {
+  return getRuleContext<RexParser::TypeDefContext>(0);
+}
+
 
 size_t RexParser::StatementContext::getRuleIndex() const {
   return RexParser::RuleStatement;
@@ -1324,7 +1313,7 @@ RexParser::StatementContext* RexParser::statement() {
     exitRule();
   });
   try {
-    setState(130);
+    setState(131);
     _errHandler->sync(this);
     switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 10, _ctx)) {
     case 1: {
@@ -1366,6 +1355,13 @@ RexParser::StatementContext* RexParser::statement() {
       enterOuterAlt(_localctx, 6);
       setState(129);
       exprStmt();
+      break;
+    }
+
+    case 7: {
+      enterOuterAlt(_localctx, 7);
+      setState(130);
+      typeDef();
       break;
     }
 
@@ -1456,25 +1452,25 @@ RexParser::LetStmtContext* RexParser::letStmt() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(132);
-    match(RexParser::LET);
     setState(133);
+    match(RexParser::LET);
+    setState(134);
     pattern();
-    setState(136);
+    setState(137);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == RexParser::COLON) {
-      setState(134);
-      match(RexParser::COLON);
       setState(135);
+      match(RexParser::COLON);
+      setState(136);
       type(0);
     }
-    setState(138);
-    match(RexParser::ASSIGN);
     setState(139);
-    expr(0);
+    match(RexParser::ASSIGN);
     setState(140);
+    expr(0);
+    setState(141);
     match(RexParser::SEMI);
    
   }
@@ -1547,13 +1543,13 @@ RexParser::AssignStmtContext* RexParser::assignStmt() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(142);
-    expr(0);
     setState(143);
-    match(RexParser::ASSIGN);
-    setState(144);
     expr(0);
+    setState(144);
+    match(RexParser::ASSIGN);
     setState(145);
+    expr(0);
+    setState(146);
     match(RexParser::SEMI);
    
   }
@@ -1623,18 +1619,18 @@ RexParser::ReturnStmtContext* RexParser::returnStmt() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(147);
+    setState(148);
     match(RexParser::RETURN);
-    setState(149);
+    setState(150);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if ((((_la & ~ 0x3fULL) == 0) &&
       ((1ULL << _la) & 2183773974953984) != 0)) {
-      setState(148);
+      setState(149);
       expr(0);
     }
-    setState(151);
+    setState(152);
     match(RexParser::SEMI);
    
   }
@@ -1699,9 +1695,9 @@ RexParser::ExprStmtContext* RexParser::exprStmt() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(153);
-    expr(0);
     setState(154);
+    expr(0);
+    setState(155);
     match(RexParser::SEMI);
    
   }
@@ -1779,26 +1775,26 @@ RexParser::IfStmtContext* RexParser::ifStmt() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(156);
-    match(RexParser::IF);
     setState(157);
-    expr(0);
+    match(RexParser::IF);
     setState(158);
+    expr(0);
+    setState(159);
     block();
-    setState(160);
+    setState(161);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == RexParser::ELIFX) {
-      setState(159);
+      setState(160);
       elifxChain();
     }
-    setState(163);
+    setState(164);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == RexParser::ELSE) {
-      setState(162);
+      setState(163);
       elseBlock();
     }
    
@@ -1881,17 +1877,17 @@ RexParser::ElifxChainContext* RexParser::elifxChain() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(169); 
+    setState(170); 
     _errHandler->sync(this);
     _la = _input->LA(1);
     do {
-      setState(165);
-      match(RexParser::ELIFX);
       setState(166);
-      expr(0);
+      match(RexParser::ELIFX);
       setState(167);
+      expr(0);
+      setState(168);
       block();
-      setState(171); 
+      setState(172); 
       _errHandler->sync(this);
       _la = _input->LA(1);
     } while (_la == RexParser::ELIFX);
@@ -1958,9 +1954,9 @@ RexParser::ElseBlockContext* RexParser::elseBlock() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(173);
-    match(RexParser::ELSE);
     setState(174);
+    match(RexParser::ELSE);
+    setState(175);
     block();
    
   }
@@ -2041,35 +2037,35 @@ RexParser::PatternContext* RexParser::pattern() {
     exitRule();
   });
   try {
-    setState(186);
+    setState(187);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
       case RexParser::ID: {
         enterOuterAlt(_localctx, 1);
-        setState(176);
+        setState(177);
         match(RexParser::ID);
         break;
       }
 
       case RexParser::LPAREN: {
         enterOuterAlt(_localctx, 2);
-        setState(177);
-        match(RexParser::LPAREN);
         setState(178);
+        match(RexParser::LPAREN);
+        setState(179);
         match(RexParser::ID);
-        setState(181); 
+        setState(182); 
         _errHandler->sync(this);
         _la = _input->LA(1);
         do {
-          setState(179);
-          match(RexParser::COMMA);
           setState(180);
+          match(RexParser::COMMA);
+          setState(181);
           match(RexParser::ID);
-          setState(183); 
+          setState(184); 
           _errHandler->sync(this);
           _la = _input->LA(1);
         } while (_la == RexParser::COMMA);
-        setState(185);
+        setState(186);
         match(RexParser::RPAREN);
         break;
       }
@@ -2159,40 +2155,40 @@ RexParser::LoopStmtContext* RexParser::loopStmt() {
     exitRule();
   });
   try {
-    setState(200);
+    setState(201);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
       case RexParser::WHILE: {
         enterOuterAlt(_localctx, 1);
-        setState(188);
-        match(RexParser::WHILE);
         setState(189);
-        expr(0);
+        match(RexParser::WHILE);
         setState(190);
+        expr(0);
+        setState(191);
         block();
         break;
       }
 
       case RexParser::FOR: {
         enterOuterAlt(_localctx, 2);
-        setState(192);
-        match(RexParser::FOR);
         setState(193);
-        match(RexParser::ID);
+        match(RexParser::FOR);
         setState(194);
-        match(RexParser::IN);
+        match(RexParser::ID);
         setState(195);
-        expr(0);
+        match(RexParser::IN);
         setState(196);
+        expr(0);
+        setState(197);
         block();
         break;
       }
 
       case RexParser::LOOP: {
         enterOuterAlt(_localctx, 3);
-        setState(198);
-        match(RexParser::LOOP);
         setState(199);
+        match(RexParser::LOOP);
+        setState(200);
         block();
         break;
       }
@@ -2277,30 +2273,30 @@ RexParser::BlockContext* RexParser::block() {
   try {
     size_t alt;
     enterOuterAlt(_localctx, 1);
-    setState(202);
+    setState(203);
     match(RexParser::LBRACE);
-    setState(206);
+    setState(207);
     _errHandler->sync(this);
     alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 19, _ctx);
     while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
       if (alt == 1) {
-        setState(203);
+        setState(204);
         statement(); 
       }
-      setState(208);
+      setState(209);
       _errHandler->sync(this);
       alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 19, _ctx);
     }
-    setState(210);
+    setState(211);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if ((((_la & ~ 0x3fULL) == 0) &&
       ((1ULL << _la) & 2183773974953984) != 0)) {
-      setState(209);
+      setState(210);
       expr(0);
     }
-    setState(212);
+    setState(213);
     match(RexParser::RBRACE);
    
   }
@@ -2926,7 +2922,7 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
   try {
     size_t alt;
     enterOuterAlt(_localctx, 1);
-    setState(251);
+    setState(252);
     _errHandler->sync(this);
     switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 25, _ctx)) {
     case 1: {
@@ -2934,7 +2930,7 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
       _ctx = _localctx;
       previousContext = _localctx;
 
-      setState(215);
+      setState(216);
       antlrcpp::downCast<UnaryExprContext *>(_localctx)->op = _input->LT(1);
       _la = _input->LA(1);
       if (!(_la == RexParser::PLUS
@@ -2946,7 +2942,7 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
         _errHandler->reportMatch(this);
         consume();
       }
-      setState(216);
+      setState(217);
       expr(16);
       break;
     }
@@ -2955,11 +2951,11 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
       _localctx = _tracker.createInstance<ParenExprContext>(_localctx);
       _ctx = _localctx;
       previousContext = _localctx;
-      setState(217);
-      match(RexParser::LPAREN);
       setState(218);
-      expr(0);
+      match(RexParser::LPAREN);
       setState(219);
+      expr(0);
+      setState(220);
       match(RexParser::RPAREN);
       break;
     }
@@ -2968,23 +2964,23 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
       _localctx = _tracker.createInstance<TupleExprContext>(_localctx);
       _ctx = _localctx;
       previousContext = _localctx;
-      setState(221);
-      match(RexParser::LPAREN);
       setState(222);
+      match(RexParser::LPAREN);
+      setState(223);
       expr(0);
-      setState(225); 
+      setState(226); 
       _errHandler->sync(this);
       _la = _input->LA(1);
       do {
-        setState(223);
-        match(RexParser::COMMA);
         setState(224);
+        match(RexParser::COMMA);
+        setState(225);
         expr(0);
-        setState(227); 
+        setState(228); 
         _errHandler->sync(this);
         _la = _input->LA(1);
       } while (_la == RexParser::COMMA);
-      setState(229);
+      setState(230);
       match(RexParser::RPAREN);
       break;
     }
@@ -2993,30 +2989,30 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
       _localctx = _tracker.createInstance<ArrayExprContext>(_localctx);
       _ctx = _localctx;
       previousContext = _localctx;
-      setState(231);
+      setState(232);
       match(RexParser::LBRACK);
-      setState(240);
+      setState(241);
       _errHandler->sync(this);
 
       _la = _input->LA(1);
       if ((((_la & ~ 0x3fULL) == 0) &&
         ((1ULL << _la) & 2183773974953984) != 0)) {
-        setState(232);
+        setState(233);
         expr(0);
-        setState(237);
+        setState(238);
         _errHandler->sync(this);
         _la = _input->LA(1);
         while (_la == RexParser::COMMA) {
-          setState(233);
-          match(RexParser::COMMA);
           setState(234);
+          match(RexParser::COMMA);
+          setState(235);
           expr(0);
-          setState(239);
+          setState(240);
           _errHandler->sync(this);
           _la = _input->LA(1);
         }
       }
-      setState(242);
+      setState(243);
       match(RexParser::RBRACK);
       break;
     }
@@ -3025,20 +3021,20 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
       _localctx = _tracker.createInstance<CallExprContext>(_localctx);
       _ctx = _localctx;
       previousContext = _localctx;
-      setState(243);
-      match(RexParser::ID);
       setState(244);
+      match(RexParser::ID);
+      setState(245);
       match(RexParser::LPAREN);
-      setState(246);
+      setState(247);
       _errHandler->sync(this);
 
       _la = _input->LA(1);
       if ((((_la & ~ 0x3fULL) == 0) &&
         ((1ULL << _la) & 2183773974953984) != 0)) {
-        setState(245);
+        setState(246);
         argList();
       }
-      setState(248);
+      setState(249);
       match(RexParser::RPAREN);
       break;
     }
@@ -3047,7 +3043,7 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
       _localctx = _tracker.createInstance<LiteralExprContext>(_localctx);
       _ctx = _localctx;
       previousContext = _localctx;
-      setState(249);
+      setState(250);
       literal();
       break;
     }
@@ -3056,7 +3052,7 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
       _localctx = _tracker.createInstance<IdExprContext>(_localctx);
       _ctx = _localctx;
       previousContext = _localctx;
-      setState(250);
+      setState(251);
       match(RexParser::ID);
       break;
     }
@@ -3065,7 +3061,7 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
       break;
     }
     _ctx->stop = _input->LT(-1);
-    setState(284);
+    setState(285);
     _errHandler->sync(this);
     alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 27, _ctx);
     while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
@@ -3073,19 +3069,19 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
         if (!_parseListeners.empty())
           triggerExitRuleEvent();
         previousContext = _localctx;
-        setState(282);
+        setState(283);
         _errHandler->sync(this);
         switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 26, _ctx)) {
         case 1: {
           auto newContext = _tracker.createInstance<RangeExprContext>(_tracker.createInstance<ExprContext>(parentContext, parentState));
           _localctx = newContext;
           pushNewRecursionContext(newContext, startState, RuleExpr);
-          setState(253);
+          setState(254);
 
           if (!(precpred(_ctx, 11))) throw FailedPredicateException(this, "precpred(_ctx, 11)");
-          setState(254);
-          match(RexParser::RANGE);
           setState(255);
+          match(RexParser::RANGE);
+          setState(256);
           expr(12);
           break;
         }
@@ -3094,10 +3090,10 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
           auto newContext = _tracker.createInstance<MulExprContext>(_tracker.createInstance<ExprContext>(parentContext, parentState));
           _localctx = newContext;
           pushNewRecursionContext(newContext, startState, RuleExpr);
-          setState(256);
+          setState(257);
 
           if (!(precpred(_ctx, 10))) throw FailedPredicateException(this, "precpred(_ctx, 10)");
-          setState(257);
+          setState(258);
           antlrcpp::downCast<MulExprContext *>(_localctx)->op = _input->LT(1);
           _la = _input->LA(1);
           if (!((((_la & ~ 0x3fULL) == 0) &&
@@ -3108,7 +3104,7 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
             _errHandler->reportMatch(this);
             consume();
           }
-          setState(258);
+          setState(259);
           expr(11);
           break;
         }
@@ -3117,10 +3113,10 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
           auto newContext = _tracker.createInstance<AddExprContext>(_tracker.createInstance<ExprContext>(parentContext, parentState));
           _localctx = newContext;
           pushNewRecursionContext(newContext, startState, RuleExpr);
-          setState(259);
+          setState(260);
 
           if (!(precpred(_ctx, 9))) throw FailedPredicateException(this, "precpred(_ctx, 9)");
-          setState(260);
+          setState(261);
           antlrcpp::downCast<AddExprContext *>(_localctx)->op = _input->LT(1);
           _la = _input->LA(1);
           if (!(_la == RexParser::PLUS
@@ -3132,7 +3128,7 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
             _errHandler->reportMatch(this);
             consume();
           }
-          setState(261);
+          setState(262);
           expr(10);
           break;
         }
@@ -3141,10 +3137,10 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
           auto newContext = _tracker.createInstance<CompareExprContext>(_tracker.createInstance<ExprContext>(parentContext, parentState));
           _localctx = newContext;
           pushNewRecursionContext(newContext, startState, RuleExpr);
-          setState(262);
+          setState(263);
 
           if (!(precpred(_ctx, 8))) throw FailedPredicateException(this, "precpred(_ctx, 8)");
-          setState(263);
+          setState(264);
           antlrcpp::downCast<CompareExprContext *>(_localctx)->op = _input->LT(1);
           _la = _input->LA(1);
           if (!((((_la & ~ 0x3fULL) == 0) &&
@@ -3155,7 +3151,7 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
             _errHandler->reportMatch(this);
             consume();
           }
-          setState(264);
+          setState(265);
           expr(9);
           break;
         }
@@ -3164,10 +3160,10 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
           auto newContext = _tracker.createInstance<EqualityExprContext>(_tracker.createInstance<ExprContext>(parentContext, parentState));
           _localctx = newContext;
           pushNewRecursionContext(newContext, startState, RuleExpr);
-          setState(265);
+          setState(266);
 
           if (!(precpred(_ctx, 7))) throw FailedPredicateException(this, "precpred(_ctx, 7)");
-          setState(266);
+          setState(267);
           antlrcpp::downCast<EqualityExprContext *>(_localctx)->op = _input->LT(1);
           _la = _input->LA(1);
           if (!(_la == RexParser::EQ
@@ -3179,7 +3175,7 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
             _errHandler->reportMatch(this);
             consume();
           }
-          setState(267);
+          setState(268);
           expr(8);
           break;
         }
@@ -3188,12 +3184,12 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
           auto newContext = _tracker.createInstance<AndExprContext>(_tracker.createInstance<ExprContext>(parentContext, parentState));
           _localctx = newContext;
           pushNewRecursionContext(newContext, startState, RuleExpr);
-          setState(268);
+          setState(269);
 
           if (!(precpred(_ctx, 6))) throw FailedPredicateException(this, "precpred(_ctx, 6)");
-          setState(269);
-          antlrcpp::downCast<AndExprContext *>(_localctx)->op = match(RexParser::AND);
           setState(270);
+          antlrcpp::downCast<AndExprContext *>(_localctx)->op = match(RexParser::AND);
+          setState(271);
           expr(7);
           break;
         }
@@ -3202,12 +3198,12 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
           auto newContext = _tracker.createInstance<OrExprContext>(_tracker.createInstance<ExprContext>(parentContext, parentState));
           _localctx = newContext;
           pushNewRecursionContext(newContext, startState, RuleExpr);
-          setState(271);
+          setState(272);
 
           if (!(precpred(_ctx, 5))) throw FailedPredicateException(this, "precpred(_ctx, 5)");
-          setState(272);
-          antlrcpp::downCast<OrExprContext *>(_localctx)->op = match(RexParser::OR);
           setState(273);
+          antlrcpp::downCast<OrExprContext *>(_localctx)->op = match(RexParser::OR);
+          setState(274);
           expr(6);
           break;
         }
@@ -3216,12 +3212,12 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
           auto newContext = _tracker.createInstance<PipeExprContext>(_tracker.createInstance<ExprContext>(parentContext, parentState));
           _localctx = newContext;
           pushNewRecursionContext(newContext, startState, RuleExpr);
-          setState(274);
+          setState(275);
 
           if (!(precpred(_ctx, 4))) throw FailedPredicateException(this, "precpred(_ctx, 4)");
-          setState(275);
-          match(RexParser::PIPE);
           setState(276);
+          match(RexParser::PIPE);
+          setState(277);
           expr(5);
           break;
         }
@@ -3230,14 +3226,14 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
           auto newContext = _tracker.createInstance<IndexExprContext>(_tracker.createInstance<ExprContext>(parentContext, parentState));
           _localctx = newContext;
           pushNewRecursionContext(newContext, startState, RuleExpr);
-          setState(277);
+          setState(278);
 
           if (!(precpred(_ctx, 12))) throw FailedPredicateException(this, "precpred(_ctx, 12)");
-          setState(278);
-          match(RexParser::LBRACK);
           setState(279);
-          expr(0);
+          match(RexParser::LBRACK);
           setState(280);
+          expr(0);
+          setState(281);
           match(RexParser::RBRACK);
           break;
         }
@@ -3246,7 +3242,7 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
           break;
         } 
       }
-      setState(286);
+      setState(287);
       _errHandler->sync(this);
       alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 27, _ctx);
     }
@@ -3320,17 +3316,17 @@ RexParser::ArgListContext* RexParser::argList() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(287);
+    setState(288);
     expr(0);
-    setState(292);
+    setState(293);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == RexParser::COMMA) {
-      setState(288);
-      match(RexParser::COMMA);
       setState(289);
+      match(RexParser::COMMA);
+      setState(290);
       expr(0);
-      setState(294);
+      setState(295);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -3414,7 +3410,7 @@ RexParser::LiteralContext* RexParser::literal() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(295);
+    setState(296);
     _la = _input->LA(1);
     if (!((((_la & ~ 0x3fULL) == 0) &&
       ((1ULL << _la) & 2111062326116352) != 0))) {

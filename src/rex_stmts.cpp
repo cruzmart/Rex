@@ -24,13 +24,13 @@ void LetStmt::dump(std::ostream& os, int i) const {
         os << "<unknown pattern>\n";
     }
 
-    if (type) { indent(os, i + 1); os << "type: " << type->to_string() << "\n"; }
+    if (type) { indent(os, i + 1); os << "type: " << type->to_fundamental_string() << "\n"; }
     if (exp) { indent(os, i + 1); os << "initializer:\n"; exp->dump(os, i + 2); }
 }
 
 void TypeDecl::dump(std::ostream& os, int i) const {
     indent(os, i); os << "new type: " << name;
-    if (type) os << " -> " << type->to_string();
+    if (type) os << " -> " << type->to_fundamental_string();
     else os << " -> <error>";
     if (resolved) os << " [resolved]";
     os << "\n";

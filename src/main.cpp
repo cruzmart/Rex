@@ -4,6 +4,7 @@
 #include "RexLexer.h"
 #include "RexParser.h"
 
+#include "passes/rex_alias_pass.h"
 #include "rex_ast_build.h"
 #include "rex_ast_nodes.h"
 #include "rex_type_checker.h"
@@ -12,7 +13,7 @@ using namespace antlr4;
 using namespace rex;
 
 int main() {
-    std::ifstream file("tests/the_second.txt");
+    std::ifstream file("tests/the_seventh.txt");
     if (!file) {
         std::cerr << "Failed to open .txt file\n";
         return 1;
@@ -33,6 +34,13 @@ int main() {
     auto ast = std::any_cast<std::shared_ptr<FileAst>>(ast_any);
 
     ast->dump(std::cout, 0);
+
+    bool debug = true;
+
+    // Aliasing Pass
+    auto global_scope = std::make_shared<Scope>();
+    AliasPass pass_alias(global_scope, debug);
+    pass_alias.visit(ast);
 
     // 
 

@@ -62,7 +62,7 @@ struct Type {
     // ----------------------
     // Debug / printing
     // ----------------------
-    std::string to_string() const {
+    std::string to_fundamental_string() const {
         switch (fundamental_kind) {
             case TypeKind::Id:    return "Id";
             case TypeKind::Void:   return "Void";
@@ -83,7 +83,12 @@ struct Type {
     virtual bool equals(const std::shared_ptr<Type> other) const {
         return fundamental_kind == other->fundamental_kind;
     }
+
+    virtual std::string to_string() const {
+        return "<type>";
+    }
 };
+
 
 // ---------------------- TYPES --------------------------
 
@@ -95,6 +100,12 @@ struct NamedType : Type {
     NamedType() : Type(TypeKind::Named) {}
     NamedType(std::string name) : Type(TypeKind::Named), alias(name){}
     NamedType(std::string name, std::shared_ptr<Type> real_type) : Type(TypeKind::Named), alias(name), actual_type(real_type) {} 
+
+    std::string to_string() const override {
+        if (actual_type)
+            return alias + " -> " + actual_type->to_string();
+        return alias;
+    }
 };
 
 struct ArrayType : Type {
@@ -114,6 +125,10 @@ struct ArrayType : Type {
 
         return array_type->equals(o->array_type);
     }
+    
+    std::string to_string() const override {
+        return array_type->to_string() + "[" + std::to_string(size) + "]";
+    }
 
 };
 
@@ -132,6 +147,10 @@ struct SliceType : Type {
 
         return slice_type->equals(o->slice_type);
     }
+
+    std::string to_string() const override {
+        return slice_type->to_string() + "[]";
+    }
 };
 
 struct RangeType : Type {
@@ -140,6 +159,12 @@ struct RangeType : Type {
 
     RangeType() : Type(TypeKind::Range), lower_type(std::make_shared<Type>()), upper_type(std::make_shared<Type>()) {}
     RangeType(std::shared_ptr<Type> l, std::shared_ptr<Type> u) : Type(TypeKind::Range), lower_type(l), upper_type(u) {}
+
+    std::string to_string() const override {
+        return "Range(" + lower_type->to_string() +
+               " .. " +
+               upper_type->to_string() + ")";
+    }
 };
 
 struct PipeType : Type {
@@ -157,6 +182,17 @@ struct TupleType : Type {
 
     TupleType() : Type(TypeKind::Tuple) {}
 
+    std::string to_string() const override {
+        std::string out = "(";
+        for(size_t i = 0; i < tuple_types.size(); ++i){
+            out += tuple_types[i]->to_string();
+            if(i + 1  < tuple_types.size()) out += ", ";
+        }
+        out += ")";
+
+        return out;
+    }
+
 };
 struct PrimType  : Type {
     enum class Prims { 
@@ -171,7 +207,7 @@ struct PrimType  : Type {
     PrimType(Prims d) : Type(TypeKind::Primitive), prim_type(d) {}
     PrimType() : Type(TypeKind::Primitive) {}
 
-    std::string prim_to_string(){
+    std::string to_string() const override {
         switch(prim_type){
             case Prims::Int: return "Int";
             case Prims::Bool: return "Bool";
@@ -182,6 +218,7 @@ struct PrimType  : Type {
                 return "<?>";
         }
     }
+
 };
 
 struct FunctionType : Type {
@@ -192,6 +229,16 @@ struct FunctionType : Type {
 
     FunctionType(std::vector<std::shared_ptr<Type>> params, std::shared_ptr<Type> ret)
         : Type(TypeKind::Function), params_type(std::move(params)), return_type(ret) {}
+
+    std::string to_string() const override {
+        std::string s = "(";
+        for (size_t i=0; i<params_type.size(); ++i) {
+            s += params_type[i]->to_string();
+            if (i+1 < params_type.size()) s += ", ";
+        }
+        s += ") -> " + return_type->to_string();
+        return s;
+    }
 };
 
 using type_ptr = std::shared_ptr<Type>;

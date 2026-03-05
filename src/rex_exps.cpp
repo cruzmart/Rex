@@ -18,11 +18,12 @@ void IdExpr::dump(std::ostream& os, int i) const { indent(os, i); os << "id " <<
 // LiteralExpr
 void LiteralExpr::dump(std::ostream& os, int i) const {
     indent(os, i);
-    if(auto prim = std::dynamic_pointer_cast<PrimType>(type)) os << "literal " << value << " -> " << prim->prim_to_string() << " : " << type->to_string() << "\n";
-    else os << "literal " << value << " -> <?> : " << (type ? type->to_string() : "<null>") << "\n";
+    if(auto prim = std::dynamic_pointer_cast<PrimType>(type)) os << "literal " << value << " -> " << prim->to_string() << " : " << type->to_fundamental_string() << "\n";
+    else os << "literal " << value << " -> <?> : " << (type ? type->to_fundamental_string() : "<null>") << "\n";
 }
 
 // UnaryExpr
+
 void UnaryExpr::dump(std::ostream& os, int i) const {
     indent(os, i); os << "unary " << uniop_name(operation) << "\n";
     if(rhs) rhs->dump(os, i + 1);
@@ -30,7 +31,7 @@ void UnaryExpr::dump(std::ostream& os, int i) const {
 
 // BinaryExpr
 void BinaryExpr::dump(std::ostream& os, int i) const {
-    indent(os, i); os << "binary " << binop_name(operation) << " : " << (type ? type->to_string() : "<null>") << "\n";
+    indent(os, i); os << "binary " << binop_name(operation) << " : " << (type ? type->to_fundamental_string() : "<null>") << "\n";
     if(lhs) lhs->dump(os, i + 1);
     if(rhs) rhs->dump(os, i + 1);
 }
