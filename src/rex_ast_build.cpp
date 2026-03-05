@@ -212,6 +212,7 @@ antlrcpp::Any rex_ast_build::visitStatement(RexParser::StatementContext* ctx) {
     if (ctx->loopStmt()) return visit(ctx->loopStmt());
     if (ctx->ifStmt()) return visit(ctx->ifStmt());
     if (ctx->assignStmt()) return visit(ctx->assignStmt());
+    if(ctx->typeDef()) return visit(ctx->typeDef());
     throw std::runtime_error("Unknown statement type");
 }
 

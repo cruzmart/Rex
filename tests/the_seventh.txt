@@ -1,4 +1,6 @@
+type integer = Int;
 let a = 1;
-while "hello" < 10 {
-    let b = a + 1;
+while a < 10 {
+    type floaty = Real;
+    let b : integer = a + 1;
 }

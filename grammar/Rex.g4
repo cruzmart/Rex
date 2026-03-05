@@ -75,6 +75,7 @@ statement
     | ifStmt          
     | loopStmt
     | exprStmt
+    | typeDef
     ;
 
 letStmt

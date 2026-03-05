@@ -7,7 +7,7 @@ namespace rex {
 Scope::Scope(std::shared_ptr<Scope> p)
     : parent(std::move(p)) {}
 
-void Scope::define(const std::shared_ptr<Symbol>& sym) {
+void Scope::define(const std::shared_ptr<Symbol> sym) {
     const std::string& name = sym->name;
 
     if (symbols.count(name)) {
@@ -18,7 +18,7 @@ void Scope::define(const std::shared_ptr<Symbol>& sym) {
     symbols[name] = sym;
 }
 
-std::shared_ptr<Symbol> Scope::resolve(const std::string& name) {
+std::shared_ptr<Symbol> Scope::resolve(const std::string name) {
     auto it = symbols.find(name);
     if (it != symbols.end()) {
         return it->second;

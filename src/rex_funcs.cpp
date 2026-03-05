@@ -9,7 +9,7 @@ Parameter::Parameter(std::string name, std::shared_ptr<Type> type) : para_name(n
 
 void Parameter::dump(std::ostream& os, int i) const {
     indent(os, i); os << "param " << para_name;
-    if (para_type) os << " : " << para_type->to_string();
+    if (para_type) os << " : " << para_type->to_fundamental_string();
     else os << " : <unknown type>";
     if (resolved) os << " [resolved]";
     os << "\n";
@@ -17,7 +17,7 @@ void Parameter::dump(std::ostream& os, int i) const {
 
 void FunctionDecl::dump(std::ostream& os, int i) const {
     indent(os, i); os << "function " << func_name;
-    if (func_type) os << " -> " << func_type->to_string();
+    if (func_type) os << " -> " << func_type->to_fundamental_string();
     if (resolved) os << " [resolved]";
     os << "\n";
 

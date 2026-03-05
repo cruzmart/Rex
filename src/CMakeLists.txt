@@ -12,6 +12,7 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/rex_ast_build.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/rex_scope.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/rex_type_checker.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/passes/rex_alias_pass.cpp"
     
 )
 
