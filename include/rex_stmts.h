@@ -27,15 +27,38 @@ struct Stmt : AstNode {
 // ---------------------- PATTERNS ---------------------------
 struct Pattern {
     virtual ~Pattern() = default;
+    virtual std::string to_string() const {
+        return "<id(s)>";
+    }
 };
 
 struct PatternId : Pattern {
     std::string id;
     explicit PatternId(std::string id);
+    std::string to_string() const override {
+        return id;
+    }
 };
 
 struct PatternIds : Pattern {
     std::vector<std::string> ids;
+
+    std::string to_string() const override {
+
+        std::string result = "(";
+        for(size_t i = 0; i < ids.size(); ++i){
+            result += ids[i];
+            if(i + 1 < ids.size()){
+                result += ", ";
+            }
+        }
+
+        result += ")";
+
+       
+
+        return result;
+    }
 };
 
 // ---------------------- STATEMENTS ------------------------

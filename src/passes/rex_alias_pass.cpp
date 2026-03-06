@@ -22,9 +22,9 @@ void AliasPass::visit(const std::shared_ptr<FileAst> file) {
         if (auto stmt = std::dynamic_pointer_cast<Stmt>(node)) {
             visitStmt(stmt);
         } 
-        // else if (auto func = std::dynamic_pointer_cast<FunctionDecl>(node)){
-        //     visitFunctionDecl(func);
-        // }
+        else if (auto func = std::dynamic_pointer_cast<FunctionDecl>(node)){
+            visitFunctionDecl(func);
+        }
     }
     print("Exit Global Scope\n");
 }
@@ -34,10 +34,10 @@ void AliasPass::visit(const std::shared_ptr<FileAst> file) {
 void AliasPass::visitStmt(const std::shared_ptr<Stmt> stmt) {
 
     // ---- SIMPLE DECLARATIONS ----
-    // if (auto let_stmt = std::dynamic_pointer_cast<LetStmt>(stmt)) {
-    //     visitLetStmt(let_stmt);
-    //     return;
-    // }
+    if (auto let_stmt = std::dynamic_pointer_cast<LetStmt>(stmt)) {
+        visitLetStmt(let_stmt);
+        return;
+    }
 
     if (auto type_decl = std::dynamic_pointer_cast<TypeDecl>(stmt)) {
         visitTypeDecl(type_decl);
@@ -94,29 +94,27 @@ void AliasPass::visitBlock(const std::shared_ptr<BlockExpr> block) {
 }
 
 // ------------------- LetStmt -------------------
+    
 void AliasPass::visitLetStmt(const std::shared_ptr<LetStmt> ls) {
+
+    
+    if (!ls->type)
+        return;
+
+    print("Resolving let type for variable: " + ls->id_pattern->to_string() +
+          " = " + ls->type->to_string());
+
+
+    ls->type = resolveType(ls->type);
+
+    print("Resolved let type → " + ls->type->to_string());
+
   return;
 }
 
 // ------------------- TypeDecl -------------------
 void AliasPass::visitTypeDecl(const std::shared_ptr<TypeDecl> td) {
-    // if (!td->type)
-    //     throw std::runtime_error("TypeDecl null type: " + td->name);
-
-    // td->type = resolveType(td->type);
-
-    // auto sym = std::make_shared<Symbol>(SymbolType::typealias, td->name);
-    // sym->type = td->type;
-
-    // if (current_scope->symbols.contains(td->name))
-    //     throw std::runtime_error("Type alias '" + td->name + "' already defined");
-
-
-    // current_scope->define(sym);
-    // td->resolved = sym;
-
-
-       if (!td->type)
+    if (!td->type)
         throw std::runtime_error("TypeDecl null type: " + td->name);
 
     print("Resolving type alias: " + td->name +
@@ -141,9 +139,58 @@ void AliasPass::visitTypeDecl(const std::shared_ptr<TypeDecl> td) {
 
 // ------------------- FunctionDecl -------------------
 void AliasPass::visitFunctionDecl(const std::shared_ptr<FunctionDecl> fn) {
-    return;
-}
 
+    print("Visiting function: " + fn->func_name);
+
+    // -------------------------
+    // Resolve parameter types
+    // -------------------------
+    for (auto& param : fn->parameters) {
+
+        if (!param->para_type)
+            continue;
+
+        print("Resolving param '" + param->para_name + "' type: " + param->para_type->to_string());
+
+        param->para_type = resolveType(param->para_type);
+
+        print("Resolved param '" + param->para_name + "' → " + param->para_type->to_string());
+    }
+
+    // -------------------------
+    // Resolve return type
+    // -------------------------
+    if (fn->func_type->return_type) {
+
+        print("Resolving return type: " + fn->func_type->return_type->to_string());
+
+        fn->func_type->return_type = resolveType(fn->func_type->return_type);
+
+        print("Resolved return type → " + fn->func_type->return_type->to_string());
+    }
+
+    // -------------------------
+    // Enter function scope
+    // -------------------------
+    print("Entering function scope: " + fn->func_name);
+
+    auto prev = current_scope;
+    current_scope = current_scope->push();
+    scope_depth++;
+
+    // -------------------------
+    // Visit body
+    // -------------------------
+    visitBlock(fn->body);
+
+    // -------------------------
+    // Exit function scope
+    // -------------------------
+    current_scope = prev;
+    scope_depth--;
+
+    print("Leaving function scope: " + fn->func_name);
+}
 // ------------------- Resolve Types -------------------
 std::shared_ptr<Type> AliasPass::resolveType(const std::shared_ptr<Type>& type) {
 
@@ -191,6 +238,7 @@ std::shared_ptr<Type> AliasPass::resolveType(const std::shared_ptr<Type>& type) 
 
     if (auto tup = std::dynamic_pointer_cast<TupleType>(type)) {
         print("Resolving TupleType of size " + std::to_string(tup->tuple_types.size()));
+
         for (auto& t : tup->tuple_types)
             t = resolveType(t);
         return tup;
