@@ -55,6 +55,6 @@ void IndexExpr::dump(std::ostream& os, int i) const {
 
 // TupleExpr / ArrayExpr
 void TupleExpr::dump(std::ostream& os, int i) const { indent(os, i); os << "tuple\n"; for(auto& e : elements) e->dump(os, i + 1); }
-void ArrayExpr::dump(std::ostream& os, int i) const { indent(os, i); os << "array\n"; for(auto& e : elements) e->dump(os, i + 1); }
+void ArrayExpr::dump(std::ostream& os, int i) const { indent(os, i); os << "array -> " + type->to_string() + "\n"; for(auto& e : elements) e->dump(os, i + 1); }
 
 } // namespace rex

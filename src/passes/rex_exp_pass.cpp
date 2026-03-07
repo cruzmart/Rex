@@ -1,14 +1,49 @@
   
-  #include "passes/rex_exp_pass.h"
+#include "passes/rex_exp_pass.h"
+#include "rex_ast_nodes.h"
 #include "rex_exps.h"
+#include "rex_funcs.h"
 #include "rex_ops.h"
+#include "rex_stmts.h"
 #include "rex_types.h"
 #include <memory>
 #include <stdexcept>
+#include <string>
+#include "rex_operator_type_system.h"
 
   namespace rex {
 
+    // Helpers //////
+
+    bool ExprPass::is_tuple_type(const std::shared_ptr<Type> T){
+        return std::dynamic_pointer_cast<TupleType>(T) != nullptr;
+    }
+
+    bool ExprPass::is_tuple_exp(const std::shared_ptr<Expr> T){
+        return std::dynamic_pointer_cast<TupleExpr>(T) != nullptr;
+    }
+
+
+
+
+
+    void ExprPass::visit(const std::shared_ptr<FileAst> file){
+        for(auto item : file->items){
+            if(auto stmt = std::dynamic_pointer_cast<Stmt>(item)){
+                visitStmt(stmt);
+            }
+            if(auto func = std::dynamic_pointer_cast<FunctionDecl>(item)){
+                visitFunctionDecl(func);
+            }
+
+            if(auto as_stmt = std::dynamic_pointer_cast<AssignStmt>(item)){
+                visitAsgStmt(as_stmt);
+            }
+        }
     
+    }
+
+
     std::shared_ptr<Type> ExprPass::visitExpr(const std::shared_ptr<Expr> exp){
         if(auto lit = std::dynamic_pointer_cast<LiteralExpr>(exp))
             return visitLiteral(lit);
@@ -34,12 +69,47 @@
     }
     void ExprPass ::visitStmt(const std::shared_ptr<Stmt> stmt){
 
+        if(auto let = std::dynamic_pointer_cast<LetStmt>(stmt)){
+            visitLetStmt(let);
+        }
+
     }
     void ExprPass ::visitBlock(const std::shared_ptr<BlockExpr> block){
 
     }
 
     void ExprPass ::visitLetStmt(const std::shared_ptr<LetStmt> ls){
+
+        // check what type of pattern is the id
+        if(auto id = std::dynamic_pointer_cast<PatternId>(ls->id_pattern)){
+            auto sym = std::make_shared<Symbol>(SymbolType::variable, id->id);
+            sym->type = ls->type;
+            ls->exp->type = visitExpr(ls->exp);
+            sym->expr = ls->exp;
+
+            current_scope->define(sym);
+
+            return;
+        } 
+
+        else if (auto ids = std::dynamic_pointer_cast<PatternIds>(ls->id_pattern))
+
+        {
+            auto types = std::dynamic_pointer_cast<TupleType>(ls->type);
+            auto exprs = std::dynamic_pointer_cast<TupleExpr>(ls->exp);
+
+            for(size_t i = 0; i < ids->ids.size(); i++){
+                auto sym = std::make_shared<Symbol>(SymbolType::variable, ids->ids[i]);
+                sym->type = types->tuple_types[i];
+                sym->expr = exprs->elements[i];
+
+                current_scope->define(sym);
+            }
+        }
+
+    }
+
+    void ExprPass::visitAsgStmt(const std::shared_ptr<AssignStmt> as){
 
     }
 
@@ -51,19 +121,25 @@
         return literal->type;
     }
     std::shared_ptr<Type> ExprPass::visitId(const std::shared_ptr<IdExpr> id){
+
         if(!id->resolved){
-            throw std::runtime_error("Unresolved Identifier: " + id->name);
-        }
+            id->resolved = current_scope->resolve(id->name);
+            id->type = id->resolved->type;
+        } 
 
         id->type = id->resolved->type;
+
         return id->resolved->type;
     }
     std::shared_ptr<Type> ExprPass::visitBinary(const std::shared_ptr<BinaryExpr> bexp){
         auto left = visitExpr(bexp->lhs);
         auto right = visitExpr(bexp->rhs);
 
-        if (!left->equals(right))
-            throw std::runtime_error("Type mismatch in binary op");
+        bexp->type = ots.check_binary(bexp->operation, left, right);
+
+        std::cout << bexp->type->to_string() << std::endl;
+
+        return bexp->type;
 
     }
     
@@ -81,10 +157,28 @@
         return t;
 
     }
-    std::shared_ptr<Type> ExprPass::visitArray (const std::shared_ptr<ArrayExpr> aexp){}
+    std::shared_ptr<Type> ExprPass::visitArray (const std::shared_ptr<ArrayExpr> aexp){
+
+        // we should check that ALL expressions within this array are ALL of the same type
+        // because now in expressions, we are giving it actual information
+
+
+        int size = aexp->elements.size(); // get the size of all of the elements in it
+
+        if(!size)
+            aexp -> type = std::make_shared<ArrayType>(std::make_shared<PrimType>(PrimType::Prims::Null));
+        else
+            aexp -> type = std::make_shared<ArrayType>(aexp->elements[0]->type, size);
+
+
+    
+        
+        return aexp->type;
+
+    }
     std::shared_ptr<Type> ExprPass::visitIndex (const std::shared_ptr<IndexExpr> iexp){
         auto base_type = visitExpr(iexp->base);
-        visitExpr(iexp->index);
+        auto index_type = visitExpr(iexp->index);
 
         auto arr = std::dynamic_pointer_cast<ArrayType>(base_type);
         if(!arr)

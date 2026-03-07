@@ -5,6 +5,7 @@
 #include "RexParser.h"
 
 #include "passes/rex_alias_pass.h"
+#include "passes/rex_exp_pass.h"
 #include "rex_ast_build.h"
 #include "rex_ast_nodes.h"
 #include "rex_type_checker.h"
@@ -13,7 +14,7 @@ using namespace antlr4;
 using namespace rex;
 
 int main() {
-    std::ifstream file("tests/the_seventh.txt");
+    std::ifstream file("tests/the_twelve.txt");
     if (!file) {
         std::cerr << "Failed to open .txt file\n";
         return 1;
@@ -41,6 +42,14 @@ int main() {
     auto global_scope = std::make_shared<Scope>();
     AliasPass pass_alias(global_scope, debug);
     pass_alias.visit(ast);
+
+    // Expr Pass
+
+    auto global_scope_2 = std::make_shared<Scope>();
+    ExprPass pass_expr(global_scope_2);
+    pass_expr.visit(ast);
+
+    ast->dump(std::cout, 0);
 
     // 
 

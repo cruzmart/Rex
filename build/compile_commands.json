@@ -94,5 +94,17 @@
   "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/passes/rex_alias_pass.cpp.o -c /home/unknown/projects/Rex/src/passes/rex_alias_pass.cpp",
   "file": "/home/unknown/projects/Rex/src/passes/rex_alias_pass.cpp",
   "output": "src/CMakeFiles/rex.dir/passes/rex_alias_pass.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/passes/rex_exp_pass.cpp.o -c /home/unknown/projects/Rex/src/passes/rex_exp_pass.cpp",
+  "file": "/home/unknown/projects/Rex/src/passes/rex_exp_pass.cpp",
+  "output": "src/CMakeFiles/rex.dir/passes/rex_exp_pass.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/rex_operator_type_system.cpp.o -c /home/unknown/projects/Rex/src/rex_operator_type_system.cpp",
+  "file": "/home/unknown/projects/Rex/src/rex_operator_type_system.cpp",
+  "output": "src/CMakeFiles/rex.dir/rex_operator_type_system.cpp.o"
 }
 ]
