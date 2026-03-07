@@ -36,6 +36,12 @@ private:
     type_ptr promote_primitive(std::shared_ptr<PrimType> A,
                                std::shared_ptr<PrimType> B);
 
+    bool is_integer(type_ptr T);
+    bool is_real(type_ptr T);
+    bool is_string(type_ptr T);
+    bool is_char(type_ptr T);
+    
+
 };
 
 } // namespace rex
