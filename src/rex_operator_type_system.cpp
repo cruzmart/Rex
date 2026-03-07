@@ -1,6 +1,7 @@
 #include "rex_operator_type_system.h"
 #include "rex_ast_nodes.h"
 #include "rex_types.h"
+#include <memory>
 #include <stdexcept>
 #include <iostream>
 
@@ -10,8 +11,46 @@ using PrimKind = rex::PrimType::Prims;
 //
 // BASIC HELPERS
 //
+
+
+// HELPERS TO FIND WHAT PRIM TYPE IT IS
+
+    
+
 bool OperatorTypeSystem::is_primitive(type_ptr T) {
     return std::dynamic_pointer_cast<PrimType>(T) != nullptr;
+}
+
+bool OperatorTypeSystem::is_integer(type_ptr T){
+    if(!is_primitive(T)) return false;
+    if(auto p = std::dynamic_pointer_cast<PrimType>(T))
+        return p->prim_type == PrimKind::Int;
+    return false;
+}
+bool OperatorTypeSystem::is_real(type_ptr T){
+    if(!is_primitive(T)) return false;
+    if(auto p = std::dynamic_pointer_cast<PrimType>(T))
+        return p->prim_type == PrimKind::Real;
+    return false;
+
+}
+bool OperatorTypeSystem::is_string(type_ptr T){
+    if(!is_primitive(T)) return false;
+    if(auto p = std::dynamic_pointer_cast<PrimType>(T))
+        return p->prim_type == PrimKind::String;
+    return false;
+}
+bool OperatorTypeSystem::is_char(type_ptr T){
+    if(!is_primitive(T)) return false;
+    if(auto p = std::dynamic_pointer_cast<PrimType>(T))
+        return p->prim_type == PrimKind::Char;
+    return false;
+}
+bool OperatorTypeSystem::is_bool(type_ptr T) {
+    if(!is_primitive(T)) return false;
+    if (auto p = std::dynamic_pointer_cast<PrimType>(T))
+        return p->prim_type == PrimKind::Bool;
+    return false;
 }
 
 bool OperatorTypeSystem::is_numeric(type_ptr T) {
@@ -20,12 +59,6 @@ bool OperatorTypeSystem::is_numeric(type_ptr T) {
                p->prim_type == PrimKind::Real ||
                p->prim_type == PrimKind::Char;
     }
-    return false;
-}
-
-bool OperatorTypeSystem::is_bool(type_ptr T) {
-    if (auto p = std::dynamic_pointer_cast<PrimType>(T))
-        return p->prim_type == PrimKind::Bool;
     return false;
 }
 
@@ -89,14 +122,14 @@ type_ptr OperatorTypeSystem::promote(type_ptr L, type_ptr R,
     //
     if (auto arr = std::dynamic_pointer_cast<ArrayType>(L))
         if (is_numeric(R)) {
-            auto elem = promote(arr->elem, R, op);
-            return std::make_shared<ArrayType>(elem);
+            auto elem = promote(arr->array_type, R, op);
+            return std::make_shared<ArrayType>(elem, arr->size);
         }
 
     if (auto arr = std::dynamic_pointer_cast<ArrayType>(R))
         if (is_numeric(L)) {
-            auto elem = promote(arr->elem, L, op);
-            return std::make_shared<ArrayType>(elem);
+            auto elem = promote(arr->array_type, L, op);
+            return std::make_shared<ArrayType>(elem, arr->size);
         }
 
     //
@@ -104,8 +137,9 @@ type_ptr OperatorTypeSystem::promote(type_ptr L, type_ptr R,
     //
     if (auto a1 = std::dynamic_pointer_cast<ArrayType>(L))
         if (auto a2 = std::dynamic_pointer_cast<ArrayType>(R)) {
-            auto elem = promote(a1->elem, a2->elem, op);
-            return std::make_shared<ArrayType>(elem);
+            // for this check the sizes, and just add to the other array 
+            auto elem = promote(a1->array_type, a2->array_type, op);
+            return std::make_shared<ArrayType>(elem, a1->size + a2->size);
         }
 
     //
@@ -113,12 +147,12 @@ type_ptr OperatorTypeSystem::promote(type_ptr L, type_ptr R,
     //
     if (auto t1 = std::dynamic_pointer_cast<TupleType>(L))
         if (auto t2 = std::dynamic_pointer_cast<TupleType>(R)) {
-            if (t1->elements.size() != t2->elements.size())
+            if (t1->tuple_types.size() != t2->tuple_types.size())
                 throw std::runtime_error("Tuple size mismatch in op " + op);
 
             std::vector<type_ptr> elems;
-            for (size_t i = 0; i < t1->elements.size(); ++i)
-                elems.push_back(promote(t1->elements[i], t2->elements[i], op));
+            for (size_t i = 0; i < t1->tuple_types.size(); ++i)
+                elems.push_back(promote(t1->tuple_types[i], t2->tuple_types[i], op));
 
             return std::make_shared<TupleType>(elems);
         }
@@ -135,8 +169,8 @@ type_ptr OperatorTypeSystem::check_unary(UniOp op, type_ptr operand)
 {
     switch (op) {
 
-    case UniOp::Plus:
-    case UniOp::Neg:
+    case UniOp::POS:
+    case UniOp::NEG:
         if (!is_numeric(operand))
             throw std::runtime_error("Unary +/- requires numeric type");
         return operand;
@@ -153,6 +187,8 @@ type_ptr OperatorTypeSystem::check_range(type_ptr L, type_ptr R)
 {
     if (!is_numeric(L) || !is_numeric(R))
         throw std::runtime_error("Range operator requires numeric types");
+    if (!is_integer(L) || !is_integer(R))
+        throw std::runtime_error("Range operator requires numeric INT types");
 
     return std::make_shared<RangeType>();
 }
@@ -166,11 +202,11 @@ type_ptr OperatorTypeSystem::check_pipe(type_ptr value, type_ptr fnType)
     if (!fn)
         throw std::runtime_error("Right side of '|>' must be a function");
 
-    if (fn->parameters.size() != 1)
+    if (fn->params_type.size() != 1)
         throw std::runtime_error("Pipe expects a unary function");
 
     // check if argument is compatible
-    promote(value, fn->parameters[0], "|>");
+    promote(value, fn->params_type[0], "|>");
 
     return fn->return_type;
 }
@@ -183,14 +219,16 @@ type_ptr OperatorTypeSystem::check_index(type_ptr base, type_ptr index)
     if (!is_array(base))
         throw std::runtime_error("Cannot index non-array type");
 
-    if (!is_numeric(index))
+    if (!is_numeric(index) || !is_integer(index))
         throw std::runtime_error("Array index must be numeric (Int)");
 
+    
+
     if (auto arr = std::dynamic_pointer_cast<ArrayType>(base))
-        return arr->elem;
+        return arr->array_type;
 
     if (auto slice = std::dynamic_pointer_cast<SliceType>(base))
-        return slice->elem;
+        return slice->slice_type;
 
     throw std::runtime_error("Unknown array-like type");
 }
@@ -204,42 +242,43 @@ type_ptr OperatorTypeSystem::check_binary(BinaryOp op,
     switch (op) {
 
     // arithmetic
-    case BinaryOp::Add:
-    case BinaryOp::Sub:
-    case BinaryOp::Mul:
-    case BinaryOp::Div:
-    case BinaryOp::Mod:
+    case BinaryOp::ADD:
+    case BinaryOp::SUB:
+    case BinaryOp::MUL:
+    case BinaryOp::DIV:
+    case BinaryOp::MOD:
         return promote(L, R, binop_name(op));
 
     // comparisons
-    case BinaryOp::Lt:
-    case BinaryOp::Gt:
-    case BinaryOp::Le:
-    case BinaryOp::Ge:
+    case BinaryOp::LT:
+    case BinaryOp::GT:
+    case BinaryOp::LE:
+    case BinaryOp::GE:
         promote(L, R, binop_name(op)); // just ensure comparable
         return std::make_shared<PrimType>(PrimKind::Bool);
 
     // equality
-    case BinaryOp::Eq:
-    case BinaryOp::Ne:
+    case BinaryOp::EQ:
+    case BinaryOp::NEQ:
         promote(L, R, binop_name(op));
         return std::make_shared<PrimType>(PrimKind::Bool);
 
     // logical
-    case BinaryOp::And:
-    case BinaryOp::Or:
+    case BinaryOp::AND:
+    case BinaryOp::OR:
         if (!is_bool(L) || !is_bool(R))
             throw std::runtime_error("and/or require Bool operands");
         return std::make_shared<PrimType>(PrimKind::Bool);
 
     // range
-    case BinaryOp::Range:
+    case BinaryOp::RANGE:
         return check_range(L, R);
 
     // pipe
-    case BinaryOp::Pipe:
+    case BinaryOp::PIPE:
         return check_pipe(L, R);
     }
 
     throw std::runtime_error("Unknown binary operator");
 }
+

@@ -106,6 +106,16 @@ struct NamedType : Type {
             return alias + " -> " + actual_type->to_string();
         return alias;
     }
+
+     bool equals(const std::shared_ptr<Type> other) const override {
+        if (fundamental_kind != other->fundamental_kind) return false;
+
+        auto o = std::dynamic_pointer_cast<NamedType>(other);
+        if (!o) return false;
+
+        return actual_type->equals(o->actual_type);
+    }
+    
 };
 
 struct ArrayType : Type {
@@ -181,6 +191,7 @@ struct TupleType : Type {
     std::vector<std::shared_ptr<Type>> tuple_types;
 
     TupleType() : Type(TypeKind::Tuple) {}
+    TupleType(std::vector<std::shared_ptr<Type>> tuples) : Type(TypeKind::Tuple) , tuple_types(tuples){}
 
     std::string to_string() const override {
         std::string out = "(";
@@ -191,6 +202,20 @@ struct TupleType : Type {
         out += ")";
 
         return out;
+    }
+
+    bool equals(const std::shared_ptr<Type> other) const override {
+        if (fundamental_kind != other->fundamental_kind) return false;
+
+        auto o = std::dynamic_pointer_cast<TupleType>(other);
+        if (!o) return false;
+
+        for(size_t i = 0; i < tuple_types.size(); i++){
+            if(!tuple_types[i]->equals(o->tuple_types[i]))
+                return false;
+        }
+
+        return true;
     }
 
 };
@@ -217,6 +242,15 @@ struct PrimType  : Type {
             default:
                 return "<?>";
         }
+    }
+
+    bool equals(const std::shared_ptr<Type> other) const override {
+        if (fundamental_kind != other->fundamental_kind) return false;
+
+        auto o = std::dynamic_pointer_cast<PrimType>(other);
+        if (!o) return false;
+
+        return prim_type == o->prim_type;
     }
 
 };
