@@ -190,7 +190,7 @@ type_ptr OperatorTypeSystem::check_range(type_ptr L, type_ptr R)
     if (!is_integer(L) || !is_integer(R))
         throw std::runtime_error("Range operator requires numeric INT types");
 
-    return std::make_shared<RangeType>();
+    return std::make_shared<RangeType>(L,R);
 }
 
 //
@@ -254,14 +254,15 @@ type_ptr OperatorTypeSystem::check_binary(BinaryOp op,
     case BinaryOp::GT:
     case BinaryOp::LE:
     case BinaryOp::GE:
-        promote(L, R, binop_name(op)); // just ensure comparable
+        if(is_array(L) || is_array(R))
+            return promote(L, R, binop_name(op)); // just ensure comparable
         return std::make_shared<PrimType>(PrimKind::Bool);
 
     // equality
     case BinaryOp::EQ:
     case BinaryOp::NEQ:
-        promote(L, R, binop_name(op));
-        return std::make_shared<PrimType>(PrimKind::Bool);
+        return promote(L, R, binop_name(op));
+        // return std::make_shared<PrimType>(PrimKind::Bool);
 
     // logical
     case BinaryOp::AND:

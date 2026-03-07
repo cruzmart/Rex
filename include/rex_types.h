@@ -122,9 +122,11 @@ struct ArrayType : Type {
 
     // For Array / Slice
     std::shared_ptr<Type> array_type; 
-    int size = -1;   
+    int size = 0;   
 
-    ArrayType() : Type(TypeKind::Array), array_type(std::make_shared<Type>()){}       
+    ArrayType() : Type(TypeKind::Array), array_type(std::make_shared<Type>()){}   
+    ArrayType(int sz) : Type(TypeKind::Array), size(sz) {}
+    ArrayType(std::shared_ptr<Type> elem) : Type(TypeKind::Array), array_type(elem){}
     ArrayType(std::shared_ptr<Type> elem, int sz) : Type(TypeKind::Array), array_type(elem), size(sz) {}
 
     bool equals(const std::shared_ptr<Type> other) const override {
@@ -225,7 +227,8 @@ struct PrimType  : Type {
     Bool,
     Char,
     Real,
-    String};
+    String,
+    Null};
 
     Prims prim_type;
 

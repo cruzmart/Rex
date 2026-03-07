@@ -19,14 +19,25 @@ struct ExprPass {
         std::shared_ptr<Scope> current_scope;
         int scope_depth = 0;
 
+        bool is_tuple_type(std::shared_ptr<Type> t);
+        bool is_tuple_exp(std::shared_ptr<Expr> e);
+
     public:
+
+         ExprPass(std::shared_ptr<Scope> global)
+        : current_scope(global) {}
+
+        void visit(const std::shared_ptr<FileAst> file);
 
         std::shared_ptr<Type> visitExpr(const std::shared_ptr<Expr> exp);
         void visitStmt(const std::shared_ptr<Stmt> stmt);
         void visitBlock(const std::shared_ptr<BlockExpr> block);
 
         void visitLetStmt(const std::shared_ptr<LetStmt> ls);
+        void visitAsgStmt(const std::shared_ptr<AssignStmt> as);
         void visitFunctionDecl(const std::shared_ptr<FunctionDecl> f);
+
+
 
         std::shared_ptr<Type> visitLiteral(const std::shared_ptr<LiteralExpr> literal);
         std::shared_ptr<Type> visitId(const std::shared_ptr<IdExpr> id);
