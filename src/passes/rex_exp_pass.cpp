@@ -13,7 +13,14 @@
 
   namespace rex {
 
+
+
     // Helpers //////
+
+    void ExprPass::print(const std::string& msg) const {
+    if (debug)
+        std::cout << "[ExprPass] " << msg << "\n";
+    }
 
     bool ExprPass::is_tuple_type(const std::shared_ptr<Type> T){
         return std::dynamic_pointer_cast<TupleType>(T) != nullptr;
@@ -24,9 +31,6 @@
     }
 
 
-
-
-
     void ExprPass::visit(const std::shared_ptr<FileAst> file){
         for(auto item : file->items){
             if(auto stmt = std::dynamic_pointer_cast<Stmt>(item)){
@@ -35,12 +39,7 @@
             if(auto func = std::dynamic_pointer_cast<FunctionDecl>(item)){
                 visitFunctionDecl(func);
             }
-
-            if(auto as_stmt = std::dynamic_pointer_cast<AssignStmt>(item)){
-                visitAsgStmt(as_stmt);
-            }
-        }
-    
+        } 
     }
 
 
@@ -68,31 +67,34 @@
 
     }
     void ExprPass ::visitStmt(const std::shared_ptr<Stmt> stmt){
-
-        if(auto let = std::dynamic_pointer_cast<LetStmt>(stmt)){
+        if(auto let = std::dynamic_pointer_cast<LetStmt>(stmt))
             visitLetStmt(let);
-        }
-
-        if(auto as = std::dynamic_pointer_cast<AssignStmt>(stmt)){
-
-        }
-        if(auto es = std::dynamic_pointer_cast<ExprStmt>(stmt)){
-
-        }
-        
-        if(auto ws = std::dynamic_pointer_cast<WhileStmt>(stmt)){
-
-        }
-        if(auto fs = std::dynamic_pointer_cast<ForStmt>(stmt)){
-
-        }
-        if(auto is = std::dynamic_pointer_cast<IfStmt>(stmt)){
-
-        }
-
+        if(auto as = std::dynamic_pointer_cast<AssignStmt>(stmt))
+            visitAsgStmt(as);
+        if(auto es = std::dynamic_pointer_cast<ExprStmt>(stmt))
+            visitExprStmt(es);
+        if(auto ws = std::dynamic_pointer_cast<WhileStmt>(stmt))
+            visitWhileStmt(ws);
+        if(auto fs = std::dynamic_pointer_cast<ForStmt>(stmt))
+            visitForStmt(fs);
+        if(auto is = std::dynamic_pointer_cast<IfStmt>(stmt))
+            visitIfStmt(is);
     }
 
     void ExprPass ::visitBlock(const std::shared_ptr<BlockExpr> block){
+        if (!block) return;
+
+        print("Entering Scope Depth: " + std::to_string(scope_depth) + "\n");
+        auto prev = current_scope;
+        current_scope = current_scope->push();
+        scope_depth += 1;
+
+        for (auto& stmt : block->statements)
+            visitStmt(stmt);
+
+        current_scope = prev; // pop
+        print("Leaving Scope Depth: " + std::to_string(scope_depth) + "\n");
+        scope_depth -= 1;
 
     }
 
@@ -143,13 +145,37 @@
 
     }
 
-    void ExprPass::visitAsgStmt(const std::shared_ptr<AssignStmt> as){}
+    void ExprPass::visitIfStmt(const std::shared_ptr<IfStmt> is){
+        // check condition of if statement
+        visitExpr(is->condition);
+        // check the then statement
+        visitBlock(is->then_block);
 
-    void ExprPass::visitExprStmt(const std::shared_ptr<ExprStmt> es){}
-    void ExprPass::visitWhileStmt(const std::shared_ptr<WhileStmt> ws){}
-    void ExprPass::visitForStmt(const std::shared_ptr<ForStmt> fs){}
-    void ExprPass::visitIfStmt(const std::shared_ptr<IfStmt> is){}
+        if(!is->elifx_blocks.empty()){
+            // if there are any "else if's"
+            for(auto [expr, block] : is->elifx_blocks){
+                visitExpr(expr);
+                visitBlock(block);
+            }
+        }
+        // if there is a else block
+        if(!is->else_block){
+            visitBlock(is->else_block);
+        }
+    }
    
+    void ExprPass::visitWhileStmt(const std::shared_ptr<WhileStmt> ws){
+        visitExpr(ws->cond);
+        visitBlock(ws->body);
+    }
+
+    void ExprPass::visitAsgStmt(const std::shared_ptr<AssignStmt> as){}
+    void ExprPass::visitExprStmt(const std::shared_ptr<ExprStmt> es){}
+ 
+    void ExprPass::visitForStmt(const std::shared_ptr<ForStmt> fs){
+
+    }
+
 
     std::shared_ptr<Type> ExprPass::visitLiteral(const std::shared_ptr<LiteralExpr> literal){
         return literal->type;

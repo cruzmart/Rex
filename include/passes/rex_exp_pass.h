@@ -18,9 +18,12 @@ struct ExprPass {
         OperatorTypeSystem ots;
         std::shared_ptr<Scope> current_scope;
         int scope_depth = 0;
+        bool debug = false;
 
         bool is_tuple_type(std::shared_ptr<Type> t);
         bool is_tuple_exp(std::shared_ptr<Expr> e);
+
+        void print(const std::string& msg) const;  // helper
 
     public:
 

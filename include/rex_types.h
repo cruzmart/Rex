@@ -279,6 +279,17 @@ struct FunctionType : Type {
     }
 };
 
+
+struct TypeConverter {
+    std::shared_ptr<PrimType>  to_prim(std::shared_ptr<Type> type) {return std::dynamic_pointer_cast<PrimType>(type);}
+    std::shared_ptr<NamedType> to_named(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<NamedType>(type);}
+    std::shared_ptr<ArrayType> to_array(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<ArrayType>(type);}
+    std::shared_ptr<SliceType> to_slice(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<SliceType>(type);}
+    std::shared_ptr<TupleType> to_tuple(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<TupleType>(type);}
+    std::shared_ptr<RangeType> to_range(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<RangeType>(type);}
+    std::shared_ptr<PipeType> to_pipe(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<PipeType>(type);}
+    std::shared_ptr<FunctionType> to_func(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<FunctionType>(type);}
+};
 using type_ptr = std::shared_ptr<Type>;
 
 } // namespace rex
