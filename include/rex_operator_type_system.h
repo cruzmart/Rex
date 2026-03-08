@@ -1,5 +1,6 @@
 #pragma once
 #include "rex_ast_nodes.h"
+#include "rex_ops.h"
 #include "rex_types.h"
 #include <memory>
 #include <string>
@@ -10,6 +11,8 @@ struct OperatorTypeSystem {
 
     // Debug toggle
     bool debug = false;
+    // ====== Type Converter ==========
+    TypeConverter tc;
 
     // ===== Main API =====
     type_ptr check_unary(UniOp op, type_ptr operand);
@@ -41,6 +44,12 @@ public:
     bool is_real(type_ptr T);
     bool is_string(type_ptr T);
     bool is_char(type_ptr T);
+
+    // For 
+
+    bool is_comp(BinaryOp op);
+    bool is_arth(BinaryOp op);
+    bool is_logic(BinaryOp op);
     
 
 };

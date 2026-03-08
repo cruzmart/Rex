@@ -1,5 +1,6 @@
 #include "rex_operator_type_system.h"
 #include "rex_ast_nodes.h"
+#include "rex_ops.h"
 #include "rex_types.h"
 #include <memory>
 #include <stdexcept>
@@ -15,7 +16,41 @@ using PrimKind = rex::PrimType::Prims;
 
 // HELPERS TO FIND WHAT PRIM TYPE IT IS
 
-    
+bool OperatorTypeSystem::is_logic(BinaryOp op){
+    switch(op){
+    case BinaryOp::AND:
+    case BinaryOp::OR:
+        return true;
+    default:
+        return false;
+    }
+}
+bool OperatorTypeSystem::is_comp(BinaryOp op){
+    switch(op){
+    case BinaryOp::LT:
+    case BinaryOp::GT:
+    case BinaryOp::LE:
+    case BinaryOp::GE:
+    case BinaryOp::EQ:
+    case BinaryOp::NEQ:
+        return true;
+    default:
+        return false;
+    }
+
+}
+bool OperatorTypeSystem::is_arth(BinaryOp op){
+    switch (op) {
+        case BinaryOp::ADD:
+        case BinaryOp::SUB:
+        case BinaryOp::MUL:
+        case BinaryOp::DIV:
+        case BinaryOp::MOD:
+            return true;
+        default:
+            return false;
+    }
+}
 
 bool OperatorTypeSystem::is_primitive(type_ptr T) {
     return std::dynamic_pointer_cast<PrimType>(T) != nullptr;
@@ -83,8 +118,9 @@ int OperatorTypeSystem::prim_rank(PrimKind k) {
         case PrimKind::Char: return 1;
         case PrimKind::Int:  return 2;
         case PrimKind::Real: return 3;
+        default:
+            return -1;
     }
-    return -1;
 }
 
 //
@@ -139,7 +175,7 @@ type_ptr OperatorTypeSystem::promote(type_ptr L, type_ptr R,
         if (auto a2 = std::dynamic_pointer_cast<ArrayType>(R)) {
             // for this check the sizes, and just add to the other array 
             auto elem = promote(a1->array_type, a2->array_type, op);
-            return std::make_shared<ArrayType>(elem, a1->size + a2->size);
+            return std::make_shared<ArrayType>(elem, std::max(a1->size , a2->size));
         }
 
     //
@@ -250,44 +286,41 @@ type_ptr OperatorTypeSystem::check_index(type_ptr base, type_ptr index)
 type_ptr OperatorTypeSystem::check_binary(BinaryOp op,
                                           type_ptr L, type_ptr R)
 {
-    switch (op) {
 
-    // arithmetic
-    case BinaryOp::ADD:
-    case BinaryOp::SUB:
-    case BinaryOp::MUL:
-    case BinaryOp::DIV:
-    case BinaryOp::MOD:
+    if(is_arth(op)){
+        // arithmetic
         return promote(L, R, binop_name(op));
+    }
 
-    // comparisons
-    case BinaryOp::LT:
-    case BinaryOp::GT:
-    case BinaryOp::LE:
-    case BinaryOp::GE:
-            return promote(L, R, binop_name(op)); // just ensure comparable
-    // equality
-    case BinaryOp::EQ:
-    case BinaryOp::NEQ:
-        return promote(L, R, binop_name(op));
-        // return std::make_shared<PrimType>(PrimKind::Bool);
+    if(is_comp(op)){
+        // comparison
+        auto re = promote(L, R, binop_name(op));
+        if(is_array(L) || is_array(R)){
+            tc.to_array(re)->array_type = std::make_shared<PrimType>(PrimKind::Bool);
+            return re;
+        }
+        return re;
+    }
 
-    // logical
-    case BinaryOp::AND:
-    case BinaryOp::OR:
-        if (!is_bool(L) || !is_bool(R))
+    if(is_logic(op)){
+        // logic
+         bool is_L_array = is_array(L);
+         bool is_R_array = is_array(R);
+
+         if (!is_bool(L) || !is_bool(R))
             throw std::runtime_error("and/or require Bool operands");
         return promote(L, R, binop_name(op));
+    }
 
+    switch (op) {
     // range
     case BinaryOp::RANGE:
         return check_range(L, R);
-
     // pipe
     case BinaryOp::PIPE:
         return check_pipe(L, R);
+    default:
+        throw std::runtime_error("Unknown binary operator");
     }
-
-    throw std::runtime_error("Unknown binary operator");
 }
 
