@@ -31,7 +31,7 @@ void UnaryExpr::dump(std::ostream& os, int i) const {
 
 // BinaryExpr
 void BinaryExpr::dump(std::ostream& os, int i) const {
-    indent(os, i); os << "binary " << binop_name(operation) << " : " << (type ? type->to_fundamental_string() : "<null>") << "\n";
+    indent(os, i); os << "binary " << binop_name(operation) << " : " << type->to_string() << "\n";
     if(lhs) lhs->dump(os, i + 1);
     if(rhs) rhs->dump(os, i + 1);
 }
@@ -48,7 +48,8 @@ void CallExpr::dump(std::ostream& os, int i) const {
 
 // IndexExpr
 void IndexExpr::dump(std::ostream& os, int i) const {
-    indent(os, i); os << "index\n";
+    indent(os, i); 
+    os << "index : " << type->to_string() << "\n";
     indent(os, i + 1); os << "base\n"; if(base) base->dump(os, i + 2);
     indent(os, i + 1); os << "index\n"; if(index) index->dump(os, i + 2);
 }

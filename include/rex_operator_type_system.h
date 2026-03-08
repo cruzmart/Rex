@@ -22,7 +22,7 @@ struct OperatorTypeSystem {
     // Promotion / helper
     type_ptr promote(type_ptr L, type_ptr R, const std::string& op);
 
-private:
+public:
     // helpers
     bool is_primitive(type_ptr T);
     bool is_numeric(type_ptr T);
@@ -30,6 +30,7 @@ private:
     bool is_array(type_ptr T);
     bool is_tuple(type_ptr T);
     bool is_slice(type_ptr T);
+
 
     int prim_rank(PrimType::Prims k);
 

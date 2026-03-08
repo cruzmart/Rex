@@ -132,59 +132,52 @@
         return id->resolved->type;
     }
     std::shared_ptr<Type> ExprPass::visitBinary(const std::shared_ptr<BinaryExpr> bexp){
-        auto left = visitExpr(bexp->lhs);
-        auto right = visitExpr(bexp->rhs);
-
-        bexp->type = ots.check_binary(bexp->operation, left, right);
-
-        std::cout << bexp->type->to_string() << std::endl;
-
+        bexp->type = ots.check_binary(bexp->operation, visitExpr(bexp->lhs), visitExpr(bexp->rhs));
         return bexp->type;
-
     }
     
     std::shared_ptr<Type> ExprPass::visitUnary (const std::shared_ptr<Type> uexp){}  
     
-    
-
         
     std::shared_ptr<Type> ExprPass::visitTuple(const std::shared_ptr<TupleExpr> texp){
         std::vector<std::shared_ptr<Type>> types;
         for(auto e : texp->elements)
             types.push_back(visitExpr(e));
-        auto t = std::make_shared<TupleType>();
-        t->tuple_types = types;
+        auto t = std::make_shared<TupleType>(types);
         return t;
 
     }
+    
     std::shared_ptr<Type> ExprPass::visitArray (const std::shared_ptr<ArrayExpr> aexp){
 
         // we should check that ALL expressions within this array are ALL of the same type
         // because now in expressions, we are giving it actual information
 
-
         int size = aexp->elements.size(); // get the size of all of the elements in it
 
-        if(!size)
-            aexp -> type = std::make_shared<ArrayType>(std::make_shared<PrimType>(PrimType::Prims::Null));
-        else
+        if(size){
+            for(auto exp : aexp->elements)
+                exp->type = visitExpr(exp);
             aexp -> type = std::make_shared<ArrayType>(aexp->elements[0]->type, size);
+        }
+        else
+            aexp -> type = std::make_shared<ArrayType>(std::make_shared<PrimType>(PrimType::Prims::Null));
 
-
-    
         
         return aexp->type;
 
     }
+
     std::shared_ptr<Type> ExprPass::visitIndex (const std::shared_ptr<IndexExpr> iexp){
         auto base_type = visitExpr(iexp->base);
         auto index_type = visitExpr(iexp->index);
 
-        auto arr = std::dynamic_pointer_cast<ArrayType>(base_type);
-        if(!arr)
+        if(!ots.is_array(base_type))
             throw std::runtime_error("Indexing Non-Array");
+        if(!ots.is_integer(index_type))
+            throw std::runtime_error("Index value is not of type INT");
     
-        iexp->type = arr->array_type;
+        iexp->type = std::dynamic_pointer_cast<ArrayType>(base_type)->array_type;
 
         return iexp->type;
 
