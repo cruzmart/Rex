@@ -171,7 +171,7 @@ antlrcpp::Any rex_ast_build::visitFunctionDef(RexParser::FunctionDefContext* ctx
 
     // if it has parameters, get the list of them.
     if (ctx->paramList()){
-        fn->parameters = std::any_cast<std::vector<std::shared_ptr<Parameter>>>(visit(ctx->paramList()));
+        fn->func_type->params_type = std::any_cast<std::vector<std::shared_ptr<Parameter>>>(visit(ctx->paramList()));
     }
    
     // if the function HAS a return type else it must be void type

@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 #include "rex_ast.h"
-#include "rex_types.h"
 
 
 namespace rex {
@@ -29,7 +28,7 @@ struct Parameter : AstNode {
 struct FunctionDecl : AstNode {
     std::string func_name;
     std::shared_ptr<FunctionType> func_type; // Could be FunctionType if defined
-    std::vector<std::shared_ptr<Parameter>> parameters;
+
     std::shared_ptr<BlockExpr> body;
     std::shared_ptr<Symbol> resolved;
     void dump(std::ostream& os, int i) const override;
