@@ -254,10 +254,7 @@ type_ptr OperatorTypeSystem::check_binary(BinaryOp op,
     case BinaryOp::GT:
     case BinaryOp::LE:
     case BinaryOp::GE:
-        if(is_array(L) || is_array(R))
             return promote(L, R, binop_name(op)); // just ensure comparable
-        return std::make_shared<PrimType>(PrimKind::Bool);
-
     // equality
     case BinaryOp::EQ:
     case BinaryOp::NEQ:
@@ -269,7 +266,7 @@ type_ptr OperatorTypeSystem::check_binary(BinaryOp op,
     case BinaryOp::OR:
         if (!is_bool(L) || !is_bool(R))
             throw std::runtime_error("and/or require Bool operands");
-        return std::make_shared<PrimType>(PrimKind::Bool);
+        return promote(L, R, binop_name(op));
 
     // range
     case BinaryOp::RANGE:
