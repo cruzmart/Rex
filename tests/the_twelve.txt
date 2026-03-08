@@ -1,2 +1,10 @@
-let d : Int[3] = [1 + 3.0,2,3];
-let a : Int = d[1];
+type integer = Int;
+
+
+function w(a: integer) -> Int[3] {
+    let s : Int = 3;
+    return 3 * 3;
+}
+
+
+let d : Real[3] = [1 + 3, 2, 3] + [2.0, 4.2, 5.7];

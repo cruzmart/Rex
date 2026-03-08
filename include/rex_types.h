@@ -1,4 +1,5 @@
 #pragma once
+#include "rex_funcs.h"
 #include <iostream>
 #include <memory>
 #include <string>
@@ -259,18 +260,18 @@ struct PrimType  : Type {
 };
 
 struct FunctionType : Type {
-    std::vector<std::shared_ptr<Type>> params_type;
+    std::vector<std::shared_ptr<Parameter>> params_type;
     std::shared_ptr<Type> return_type;
 
     FunctionType() : Type(TypeKind::Function) {}
 
-    FunctionType(std::vector<std::shared_ptr<Type>> params, std::shared_ptr<Type> ret)
+    FunctionType(std::vector<std::shared_ptr<Parameter>> params, std::shared_ptr<Type> ret)
         : Type(TypeKind::Function), params_type(std::move(params)), return_type(ret) {}
 
     std::string to_string() const override {
         std::string s = "(";
         for (size_t i=0; i<params_type.size(); ++i) {
-            s += params_type[i]->to_string();
+            s += params_type[i]->para_name + " : " + params_type[i]->para_type->to_string();
             if (i+1 < params_type.size()) s += ", ";
         }
         s += ") -> " + return_type->to_string();

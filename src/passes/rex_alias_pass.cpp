@@ -145,7 +145,7 @@ void AliasPass::visitFunctionDecl(const std::shared_ptr<FunctionDecl> fn) {
     // -------------------------
     // Resolve parameter types
     // -------------------------
-    for (auto& param : fn->parameters) {
+    for (auto& param : fn->func_type->params_type) {
 
         if (!param->para_type)
             continue;
@@ -247,7 +247,7 @@ std::shared_ptr<Type> AliasPass::resolveType(const std::shared_ptr<Type>& type) 
     if (auto fn = std::dynamic_pointer_cast<FunctionType>(type)) {
         print("Resolving FunctionType");
         for (auto& p : fn->params_type)
-            p = resolveType(p);
+            p->para_type = resolveType(p->para_type);
         fn->return_type = resolveType(fn->return_type);
         return fn;
     }

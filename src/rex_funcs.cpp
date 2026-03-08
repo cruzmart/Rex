@@ -17,13 +17,13 @@ void Parameter::dump(std::ostream& os, int i) const {
 
 void FunctionDecl::dump(std::ostream& os, int i) const {
     indent(os, i); os << "function " << func_name;
-    if (func_type) os << " -> " << func_type->to_fundamental_string();
+    if (func_type) os << " -> " << func_type->to_string();
     if (resolved) os << " [resolved]";
     os << "\n";
 
-    if (!parameters.empty()) {
+    if (!func_type->params_type.empty()) {
         indent(os, i + 1); os << "parameters:\n";
-        for (auto& p : parameters) if (p) p->dump(os, i + 2);
+        for (auto& p : func_type->params_type) if (p) p->dump(os, i + 2);
     }
 
     if (body) {

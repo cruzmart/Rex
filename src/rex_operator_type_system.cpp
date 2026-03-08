@@ -156,6 +156,25 @@ type_ptr OperatorTypeSystem::promote(type_ptr L, type_ptr R,
 
             return std::make_shared<TupleType>(elems);
         }
+    
+    //
+    //   func + func 
+    //
+
+    if (auto t1 = std::dynamic_pointer_cast<FunctionType>(L))
+        if (auto t2 = std::dynamic_pointer_cast<FunctionType>(R)) {
+           auto fn = promote(t1->return_type, t2->return_type, op);
+           return fn;
+        }
+    
+    //
+    //   func + prim
+    //
+      
+    //
+    //   func + array
+    //
+    
 
     throw std::runtime_error(
         "Cannot apply operator '" + op + "' to " +
@@ -199,15 +218,7 @@ type_ptr OperatorTypeSystem::check_range(type_ptr L, type_ptr R)
 type_ptr OperatorTypeSystem::check_pipe(type_ptr value, type_ptr fnType)
 {
     auto fn = std::dynamic_pointer_cast<FunctionType>(fnType);
-    if (!fn)
-        throw std::runtime_error("Right side of '|>' must be a function");
-
-    if (fn->params_type.size() != 1)
-        throw std::runtime_error("Pipe expects a unary function");
-
-    // check if argument is compatible
-    promote(value, fn->params_type[0], "|>");
-
+   
     return fn->return_type;
 }
 

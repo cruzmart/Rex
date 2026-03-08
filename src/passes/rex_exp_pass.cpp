@@ -73,7 +73,25 @@
             visitLetStmt(let);
         }
 
+        if(auto as = std::dynamic_pointer_cast<AssignStmt>(stmt)){
+
+        }
+        if(auto es = std::dynamic_pointer_cast<ExprStmt>(stmt)){
+
+        }
+        
+        if(auto ws = std::dynamic_pointer_cast<WhileStmt>(stmt)){
+
+        }
+        if(auto fs = std::dynamic_pointer_cast<ForStmt>(stmt)){
+
+        }
+        if(auto is = std::dynamic_pointer_cast<IfStmt>(stmt)){
+
+        }
+
     }
+
     void ExprPass ::visitBlock(const std::shared_ptr<BlockExpr> block){
 
     }
@@ -109,13 +127,29 @@
 
     }
 
-    void ExprPass::visitAsgStmt(const std::shared_ptr<AssignStmt> as){
-
-    }
-
     void ExprPass ::visitFunctionDecl(const std::shared_ptr<FunctionDecl> f){
 
+          auto sym = std::make_shared<Symbol>(SymbolType::function, f->func_name);
+           sym->type = f->func_type;
+
+           // in the body solve every expression in it
+           for(auto stmt : f->body->statements){
+                visitStmt(stmt);
+           }
+
+
+            sym->expr = f->body;
+            current_scope->define(sym);
+
     }
+
+    void ExprPass::visitAsgStmt(const std::shared_ptr<AssignStmt> as){}
+
+    void ExprPass::visitExprStmt(const std::shared_ptr<ExprStmt> es){}
+    void ExprPass::visitWhileStmt(const std::shared_ptr<WhileStmt> ws){}
+    void ExprPass::visitForStmt(const std::shared_ptr<ForStmt> fs){}
+    void ExprPass::visitIfStmt(const std::shared_ptr<IfStmt> is){}
+   
 
     std::shared_ptr<Type> ExprPass::visitLiteral(const std::shared_ptr<LiteralExpr> literal){
         return literal->type;
