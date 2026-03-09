@@ -109,6 +109,10 @@ bool OperatorTypeSystem::is_tuple(type_ptr T) {
     return std::dynamic_pointer_cast<TupleType>(T) != nullptr;
 }
 
+bool OperatorTypeSystem::is_func(type_ptr T){
+    return std::dynamic_pointer_cast<FunctionType>(T) != nullptr;
+}
+
 //
 // PRIMITIVE RANKING
 //
@@ -185,24 +189,12 @@ type_ptr OperatorTypeSystem::promote(type_ptr L, type_ptr R,
             return std::make_shared<TupleType>(elems);
         }
     
-    //
     //   func + func 
-    //
-
     if (auto t1 = tc.to_func(L))
         if (auto t2 = tc.to_func(R)) {
            auto fn = promote(t1->return_type, t2->return_type, op);
            return fn;
         }
-    
-    //
-    //   func + prim
-    //
-      
-    //
-    //   func + array
-    //
-    
 
     throw std::runtime_error(
         "Cannot apply operator '" + op + "' to " +
@@ -245,6 +237,11 @@ type_ptr OperatorTypeSystem::check_range(type_ptr L, type_ptr R)
 //
 type_ptr OperatorTypeSystem::check_pipe(type_ptr value, type_ptr fnType)
 {
+
+    // there is a lot we need to do
+    // for this project we are just going to focus on one parameter 2 |> f(x) = f(2); we are going to check how many parameters it accepts and the function that 
+    // gets piped MUST only have 1 paraemeter, this is already too long as is, if we upgrade it in the future than sure, but for now keep it simple
+
     auto fn = std::dynamic_pointer_cast<FunctionType>(fnType);
    
     return fn->return_type;

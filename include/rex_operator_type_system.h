@@ -33,6 +33,7 @@ public:
     bool is_array(type_ptr T);
     bool is_tuple(type_ptr T);
     bool is_slice(type_ptr T);
+    bool is_func(type_ptr T);
 
 
     int prim_rank(PrimType::Prims k);

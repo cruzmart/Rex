@@ -62,9 +62,6 @@
             return visitPipe(pip);
 
         throw std::runtime_error("unknown expression type");
-
-
-
     }
     void ExprPass ::visitStmt(const std::shared_ptr<Stmt> stmt){
         if(auto let = std::dynamic_pointer_cast<LetStmt>(stmt))
@@ -79,6 +76,8 @@
             visitForStmt(fs);
         if(auto is = std::dynamic_pointer_cast<IfStmt>(stmt))
             visitIfStmt(is);
+        if(auto rs = std::dynamic_pointer_cast<ReturnStmt>(stmt))
+            visitReturnStmt(rs);
     }
 
     void ExprPass ::visitBlock(const std::shared_ptr<BlockExpr> block){
@@ -102,6 +101,8 @@
 
         // check what type of pattern is the id
         if(auto id = std::dynamic_pointer_cast<PatternId>(ls->id_pattern)){
+            if (current_scope->symbols.contains(id->id))
+                throw std::runtime_error("Variable/Function '" + id->id+ "' is already defined");
             auto sym = std::make_shared<Symbol>(SymbolType::variable, id->id);
             sym->type = ls->type;
             ls->exp->type = visitExpr(ls->exp);
@@ -119,6 +120,8 @@
             auto exprs = std::dynamic_pointer_cast<TupleExpr>(ls->exp);
 
             for(size_t i = 0; i < ids->ids.size(); i++){
+                if (current_scope->symbols.contains(id->id))
+                    throw std::runtime_error("Variable/Function '" + ids->ids[i]+ "' is already defined");
                 auto sym = std::make_shared<Symbol>(SymbolType::variable, ids->ids[i]);
                 sym->type = types->tuple_types[i];
                 sym->expr = exprs->elements[i];
@@ -131,17 +134,18 @@
 
     void ExprPass ::visitFunctionDecl(const std::shared_ptr<FunctionDecl> f){
 
-          auto sym = std::make_shared<Symbol>(SymbolType::function, f->func_name);
-           sym->type = f->func_type;
+        if (current_scope->symbols.contains(f->func_name))
+                throw std::runtime_error("Variable/Function '" + f->func_name + "' already defined");
 
-           // in the body solve every expression in it
-           for(auto stmt : f->body->statements){
-                visitStmt(stmt);
-           }
+        auto sym = std::make_shared<Symbol>(SymbolType::function, f->func_name);
+        sym->type = f->func_type;
 
+        // in the body solve every expression in it
+        visitBlock(f->body);
 
-            sym->expr = f->body;
-            current_scope->define(sym);
+        sym->expr = f->body;
+            
+        current_scope->define(sym);
 
     }
 
@@ -169,21 +173,17 @@
         visitBlock(ws->body);
     }
 
-    void ExprPass::visitAsgStmt(const std::shared_ptr<AssignStmt> as){}
-    void ExprPass::visitExprStmt(const std::shared_ptr<ExprStmt> es){}
- 
-    void ExprPass::visitForStmt(const std::shared_ptr<ForStmt> fs){
-
-    }
-
-
     std::shared_ptr<Type> ExprPass::visitLiteral(const std::shared_ptr<LiteralExpr> literal){
         return literal->type;
     }
     std::shared_ptr<Type> ExprPass::visitId(const std::shared_ptr<IdExpr> id){
 
         if(!id->resolved){
-            id->resolved = current_scope->resolve(id->name);
+            auto value = current_scope->resolve(id->name);
+            if(ots.is_func(value->type)){
+                throw std::runtime_error("[ExpPass] '" + id->name + "' is a function that requires arguments");
+            }
+            id->resolved = value;
             id->type = id->resolved->type;
         } 
 
@@ -191,13 +191,24 @@
 
         return id->resolved->type;
     }
+    std::shared_ptr<Type> ExprPass::visitCall (const std::shared_ptr<CallExpr> cexp){
+        if (current_scope->symbols.contains(cexp->callee)){
+            auto call = current_scope->resolve(cexp->callee);
+            if(!ots.is_func(call->type)){
+                throw std::runtime_error("[ExpPass] '" + call->name + "' is not a function");
+            }
+
+            cexp->type = call->type;
+
+            return cexp->type;
+        } else {
+            throw std::runtime_error("[ExpPass] " + cexp->callee  + "' is not a definied function");
+        }
+    }
     std::shared_ptr<Type> ExprPass::visitBinary(const std::shared_ptr<BinaryExpr> bexp){
         bexp->type = ots.check_binary(bexp->operation, visitExpr(bexp->lhs), visitExpr(bexp->rhs));
         return bexp->type;
-    }
-    
-    std::shared_ptr<Type> ExprPass::visitUnary (const std::shared_ptr<Type> uexp){}  
-    
+    }    
         
     std::shared_ptr<Type> ExprPass::visitTuple(const std::shared_ptr<TupleExpr> texp){
         std::vector<std::shared_ptr<Type>> types;
@@ -242,11 +253,16 @@
         return iexp->type;
 
     }
+    void ExprPass::visitReturnStmt(const std::shared_ptr<ReturnStmt> rs){
+        rs->value->type = visitExpr(rs->value);
+    }
 
-    
-    std::shared_ptr<Type> ExprPass::visitRangeExpr (const std::shared_ptr<Type> rexp){}
-    std::shared_ptr<Type> ExprPass::visitCall (const std::shared_ptr<CallExpr> cexp){}
     std::shared_ptr<Type> ExprPass::visitPipe ( const std::shared_ptr<PipeExpr> pexp){}
-
     std::shared_ptr<Type> ExprPass::resolveExp(const std::shared_ptr<Expr> type){}
+    std::shared_ptr<Type> ExprPass::visitUnary (const std::shared_ptr<Type> uexp){}  
+    std::shared_ptr<Type> ExprPass::visitRangeExpr (const std::shared_ptr<Type> rexp){}
+    void ExprPass::visitAsgStmt(const std::shared_ptr<AssignStmt> as){}
+    void ExprPass::visitExprStmt(const std::shared_ptr<ExprStmt> es){}
+    void ExprPass::visitForStmt(const std::shared_ptr<ForStmt> fs){}
+
   }
