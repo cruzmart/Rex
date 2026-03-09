@@ -42,7 +42,7 @@ void PipeExpr::dump(std::ostream& os, int i) const { indent(os, i); os << "pipe\
 
 // CallExpr
 void CallExpr::dump(std::ostream& os, int i) const {
-    indent(os, i); os << "call " << callee << "\n";
+    indent(os, i); os << "call " << callee << " -> " << type->to_string() << "\n";
     for(auto& a : args) a->dump(os, i + 1);
 }
 

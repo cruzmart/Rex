@@ -43,6 +43,7 @@ struct ExprPass {
         void visitWhileStmt(const std::shared_ptr<WhileStmt> ws);
         void visitForStmt(const std::shared_ptr<ForStmt> fs);
         void visitIfStmt(const std::shared_ptr<IfStmt> is);
+        void visitReturnStmt(const std::shared_ptr<ReturnStmt> rs);
    
 
         std::shared_ptr<Type> visitLiteral(const std::shared_ptr<LiteralExpr> literal);
