@@ -279,17 +279,28 @@ struct FunctionType : Type {
     }
 };
 
+// Shotern it
+using type_ptr = std::shared_ptr<Type>;
+using prim_ptr = std::shared_ptr<PrimType>;
+using array_ptr = std::shared_ptr<ArrayType>;
+using named_ptr = std::shared_ptr<NamedType>;
+using tuple_ptr = std::shared_ptr<TupleType>;
+using func_ptr = std::shared_ptr<FunctionType>;
+using pipe_ptr = std::shared_ptr<PipeType>;
+using slice_ptr = std::shared_ptr<SliceType>;
+using range_ptr = std::shared_ptr<RangeType>;
 
 struct TypeConverter {
-    std::shared_ptr<PrimType>  to_prim(std::shared_ptr<Type> type) {return std::dynamic_pointer_cast<PrimType>(type);}
-    std::shared_ptr<NamedType> to_named(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<NamedType>(type);}
-    std::shared_ptr<ArrayType> to_array(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<ArrayType>(type);}
-    std::shared_ptr<SliceType> to_slice(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<SliceType>(type);}
-    std::shared_ptr<TupleType> to_tuple(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<TupleType>(type);}
-    std::shared_ptr<RangeType> to_range(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<RangeType>(type);}
-    std::shared_ptr<PipeType> to_pipe(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<PipeType>(type);}
-    std::shared_ptr<FunctionType> to_func(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<FunctionType>(type);}
+    prim_ptr  to_prim(std::shared_ptr<Type> type) {return std::dynamic_pointer_cast<PrimType>(type);}
+    named_ptr to_named(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<NamedType>(type);}
+    array_ptr to_array(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<ArrayType>(type);}
+    slice_ptr to_slice(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<SliceType>(type);}
+    tuple_ptr to_tuple(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<TupleType>(type);}
+    range_ptr to_range(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<RangeType>(type);}
+    pipe_ptr  to_pipe(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<PipeType>(type);}
+    func_ptr  to_func(std::shared_ptr<Type> type){return std::dynamic_pointer_cast<FunctionType>(type);}
 };
-using type_ptr = std::shared_ptr<Type>;
+
+
 
 } // namespace rex
