@@ -146,46 +146,38 @@ type_ptr OperatorTypeSystem::promote(type_ptr L, type_ptr R,
     if (L->equals(R))
         return L;
 
-    //
+
     // both primitive
-    //
-    if (auto pa = std::dynamic_pointer_cast<PrimType>(L))
-        if (auto pb = std::dynamic_pointer_cast<PrimType>(R))
+    if (auto pa = tc.to_prim(L))
+        if (auto pb = tc.to_prim(R))
             return promote_primitive(pa, pb);
 
-    //
     // array + primitive => array(promoted elem)
-    //
-    if (auto arr = std::dynamic_pointer_cast<ArrayType>(L))
+    if (auto arr = tc.to_array(L))
         if (is_numeric(R)) {
             auto elem = promote(arr->array_type, R, op);
             return std::make_shared<ArrayType>(elem, arr->size);
         }
 
-    if (auto arr = std::dynamic_pointer_cast<ArrayType>(R))
+    if (auto arr = tc.to_array(R))
         if (is_numeric(L)) {
             auto elem = promote(arr->array_type, L, op);
             return std::make_shared<ArrayType>(elem, arr->size);
         }
 
-    //
     // array + array
-    //
-    if (auto a1 = std::dynamic_pointer_cast<ArrayType>(L))
-        if (auto a2 = std::dynamic_pointer_cast<ArrayType>(R)) {
+    if (auto a1 = tc.to_array(L))
+        if (auto a2 = tc.to_array(R)) {
             // for this check the sizes, and just add to the other array 
             auto elem = promote(a1->array_type, a2->array_type, op);
             return std::make_shared<ArrayType>(elem, std::max(a1->size , a2->size));
         }
 
-    //
     // tuple + tuple
-    //
-    if (auto t1 = std::dynamic_pointer_cast<TupleType>(L))
-        if (auto t2 = std::dynamic_pointer_cast<TupleType>(R)) {
+    if (auto t1 = tc.to_tuple(L))
+        if (auto t2 = tc.to_tuple(R)) {
             if (t1->tuple_types.size() != t2->tuple_types.size())
                 throw std::runtime_error("Tuple size mismatch in op " + op);
-
             std::vector<type_ptr> elems;
             for (size_t i = 0; i < t1->tuple_types.size(); ++i)
                 elems.push_back(promote(t1->tuple_types[i], t2->tuple_types[i], op));
@@ -197,8 +189,8 @@ type_ptr OperatorTypeSystem::promote(type_ptr L, type_ptr R,
     //   func + func 
     //
 
-    if (auto t1 = std::dynamic_pointer_cast<FunctionType>(L))
-        if (auto t2 = std::dynamic_pointer_cast<FunctionType>(R)) {
+    if (auto t1 = tc.to_func(L))
+        if (auto t2 = tc.to_func(R)) {
            auto fn = promote(t1->return_type, t2->return_type, op);
            return fn;
         }
@@ -304,9 +296,6 @@ type_ptr OperatorTypeSystem::check_binary(BinaryOp op,
 
     if(is_logic(op)){
         // logic
-         bool is_L_array = is_array(L);
-         bool is_R_array = is_array(R);
-
          if (!is_bool(L) || !is_bool(R))
             throw std::runtime_error("and/or require Bool operands");
         return promote(L, R, binop_name(op));
