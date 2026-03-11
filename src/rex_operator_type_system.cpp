@@ -196,6 +196,33 @@ type_ptr OperatorTypeSystem::promote(type_ptr L, type_ptr R,
            return fn;
         }
 
+    // func + prim
+      if (auto t1 = tc.to_func(L))
+        if (auto t2 = tc.to_prim(R)) {
+           auto fn = promote(t1->return_type, t2, op);
+           return fn;
+        }
+      if (auto t1 = tc.to_func(R))
+        if (auto t2 = tc.to_prim(L)) {
+           auto fn = promote(t1->return_type, t2, op);
+           return fn;
+        }
+
+    // func + array?
+      if (auto t1 = tc.to_func(L))
+        if (auto t2 = tc.to_array(R)) {
+           auto fn = promote(t1->return_type, t2, op);
+           return fn;
+        }
+      if (auto t1 = tc.to_func(R))
+        if (auto t2 = tc.to_array(L)) {
+           auto fn = promote(t1->return_type, t2, op);
+           return fn;
+        }
+    
+
+
+
     throw std::runtime_error(
         "Cannot apply operator '" + op + "' to " +
         L->to_string() + " and " + R->to_string());
@@ -275,6 +302,8 @@ type_ptr OperatorTypeSystem::check_index(type_ptr base, type_ptr index)
 type_ptr OperatorTypeSystem::check_binary(BinaryOp op,
                                           type_ptr L, type_ptr R)
 {
+
+    std::cout << "L = " << L->to_fundamental_string() << "  R = " << R->to_fundamental_string() << std::endl;
 
     if(is_arth(op)){
         // arithmetic

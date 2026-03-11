@@ -96,7 +96,6 @@ public:
     ItemContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     FunctionDefContext *functionDef();
-    TypeDefContext *typeDef();
     StatementContext *statement();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;

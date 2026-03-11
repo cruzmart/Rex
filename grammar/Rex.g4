@@ -16,7 +16,6 @@ file
 
 item
     : functionDef
-    | typeDef
     | statement
     ;
 

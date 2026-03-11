@@ -12,7 +12,6 @@ struct OperatorTypeSystem {
     // Debug toggle
     bool debug = false;
     // ====== Type Converter ==========
-    TypeConverter tc;
 
     // ===== Main API =====
     type_ptr check_unary(UniOp op, type_ptr operand);
