@@ -1,12 +1,10 @@
 type integer = Int;
 
-function w(a: integer) -> Int {
+function w(a: integer) -> integer[3] {
     let s : Int = 3;
     return 3 * 3;
 }
 
-
-/*
 
 let x : integer = 2;
 let y : integer = 1;
@@ -20,10 +18,12 @@ if x > 0 {
    y = 9 + 2.0;
    k = 9 < 2;
 }
-*/
 
-/*
+
+
 let d : Bool = true and true;
-*/
 
-let a : integer = w(2);
+
+let i : Real[2] = [2.2, 3.6];
+let a : Real[2] = w(2) + i;
+let z : integer = 3;

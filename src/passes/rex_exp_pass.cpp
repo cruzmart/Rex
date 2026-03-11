@@ -5,6 +5,7 @@
 #include "rex_funcs.h"
 #include "rex_ops.h"
 #include "rex_stmts.h"
+#include "rex_symbol.h"
 #include "rex_types.h"
 #include <memory>
 #include <stdexcept>
@@ -180,7 +181,7 @@
 
         if(!id->resolved){
             auto value = current_scope->resolve(id->name);
-            if(ots.is_func(value->type)){
+            if(value->kind == SymbolType::function){
                 throw std::runtime_error("[ExpPass] '" + id->name + "' is a function that requires arguments");
             }
             id->resolved = value;
@@ -193,8 +194,9 @@
     }
     std::shared_ptr<Type> ExprPass::visitCall (const std::shared_ptr<CallExpr> cexp){
         if (current_scope->symbols.contains(cexp->callee)){
-            auto call = current_scope->resolve(cexp->callee);
-            if(!ots.is_func(call->type)){
+            std::shared_ptr<Symbol> call = current_scope->resolve(cexp->callee);
+            if(call->kind != SymbolType::function)
+            {
                 throw std::runtime_error("[ExpPass] '" + call->name + "' is not a function");
             }
 
@@ -215,6 +217,7 @@
         for(auto e : texp->elements)
             types.push_back(visitExpr(e));
         auto t = std::make_shared<TupleType>(types);
+        texp->type = t;
         return t;
 
     }

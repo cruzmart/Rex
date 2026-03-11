@@ -12,7 +12,7 @@ struct Type;
 struct FunctionType;
 struct BlockExpr;
 struct Symbol;
-struct Parameter;
+// struct Parameter;
 struct FunctionDecl;
 
 // ---------------------- FUNCTIONS ---------------------
@@ -20,8 +20,8 @@ struct Parameter : AstNode {
     std::string para_name;
     std::shared_ptr<Type> para_type;
     std::shared_ptr<Symbol> resolved;
-    Parameter();
-    Parameter(std::string name, std::shared_ptr<Type> type);
+    Parameter() : AstNode(AstNodeKind::Parameter) {}
+    Parameter(std::string name, std::shared_ptr<Type> type) : AstNode(AstNodeKind::Parameter), para_name(name), para_type(type) {}
     void dump(std::ostream& os, int i) const override;
 };
 
@@ -31,6 +31,7 @@ struct FunctionDecl : AstNode {
 
     std::shared_ptr<BlockExpr> body;
     std::shared_ptr<Symbol> resolved;
+    FunctionDecl() : AstNode(AstNodeKind::FunctionDecl) {}
     void dump(std::ostream& os, int i) const override;
 };
 

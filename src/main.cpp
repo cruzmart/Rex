@@ -43,20 +43,20 @@ int main() {
     AliasPass pass_alias(global_scope, debug);
     pass_alias.visit(ast);
 
-    // Expr Pass
+    // // Expr Pass
 
-    auto global_scope_2 = std::make_shared<Scope>();
-    ExprPass pass_expr(global_scope_2);
-    pass_expr.visit(ast);
+    // auto global_scope_2 = std::make_shared<Scope>();
+    // ExprPass pass_expr(global_scope_2);
+    // pass_expr.visit(ast);
 
     ast->dump(std::cout, 0);
 
-    // 
+    // // 
 
-    // Type Checking Pass
-    // auto global_scope = std::make_shared<Scope>();
-    // TypeChecker type_pass(global_scope);
-    // type_pass.check(ast);
+    // // Type Checking Pass
+    // // auto global_scope = std::make_shared<Scope>();
+    // // TypeChecker type_pass(global_scope);
+    // // type_pass.check(ast);
 
 
     return 0;

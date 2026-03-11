@@ -25,8 +25,29 @@ struct PrimType;
 enum class UniOp;
 enum class BinaryOp;
 
+
+enum class ExprKind {
+    Literal,
+    Id,
+    Unary,
+    Binary,
+    Tuple,
+    Array,
+    Index,
+    Call,
+    Range,
+    Pipe,
+    Block,
+    Null
+};
+
 struct Expr : AstNode {
+
+    ExprKind exp_kind;
     std::shared_ptr<Type> type;
+    Expr() : exp_kind(ExprKind::Null) {}
+    Expr(ExprKind kind) : exp_kind(kind) {}
+
     virtual ~Expr() = default;
     virtual void dump(std::ostream& os, int i) const override = 0;
 };
@@ -34,19 +55,62 @@ struct Expr : AstNode {
 struct BlockExpr : Expr {
     std::vector<std::shared_ptr<Stmt>> statements;
     std::shared_ptr<Expr> result;
+    BlockExpr() : Expr(ExprKind::Block) {}
     void dump(std::ostream& os, int i) const override;
 };
 
 // Other expression declarations...
-struct IdExpr : Expr { std::string name; std::shared_ptr<Symbol> resolved; void dump(std::ostream& os, int i) const override; };
-struct LiteralExpr : Expr { std::string value; void dump(std::ostream& os, int i) const override; };
-struct UnaryExpr : Expr { UniOp operation; std::shared_ptr<Expr> rhs; void dump(std::ostream& os, int i) const override; };
-struct BinaryExpr : Expr { BinaryOp operation; std::shared_ptr<Expr> lhs, rhs; void dump(std::ostream& os, int i) const override; };
-struct RangeExpr : BinaryExpr { void dump(std::ostream& os, int i) const override; };
-struct PipeExpr : BinaryExpr { void dump(std::ostream& os, int i) const override; };
-struct CallExpr : Expr { std::string callee; std::vector<std::shared_ptr<Expr>> args; void dump(std::ostream& os, int i) const override; };
-struct IndexExpr : Expr { std::shared_ptr<Expr> base, index; void dump(std::ostream& os, int i) const override; };
-struct TupleExpr : Expr { std::vector<std::shared_ptr<Expr>> elements; void dump(std::ostream& os, int i) const override; };
-struct ArrayExpr : Expr { std::vector<std::shared_ptr<Expr>> elements; void dump(std::ostream& os, int i) const override; };
+struct IdExpr : Expr { 
+    std::string name; std::shared_ptr<Symbol> resolved; 
+    IdExpr() : Expr(ExprKind::Id) {}
+    void dump(std::ostream& os, int i) const override; 
+};
+struct LiteralExpr : Expr {
+     std::string value; 
+     LiteralExpr() : Expr(ExprKind::Literal) {}
+     void dump(std::ostream& os, int i) const override;
+};
+struct UnaryExpr : Expr { 
+    UniOp operation;
+    std::shared_ptr<Expr> rhs;
+    UnaryExpr() : Expr(ExprKind::Unary) {}
+    void dump(std::ostream& os, int i) const override;
+};
+struct BinaryExpr : Expr { 
+    BinaryOp operation; 
+    std::shared_ptr<Expr> lhs, rhs; 
+    BinaryExpr() : Expr(ExprKind::Binary) {}
+    BinaryExpr(ExprKind kind) : Expr(kind) {}
+    void dump(std::ostream& os, int i) const override; 
+};
+struct RangeExpr : BinaryExpr { 
+    RangeExpr() : BinaryExpr(ExprKind::Range) {}
+    void dump(std::ostream& os, int i) const override; 
+};
+struct PipeExpr : BinaryExpr { 
+    PipeExpr() : BinaryExpr(ExprKind::Pipe) {}
+    void dump(std::ostream& os, int i) const override; 
+};
+struct CallExpr : Expr {
+     std::string callee; 
+     std::vector<std::shared_ptr<Expr>> args; 
+     CallExpr() : Expr(ExprKind::Call) {}
+     void dump(std::ostream& os, int i) const override; 
+};
+struct IndexExpr : Expr { 
+    std::shared_ptr<Expr> base, index; 
+    IndexExpr() : Expr(ExprKind::Index) {}
+    void dump(std::ostream& os, int i) const override; 
+};
+struct TupleExpr : Expr { 
+    std::vector<std::shared_ptr<Expr>> elements; 
+    TupleExpr() : Expr(ExprKind::Tuple) {}
+    void dump(std::ostream& os, int i) const override; 
+};
+struct ArrayExpr : Expr { 
+    std::vector<std::shared_ptr<Expr>> elements; 
+    ArrayExpr() : Expr(ExprKind::Array) {}
+    void dump(std::ostream& os, int i) const override; 
+};
 
 } // namespace rex

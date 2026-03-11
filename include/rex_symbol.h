@@ -10,9 +10,9 @@ struct Expr;
 // ------------------ SYMBOL KIND -------------------
 
 enum class SymbolType {
-    variable,
-    function,
-    typealias
+    Variable,
+    Function,
+    Typealias
 };
 
 // ------------------ SYMBOL -----------------------

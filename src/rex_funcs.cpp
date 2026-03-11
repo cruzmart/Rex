@@ -4,8 +4,6 @@
 
 namespace rex {
 
-Parameter::Parameter() : para_name(""), para_type(std::make_shared<Type>()), resolved(nullptr) {}
-Parameter::Parameter(std::string name, std::shared_ptr<Type> type) : para_name(name), para_type(type), resolved(nullptr) {}
 
 void Parameter::dump(std::ostream& os, int i) const {
     indent(os, i); os << "param " << para_name;
@@ -21,9 +19,9 @@ void FunctionDecl::dump(std::ostream& os, int i) const {
     if (resolved) os << " [resolved]";
     os << "\n";
 
-    if (!func_type->params_type.empty()) {
+    if (!func_type->params.empty()) {
         indent(os, i + 1); os << "parameters:\n";
-        for (auto& p : func_type->params_type) if (p) p->dump(os, i + 2);
+        for (auto& p : func_type->params) if (p) p->dump(os, i + 2);
     }
 
     if (body) {
