@@ -1,5 +1,6 @@
   
 #include "passes/rex_exp_pass.h"
+#include "rex_ast.h"
 #include "rex_ast_nodes.h"
 #include "rex_exps.h"
 #include "rex_funcs.h"
@@ -10,7 +11,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
-#include "rex_operator_type_system.h"
+#include "rex_binary_op.h"
 
   namespace rex {
 
@@ -23,62 +24,86 @@
         std::cout << "[ExprPass] " << msg << "\n";
     }
 
-    bool ExprPass::is_tuple_type(const std::shared_ptr<Type> T){
-        return std::dynamic_pointer_cast<TupleType>(T) != nullptr;
-    }
-
-    bool ExprPass::is_tuple_exp(const std::shared_ptr<Expr> T){
-        return std::dynamic_pointer_cast<TupleExpr>(T) != nullptr;
-    }
-
-
+    // Good
     void ExprPass::visit(const std::shared_ptr<FileAst> file){
         for(auto item : file->items){
-            if(auto stmt = std::dynamic_pointer_cast<Stmt>(item)){
+            if(item->ast_kind == AstNodeKind::Stmt){
+               auto stmt = std::static_pointer_cast<Stmt>(item);
                 visitStmt(stmt);
             }
-            if(auto func = std::dynamic_pointer_cast<FunctionDecl>(item)){
+            if(item->ast_kind == AstNodeKind::FunctionDecl){
+                auto func = std::static_pointer_cast<FunctionDecl>(item);
                 visitFunctionDecl(func);
             }
         } 
     }
-
-
+    //Good
     std::shared_ptr<Type> ExprPass::visitExpr(const std::shared_ptr<Expr> exp){
-        if(auto lit = std::dynamic_pointer_cast<LiteralExpr>(exp))
-            return visitLiteral(lit);
-        if(auto id = std::dynamic_pointer_cast<IdExpr>(exp))
-            return visitId(id);
-        if(auto bin = std::dynamic_pointer_cast<BinaryExpr>(exp))
-            return visitBinary(bin);
-        if(auto tup = std::dynamic_pointer_cast<TupleExpr>(exp))
-            return visitTuple(tup);
-        if(auto idx = std::dynamic_pointer_cast<IndexExpr>(exp))
-            return visitIndex(idx);
-        if(auto call = std::dynamic_pointer_cast<CallExpr>(exp))
-            return visitCall(call);
-        if (auto ar = std::dynamic_pointer_cast<ArrayExpr>(exp))
-            return  visitArray(ar);
-        if (auto pip = std::dynamic_pointer_cast<PipeExpr>(exp))
-            return visitPipe(pip);
+      switch(exp->exp_kind)
+    {
+        case ExprKind::Literal:
+            return visitLiteral(std::static_pointer_cast<LiteralExpr>(exp));
 
-        throw std::runtime_error("unknown expression type");
+        case ExprKind::Id:
+            return visitId(std::static_pointer_cast<IdExpr>(exp));
+
+        case ExprKind::Binary:
+            return visitBinary(std::static_pointer_cast<BinaryExpr>(exp));
+
+        case ExprKind::Tuple:
+            return visitTuple(std::static_pointer_cast<TupleExpr>(exp));
+
+        case ExprKind::Array:
+            return visitArray(std::static_pointer_cast<ArrayExpr>(exp));
+
+        case ExprKind::Index:
+            return visitIndex(std::static_pointer_cast<IndexExpr>(exp));
+
+        case ExprKind::Call:
+            return visitCall(std::static_pointer_cast<CallExpr>(exp));
+
+        case ExprKind::Pipe:
+            return visitPipe(std::static_pointer_cast<PipeExpr>(exp));
+
+        default:
+            throw std::runtime_error("Unknown expression type");
     }
+    }
+    //Good
     void ExprPass ::visitStmt(const std::shared_ptr<Stmt> stmt){
-        if(auto let = std::dynamic_pointer_cast<LetStmt>(stmt))
-            visitLetStmt(let);
-        if(auto as = std::dynamic_pointer_cast<AssignStmt>(stmt))
-            visitAsgStmt(as);
-        if(auto es = std::dynamic_pointer_cast<ExprStmt>(stmt))
-            visitExprStmt(es);
-        if(auto ws = std::dynamic_pointer_cast<WhileStmt>(stmt))
-            visitWhileStmt(ws);
-        if(auto fs = std::dynamic_pointer_cast<ForStmt>(stmt))
-            visitForStmt(fs);
-        if(auto is = std::dynamic_pointer_cast<IfStmt>(stmt))
-            visitIfStmt(is);
-        if(auto rs = std::dynamic_pointer_cast<ReturnStmt>(stmt))
-            visitReturnStmt(rs);
+        switch(stmt->stmt_kind)
+        {
+            case StmtKind::LetDecl:
+                visitLetStmt(std::static_pointer_cast<LetStmt>(stmt));
+                break;
+
+            case StmtKind::Assign:
+                visitAsgStmt(std::static_pointer_cast<AssignStmt>(stmt));
+                break;
+
+            case StmtKind::Expr:
+                visitExprStmt(std::static_pointer_cast<ExprStmt>(stmt));
+                break;
+
+            case StmtKind::While:
+                visitWhileStmt(std::static_pointer_cast<WhileStmt>(stmt));
+                break;
+
+            case StmtKind::For:
+                visitForStmt(std::static_pointer_cast<ForStmt>(stmt));
+                break;
+
+            case StmtKind::If:
+                visitIfStmt(std::static_pointer_cast<IfStmt>(stmt));
+                break;
+
+            case StmtKind::Return:
+                visitReturnStmt(std::static_pointer_cast<ReturnStmt>(stmt));
+                break;
+
+            default:
+                break;
+        }
     }
 
     void ExprPass ::visitBlock(const std::shared_ptr<BlockExpr> block){
@@ -97,38 +122,50 @@
         scope_depth -= 1;
 
     }
-
+    // Good?
     void ExprPass ::visitLetStmt(const std::shared_ptr<LetStmt> ls){
+        switch(ls->id_pattern->pat_type) {
+            case PatternType::Single: {
 
-        // check what type of pattern is the id
-        if(auto id = std::dynamic_pointer_cast<PatternId>(ls->id_pattern)){
-            if (current_scope->symbols.contains(id->id))
-                throw std::runtime_error("Variable/Function '" + id->id+ "' is already defined");
-            auto sym = std::make_shared<Symbol>(SymbolType::variable, id->id);
-            sym->type = ls->type;
-            ls->exp->type = visitExpr(ls->exp);
-            sym->expr = ls->exp;
-
-            current_scope->define(sym);
-
-            return;
-        } 
-
-        else if (auto ids = std::dynamic_pointer_cast<PatternIds>(ls->id_pattern))
-
-        {
-            auto types = std::dynamic_pointer_cast<TupleType>(ls->type);
-            auto exprs = std::dynamic_pointer_cast<TupleExpr>(ls->exp);
-
-            for(size_t i = 0; i < ids->ids.size(); i++){
-                if (current_scope->symbols.contains(id->id))
-                    throw std::runtime_error("Variable/Function '" + ids->ids[i]+ "' is already defined");
-                auto sym = std::make_shared<Symbol>(SymbolType::variable, ids->ids[i]);
-                sym->type = types->tuple_types[i];
-                sym->expr = exprs->elements[i];
-
+                auto pid = std::static_pointer_cast<PatternId>(ls->id_pattern);
+                 if (current_scope->symbols.contains(pid->id))
+                    throw std::runtime_error("Variable/Function '" + pid->id + "' is already defined");
+                auto sym = std::make_shared<Symbol>(SymbolType::Variable, pid->id);
+                sym->type = ls->type ? ls->type : visitExpr(ls->exp);
+                sym->expr = ls->exp;
                 current_scope->define(sym);
+                break;
             }
+            case PatternType::Multiple: {
+                auto pids = std::static_pointer_cast<PatternIds>(ls->id_pattern);
+                auto texp = std::static_pointer_cast<TupleExpr>(ls->exp);
+                auto ttype = std::static_pointer_cast<TupleType>(ls->type);
+
+                bool no_init_type = ttype->elements.empty() ? true : false;
+
+                for(size_t i = 0; i < pids->ids.size(); ++i) {
+                    if (current_scope->symbols.contains(pids->ids[i]))
+                        throw std::runtime_error("Variable/Function '" + pids->ids[i]+ "' is already defined");
+                    auto sym = std::make_shared<Symbol>(SymbolType::Variable, pids->ids[i]);
+
+                    if(no_init_type){
+                        sym->expr = texp->elements[i];
+                        sym->type = visitExpr(sym->expr);
+                        ttype->elements.push_back(sym->type);
+                        current_scope->define(sym);
+                    } else {
+
+                        sym->type = ttype->elements[i];
+                        sym->expr = texp->elements[i];
+                        visitExpr(sym->expr);
+                        current_scope->define(sym);
+                    }
+                }
+                break;
+             }
+             default:
+                throw std::runtime_error("Pattern for Let Decleration does not exist");
+
         }
 
     }
@@ -138,18 +175,18 @@
         if (current_scope->symbols.contains(f->func_name))
                 throw std::runtime_error("Variable/Function '" + f->func_name + "' already defined");
 
-        auto sym = std::make_shared<Symbol>(SymbolType::function, f->func_name);
+        auto sym = std::make_shared<Symbol>(SymbolType::Function, f->func_name);
         sym->type = f->func_type;
+        
+        current_scope->define(sym);
 
         // in the body solve every expression in it
         visitBlock(f->body);
 
         sym->expr = f->body;
             
-        current_scope->define(sym);
 
     }
-
     void ExprPass::visitIfStmt(const std::shared_ptr<IfStmt> is){
         // check condition of if statement
         visitExpr(is->condition);
@@ -164,7 +201,7 @@
             }
         }
         // if there is a else block
-        if(!is->else_block){
+        if(is->else_block){
             visitBlock(is->else_block);
         }
     }
@@ -181,7 +218,7 @@
 
         if(!id->resolved){
             auto value = current_scope->resolve(id->name);
-            if(value->kind == SymbolType::function){
+            if(value->kind == SymbolType::Function){
                 throw std::runtime_error("[ExpPass] '" + id->name + "' is a function that requires arguments");
             }
             id->resolved = value;
@@ -193,19 +230,25 @@
         return id->resolved->type;
     }
     std::shared_ptr<Type> ExprPass::visitCall (const std::shared_ptr<CallExpr> cexp){
-        if (current_scope->symbols.contains(cexp->callee)){
-            std::shared_ptr<Symbol> call = current_scope->resolve(cexp->callee);
-            if(call->kind != SymbolType::function)
-            {
-                throw std::runtime_error("[ExpPass] '" + call->name + "' is not a function");
-            }
+        auto sym = current_scope->resolve(cexp->callee);
 
-            cexp->type = call->type;
+        if(!sym)
+            throw std::runtime_error("Undefined function: " + cexp->callee);
 
-            return cexp->type;
-        } else {
-            throw std::runtime_error("[ExpPass] " + cexp->callee  + "' is not a definied function");
-        }
+        if(sym->kind != SymbolType::Function)
+            throw std::runtime_error("'" + cexp->callee + "' is not a function");
+
+        auto fn = std::static_pointer_cast<FunctionType>(sym->type);
+
+        if(fn->params.size() != cexp->args.size())
+            throw std::runtime_error("Argument count mismatch");
+
+        for(size_t i=0;i<cexp->args.size();i++)
+            visitExpr(cexp->args[i]);
+
+        cexp->type = fn->ret;
+
+        return cexp->type;
     }
     std::shared_ptr<Type> ExprPass::visitBinary(const std::shared_ptr<BinaryExpr> bexp){
         bexp->type = ots.check_binary(bexp->operation, visitExpr(bexp->lhs), visitExpr(bexp->rhs));
@@ -246,12 +289,14 @@
         auto base_type = visitExpr(iexp->base);
         auto index_type = visitExpr(iexp->index);
 
-        if(!ots.is_array(base_type))
+        if(!(base_type->kind == TypeKind::Array))
             throw std::runtime_error("Indexing Non-Array");
-        if(!ots.is_integer(index_type))
+
+        if(!(index_type->kind == TypeKind::Primitive))
             throw std::runtime_error("Index value is not of type INT");
     
-        iexp->type = std::dynamic_pointer_cast<ArrayType>(base_type)->array_type;
+        auto arr = std::static_pointer_cast<ArrayType>(base_type);
+        iexp->type = arr->elem;
 
         return iexp->type;
 
@@ -259,6 +304,9 @@
     void ExprPass::visitReturnStmt(const std::shared_ptr<ReturnStmt> rs){
         rs->value->type = visitExpr(rs->value);
     }
+
+
+
 
     std::shared_ptr<Type> ExprPass::visitPipe ( const std::shared_ptr<PipeExpr> pexp){}
     std::shared_ptr<Type> ExprPass::resolveExp(const std::shared_ptr<Expr> type){}

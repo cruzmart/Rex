@@ -36,18 +36,18 @@ int main() {
 
     ast->dump(std::cout, 0);
 
-    bool debug = true;
+    bool debug = false;
 
     // Aliasing Pass
     auto global_scope = std::make_shared<Scope>();
     AliasPass pass_alias(global_scope, debug);
     pass_alias.visit(ast);
 
-    // // Expr Pass
+    // Expr Pass
 
-    // auto global_scope_2 = std::make_shared<Scope>();
-    // ExprPass pass_expr(global_scope_2);
-    // pass_expr.visit(ast);
+    auto global_scope_2 = std::make_shared<Scope>();
+    ExprPass pass_expr(global_scope_2);
+    pass_expr.visit(ast);
 
     ast->dump(std::cout, 0);
 
