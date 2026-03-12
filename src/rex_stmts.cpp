@@ -4,8 +4,7 @@
 
 namespace rex {
 
-// ---------------------- PATTERNS --------------------------
-PatternId::PatternId(std::string id) : id(std::move(id)) {}
+
 
 // ---------------------- STATEMENTS ------------------------
 void LetStmt::dump(std::ostream& os, int i) const {

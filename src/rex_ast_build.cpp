@@ -402,7 +402,6 @@ antlrcpp::Any rex_ast_build::visitTupleExpr(RexParser::TupleExprContext* ctx) {
 
 antlrcpp::Any rex_ast_build::visitArrayExpr(RexParser::ArrayExprContext *ctx) {
     auto a = std::make_shared<ArrayExpr>();
-    a->exp_kind = ExprKind::Array;
     a->loc = loc(ctx);
     for(auto e : ctx->expr()) a->elements.push_back(as_expr<Expr>(visit(e)));
     a->type = std::make_shared<Type>(TypeKind::Error);
@@ -411,7 +410,6 @@ antlrcpp::Any rex_ast_build::visitArrayExpr(RexParser::ArrayExprContext *ctx) {
 
 antlrcpp::Any rex_ast_build::visitCallExpr(RexParser::CallExprContext* ctx) {
     auto call = std::make_shared<CallExpr>();
-    call->exp_kind = ExprKind::Call;
     call->loc = loc(ctx);
     call->callee = ctx->ID()->getText();
     if(ctx->argList())

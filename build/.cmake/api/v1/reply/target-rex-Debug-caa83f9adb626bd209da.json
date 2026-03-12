@@ -132,7 +132,9 @@
 				5,
 				6,
 				7,
-				8
+				8,
+				9,
+				10
 			]
 		}
 	],
@@ -190,7 +192,9 @@
 				5,
 				6,
 				7,
-				8
+				8,
+				9,
+				10
 			]
 		}
 	],
@@ -248,6 +252,18 @@
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
 			"path" : "src/passes/rex_alias_pass.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/passes/rex_exp_pass.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/rex_binary_op.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],

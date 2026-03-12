@@ -2,7 +2,7 @@
 #include <memory>
 #include "rex_ast_nodes.h"
 #include "rex_funcs.h"
-#include "rex_operator_type_system.h"
+#include "rex_binary_op.h"
 #include "rex_scope.h"
 #include "rex_types.h"
 #include "rex_exps.h"
@@ -15,13 +15,10 @@ namespace rex {
 struct ExprPass {
 
     private: 
-        OperatorTypeSystem ots;
+        BinaryOpSystem ots;
         std::shared_ptr<Scope> current_scope;
         int scope_depth = 0;
         bool debug = false;
-
-        bool is_tuple_type(std::shared_ptr<Type> t);
-        bool is_tuple_exp(std::shared_ptr<Expr> e);
 
         void print(const std::string& msg) const;  // helper
 

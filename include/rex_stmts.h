@@ -30,6 +30,11 @@ enum class StmtKind {
     Return
 };
 
+enum class PatternType {
+    Multiple,
+    Single
+};
+
 
 // ---------------------- STATEMENTS BASE --------------------
 struct Stmt : AstNode {
@@ -66,6 +71,8 @@ struct Stmt : AstNode {
 
 // ---------------------- PATTERNS ---------------------------
 struct Pattern {
+    PatternType pat_type;
+    Pattern(PatternType pat) : pat_type(pat) {}
     virtual ~Pattern() = default;
     virtual std::string to_string() const {
         return "<id(s)>";
@@ -74,7 +81,8 @@ struct Pattern {
 
 struct PatternId : Pattern {
     std::string id;
-    explicit PatternId(std::string id);
+    PatternId() : Pattern(PatternType::Single) {}
+    PatternId(std::string id) : Pattern(PatternType::Single), id(std::move(id)) {}
     std::string to_string() const override {
         return id;
     }
@@ -82,6 +90,8 @@ struct PatternId : Pattern {
 
 struct PatternIds : Pattern {
     std::vector<std::string> ids;
+    PatternIds() : Pattern(PatternType::Multiple) {}
+    PatternIds(std::vector<std::string> ids) : Pattern(PatternType::Multiple), ids(ids) {}
 
     std::string to_string() const override {
 
@@ -94,9 +104,6 @@ struct PatternIds : Pattern {
         }
 
         result += ")";
-
-       
-
         return result;
     }
 };
