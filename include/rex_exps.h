@@ -50,6 +50,29 @@ struct Expr : AstNode {
 
     virtual ~Expr() = default;
     virtual void dump(std::ostream& os, int i) const override = 0;
+    std::string expr_string() {
+           switch(exp_kind)
+        {
+            case ExprKind::Literal:
+                return "Literal";
+            case ExprKind::Id:
+                return "Id";
+            case ExprKind::Binary:
+                return "Binary";
+            case ExprKind::Tuple:
+                return "Tuple";
+            case ExprKind::Array:
+                return "Array";
+            case ExprKind::Index:
+                return "Index";
+            case ExprKind::Call:
+                return "Call";
+            case ExprKind::Pipe:
+                return "Pipe";
+            default:
+                return "<?>";
+        }
+    }
 };
 
 struct BlockExpr : Expr {

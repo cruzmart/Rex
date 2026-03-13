@@ -38,7 +38,9 @@
         } 
     }
     //Good
+
     std::shared_ptr<Type> ExprPass::visitExpr(const std::shared_ptr<Expr> exp){
+    
       switch(exp->exp_kind)
     {
         case ExprKind::Literal:
@@ -71,6 +73,7 @@
     }
     //Good
     void ExprPass ::visitStmt(const std::shared_ptr<Stmt> stmt){
+
         switch(stmt->stmt_kind)
         {
             case StmtKind::LetDecl:
@@ -131,7 +134,10 @@
                  if (current_scope->symbols.contains(pid->id))
                     throw std::runtime_error("Variable/Function '" + pid->id + "' is already defined");
                 auto sym = std::make_shared<Symbol>(SymbolType::Variable, pid->id);
-                sym->type = ls->type ? ls->type : visitExpr(ls->exp);
+
+                auto expr_t = visitExpr(ls->exp);
+
+                sym->type = ls->type ? ls->type : expr_t;
                 sym->expr = ls->exp;
                 current_scope->define(sym);
                 break;

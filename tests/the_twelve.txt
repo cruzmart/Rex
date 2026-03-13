@@ -7,9 +7,14 @@ function w(a: integer) -> integer[3] {
 }
 */
 
-
+/*
 let x : integer = 2;
 let y : integer = 1;
+*/
+
+
+
+let w : integer = [1,2.0] + 'c';
 
 /*
 if x > 0 {
@@ -20,16 +25,12 @@ if x > 0 {
    y = 9 + 2.0;
    k = 9 < 2;
 }
-
 */
 
 
 
-
-
-let i : Real[2] = [2.1,1];
-
 /*
+let i : Real[2] = [2.1,1];
 let a : Real[2] = w(2) + i;
 let d : Bool = true and true;
 let z : integer = 3;

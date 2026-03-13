@@ -115,6 +115,10 @@ int BinaryOpSystem::prim_rank(PrimKind k){
 }
 
 type_ptr BinaryOpSystem::promote_primitive(std::shared_ptr<PrimType> A, std::shared_ptr<PrimType> B){
+
+    // check super edge case were prim type is not string because later we could do string + string (ONLY)
+    if(!(A->prim == PrimKind::String && B->prim == PrimKind::String))
+    
     return std::make_shared<PrimType>(prim_rank(A->prim) >= prim_rank(B->prim) ? A->prim : B->prim);
 }
 
@@ -122,12 +126,42 @@ type_ptr BinaryOpSystem::promote_primitive(std::shared_ptr<PrimType> A, std::sha
 // General promotion
 // -------------------------------------------------
 type_ptr BinaryOpSystem::promote(type_ptr L, type_ptr R, const std::string& op){
+
+    
     // same type
-    if(L->equals(R)) return L;
+    if(L->equals(R)) {
+        if((is_prim(L, PrimKind::String) && op != "+"))
+            throw std::runtime_error("Cannot apply operator '" + op + "' to String and String");
+        
+        if(is_prim(L, PrimKind::Char) && op != "+") 
+            throw std::runtime_error("Cannot apply operator '" + op + "' to Char and Char");
+        
+        if(is_prim(L, PrimKind::Char) && op == "+"){
+            return std::make_shared<PrimType>(PrimKind::String);
+        }
+                    
+        return L;
+    }
 
     // primitive + primitive
-    if(is_primitive(L) && is_primitive(R))
-        return promote_primitive(std::static_pointer_cast<PrimType>(L), std::static_pointer_cast<PrimType>(R));
+    if(is_primitive(L) && is_primitive(R)){
+        auto prim_l = as<PrimType>(L);
+        auto prim_r = as<PrimType>(R);
+
+        if (is_string(L) || is_string(R)) {
+            if (op != "+" || !((is_string(L) || is_char(L)) &&
+                            (is_string(R) || is_char(R))))
+                throw std::runtime_error(
+                    "Cannot apply dasd '" + op + "' to " +
+                    L->to_string() + " and " + R->to_string()
+                );
+            return std::make_shared<PrimType>(PrimKind::String);
+        }
+
+
+        return promote_primitive(prim_l, prim_r);
+    }
+        
 
     // array + primitive
     if(is_array(L) && is_numeric(R)){
