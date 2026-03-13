@@ -18,6 +18,7 @@ function add(a : Int , b : Int) {
     sum
 }
 
+
 // ---------- Type aliases ----------
 type MyInt = Int;
 type Vec = Int[];
@@ -29,9 +30,6 @@ let a = 1;
 let b: Int = 2 + 3;
 let c = a * b;
 
-// ---------- Tuple destructuring ----------
-let (x, y, z) = (1, 1.1, true);
-
 // ---------- Index expression ----------
 let arr = (1, 2, 3);
 let first = arr[0];
@@ -41,6 +39,13 @@ let r = 0 .. 10;
 
 // ---------- Pipe expression ----------
 let piped = 5 |> inc |> double;
+
+let arr = (1, 2, 3);
+let arr : Int[3] = [1,2,3];
+let arr : Int = (2,3,4);
+let d : Int = 2 < true;
+let (a, b, c) : (Int, Real, String) = (2,3.5,"Hello World");
+
 
 // ---------- Function definitions ----------
 function inc(x: Int) -> Int {
@@ -52,9 +57,9 @@ function double(x: Int) -> Int {
 }
 
 function add_pair(p: Pair) -> Int {
-    let (a, b) = p;
     a + b
 }
 
 // ---------- Function call ----------
 let result = add_pair((10, 20));
+

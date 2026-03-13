@@ -3,14 +3,15 @@
 #include "RexParser.h"
 #include "RexBaseVisitor.h"
 #include "rex_ast_nodes.h"
+#include <stdexcept>
 
 using namespace rex;
 
 class rex_ast_build : public RexBaseVisitor {
 public:
     // ---------------------- TOP LEVEL ----------------------
-    std::unique_ptr<file_ast> build(RexParser::FileContext* ctx);
-    source_location loc(antlr4::ParserRuleContext* ctx);
+    std::unique_ptr<FileAst> build(RexParser::FileContext* ctx);
+    SourceLocation loc(antlr4::ParserRuleContext* ctx);
 
 private:
     virtual antlrcpp::Any visitFile(RexParser::FileContext *ctx) override;
@@ -34,12 +35,12 @@ private:
     // --------------------- STATEMENTS ---------------------
     virtual antlrcpp::Any visitStatement(RexParser::StatementContext *ctx) override;
     virtual antlrcpp::Any visitLetStmt(RexParser::LetStmtContext *ctx) override;
+    virtual antlrcpp::Any visitPattern(RexParser::PatternContext *ctx) override;
     virtual antlrcpp::Any visitReturnStmt(RexParser::ReturnStmtContext *ctx) override;
     virtual antlrcpp::Any visitExprStmt(RexParser::ExprStmtContext *ctx) override;
     virtual antlrcpp::Any visitAssignStmt(RexParser::AssignStmtContext *ctx) override;
     virtual antlrcpp::Any visitIfStmt(RexParser::IfStmtContext *ctx) override;
     virtual antlrcpp::Any visitLoopStmt(RexParser::LoopStmtContext *ctx) override;
-    virtual antlrcpp::Any visitPattern(RexParser::PatternContext *ctx) override;
 
     // ------------------------ BLOCKS -----------------------
     virtual antlrcpp::Any visitBlock(RexParser::BlockContext *ctx) override;
@@ -49,9 +50,12 @@ private:
     virtual antlrcpp::Any visitLiteralExpr(RexParser::LiteralExprContext *ctx) override;
     virtual antlrcpp::Any visitLiteral(RexParser::LiteralContext *ctx) override;
     virtual antlrcpp::Any visitTupleExpr(RexParser::TupleExprContext *ctx) override;
+    virtual antlrcpp::Any visitArrayExpr(RexParser::ArrayExprContext *ctx) override;
     virtual antlrcpp::Any visitCallExpr(RexParser::CallExprContext *ctx) override;
     virtual antlrcpp::Any visitParenExpr(RexParser::ParenExprContext *ctx) override;
     virtual antlrcpp::Any visitUnaryExpr(RexParser::UnaryExprContext *ctx) override;
+
+
 
     // Binary / operators
     virtual antlrcpp::Any visitAddExpr(RexParser::AddExprContext *ctx) override;
