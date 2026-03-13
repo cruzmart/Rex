@@ -149,6 +149,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual std::any visitArrayExpr(RexParser::ArrayExprContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual std::any visitEqualityExpr(RexParser::EqualityExprContext *ctx) override {
     return visitChildren(ctx);
   }

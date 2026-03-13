@@ -1,2 +1,0 @@
-/usr/bin/ar qc libparser.a CMakeFiles/parser.dir/gen/rex/RexBaseListener.cpp.o CMakeFiles/parser.dir/gen/rex/RexBaseVisitor.cpp.o CMakeFiles/parser.dir/gen/rex/RexLexer.cpp.o CMakeFiles/parser.dir/gen/rex/RexListener.cpp.o CMakeFiles/parser.dir/gen/rex/RexParser.cpp.o CMakeFiles/parser.dir/gen/rex/RexVisitor.cpp.o
-/usr/bin/ranlib libparser.a

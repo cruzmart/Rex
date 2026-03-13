@@ -57,42 +57,42 @@ build cmake_object_order_depends_target_parser: phony || /home/unknown/projects/
 
 build CMakeFiles/parser.dir/gen/rex/RexBaseListener.cpp.o: CXX_COMPILER__parser_unscanned_Debug /home/unknown/projects/Rex/gen/rex/RexBaseListener.cpp || cmake_object_order_depends_target_parser
   DEP_FILE = CMakeFiles/parser.dir/gen/rex/RexBaseListener.cpp.o.d
-  FLAGS = -Wall -g -Wall -Wno-overloaded-virtual
+  FLAGS = -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual
   INCLUDES = -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex
   OBJECT_DIR = CMakeFiles/parser.dir
   OBJECT_FILE_DIR = CMakeFiles/parser.dir/gen/rex
 
 build CMakeFiles/parser.dir/gen/rex/RexBaseVisitor.cpp.o: CXX_COMPILER__parser_unscanned_Debug /home/unknown/projects/Rex/gen/rex/RexBaseVisitor.cpp || cmake_object_order_depends_target_parser
   DEP_FILE = CMakeFiles/parser.dir/gen/rex/RexBaseVisitor.cpp.o.d
-  FLAGS = -Wall -g -Wall -Wno-overloaded-virtual
+  FLAGS = -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual
   INCLUDES = -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex
   OBJECT_DIR = CMakeFiles/parser.dir
   OBJECT_FILE_DIR = CMakeFiles/parser.dir/gen/rex
 
 build CMakeFiles/parser.dir/gen/rex/RexLexer.cpp.o: CXX_COMPILER__parser_unscanned_Debug /home/unknown/projects/Rex/gen/rex/RexLexer.cpp || cmake_object_order_depends_target_parser
   DEP_FILE = CMakeFiles/parser.dir/gen/rex/RexLexer.cpp.o.d
-  FLAGS = -Wall -g -Wall -Wno-overloaded-virtual
+  FLAGS = -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual
   INCLUDES = -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex
   OBJECT_DIR = CMakeFiles/parser.dir
   OBJECT_FILE_DIR = CMakeFiles/parser.dir/gen/rex
 
 build CMakeFiles/parser.dir/gen/rex/RexListener.cpp.o: CXX_COMPILER__parser_unscanned_Debug /home/unknown/projects/Rex/gen/rex/RexListener.cpp || cmake_object_order_depends_target_parser
   DEP_FILE = CMakeFiles/parser.dir/gen/rex/RexListener.cpp.o.d
-  FLAGS = -Wall -g -Wall -Wno-overloaded-virtual
+  FLAGS = -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual
   INCLUDES = -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex
   OBJECT_DIR = CMakeFiles/parser.dir
   OBJECT_FILE_DIR = CMakeFiles/parser.dir/gen/rex
 
 build CMakeFiles/parser.dir/gen/rex/RexParser.cpp.o: CXX_COMPILER__parser_unscanned_Debug /home/unknown/projects/Rex/gen/rex/RexParser.cpp || cmake_object_order_depends_target_parser
   DEP_FILE = CMakeFiles/parser.dir/gen/rex/RexParser.cpp.o.d
-  FLAGS = -Wall -g -Wall -Wno-overloaded-virtual
+  FLAGS = -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual
   INCLUDES = -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex
   OBJECT_DIR = CMakeFiles/parser.dir
   OBJECT_FILE_DIR = CMakeFiles/parser.dir/gen/rex
 
 build CMakeFiles/parser.dir/gen/rex/RexVisitor.cpp.o: CXX_COMPILER__parser_unscanned_Debug /home/unknown/projects/Rex/gen/rex/RexVisitor.cpp || cmake_object_order_depends_target_parser
   DEP_FILE = CMakeFiles/parser.dir/gen/rex/RexVisitor.cpp.o.d
-  FLAGS = -Wall -g -Wall -Wno-overloaded-virtual
+  FLAGS = -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual
   INCLUDES = -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex
   OBJECT_DIR = CMakeFiles/parser.dir
   OBJECT_FILE_DIR = CMakeFiles/parser.dir/gen/rex
@@ -161,21 +161,77 @@ build cmake_object_order_depends_target_rex: phony || cmake_object_order_depends
 
 build src/CMakeFiles/rex.dir/main.cpp.o: CXX_COMPILER__rex_unscanned_Debug /home/unknown/projects/Rex/src/main.cpp || cmake_object_order_depends_target_rex
   DEP_FILE = src/CMakeFiles/rex.dir/main.cpp.o.d
-  FLAGS = -Wall -g -Wall -Wno-overloaded-virtual
+  FLAGS = -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual
   INCLUDES = -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support
   OBJECT_DIR = src/CMakeFiles/rex.dir
   OBJECT_FILE_DIR = src/CMakeFiles/rex.dir
 
 build src/CMakeFiles/rex.dir/rex_ast.cpp.o: CXX_COMPILER__rex_unscanned_Debug /home/unknown/projects/Rex/src/rex_ast.cpp || cmake_object_order_depends_target_rex
   DEP_FILE = src/CMakeFiles/rex.dir/rex_ast.cpp.o.d
-  FLAGS = -Wall -g -Wall -Wno-overloaded-virtual
+  FLAGS = -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual
+  INCLUDES = -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support
+  OBJECT_DIR = src/CMakeFiles/rex.dir
+  OBJECT_FILE_DIR = src/CMakeFiles/rex.dir
+
+build src/CMakeFiles/rex.dir/rex_exps.cpp.o: CXX_COMPILER__rex_unscanned_Debug /home/unknown/projects/Rex/src/rex_exps.cpp || cmake_object_order_depends_target_rex
+  DEP_FILE = src/CMakeFiles/rex.dir/rex_exps.cpp.o.d
+  FLAGS = -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual
+  INCLUDES = -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support
+  OBJECT_DIR = src/CMakeFiles/rex.dir
+  OBJECT_FILE_DIR = src/CMakeFiles/rex.dir
+
+build src/CMakeFiles/rex.dir/rex_funcs.cpp.o: CXX_COMPILER__rex_unscanned_Debug /home/unknown/projects/Rex/src/rex_funcs.cpp || cmake_object_order_depends_target_rex
+  DEP_FILE = src/CMakeFiles/rex.dir/rex_funcs.cpp.o.d
+  FLAGS = -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual
+  INCLUDES = -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support
+  OBJECT_DIR = src/CMakeFiles/rex.dir
+  OBJECT_FILE_DIR = src/CMakeFiles/rex.dir
+
+build src/CMakeFiles/rex.dir/rex_stmts.cpp.o: CXX_COMPILER__rex_unscanned_Debug /home/unknown/projects/Rex/src/rex_stmts.cpp || cmake_object_order_depends_target_rex
+  DEP_FILE = src/CMakeFiles/rex.dir/rex_stmts.cpp.o.d
+  FLAGS = -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual
+  INCLUDES = -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support
+  OBJECT_DIR = src/CMakeFiles/rex.dir
+  OBJECT_FILE_DIR = src/CMakeFiles/rex.dir
+
+build src/CMakeFiles/rex.dir/rex_ast_nodes.cpp.o: CXX_COMPILER__rex_unscanned_Debug /home/unknown/projects/Rex/src/rex_ast_nodes.cpp || cmake_object_order_depends_target_rex
+  DEP_FILE = src/CMakeFiles/rex.dir/rex_ast_nodes.cpp.o.d
+  FLAGS = -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual
   INCLUDES = -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support
   OBJECT_DIR = src/CMakeFiles/rex.dir
   OBJECT_FILE_DIR = src/CMakeFiles/rex.dir
 
 build src/CMakeFiles/rex.dir/rex_ast_build.cpp.o: CXX_COMPILER__rex_unscanned_Debug /home/unknown/projects/Rex/src/rex_ast_build.cpp || cmake_object_order_depends_target_rex
   DEP_FILE = src/CMakeFiles/rex.dir/rex_ast_build.cpp.o.d
-  FLAGS = -Wall -g -Wall -Wno-overloaded-virtual
+  FLAGS = -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual
+  INCLUDES = -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support
+  OBJECT_DIR = src/CMakeFiles/rex.dir
+  OBJECT_FILE_DIR = src/CMakeFiles/rex.dir
+
+build src/CMakeFiles/rex.dir/rex_scope.cpp.o: CXX_COMPILER__rex_unscanned_Debug /home/unknown/projects/Rex/src/rex_scope.cpp || cmake_object_order_depends_target_rex
+  DEP_FILE = src/CMakeFiles/rex.dir/rex_scope.cpp.o.d
+  FLAGS = -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual
+  INCLUDES = -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support
+  OBJECT_DIR = src/CMakeFiles/rex.dir
+  OBJECT_FILE_DIR = src/CMakeFiles/rex.dir
+
+build src/CMakeFiles/rex.dir/passes/rex_alias_pass.cpp.o: CXX_COMPILER__rex_unscanned_Debug /home/unknown/projects/Rex/src/passes/rex_alias_pass.cpp || cmake_object_order_depends_target_rex
+  DEP_FILE = src/CMakeFiles/rex.dir/passes/rex_alias_pass.cpp.o.d
+  FLAGS = -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual
+  INCLUDES = -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support
+  OBJECT_DIR = src/CMakeFiles/rex.dir
+  OBJECT_FILE_DIR = src/CMakeFiles/rex.dir/passes
+
+build src/CMakeFiles/rex.dir/passes/rex_exp_pass.cpp.o: CXX_COMPILER__rex_unscanned_Debug /home/unknown/projects/Rex/src/passes/rex_exp_pass.cpp || cmake_object_order_depends_target_rex
+  DEP_FILE = src/CMakeFiles/rex.dir/passes/rex_exp_pass.cpp.o.d
+  FLAGS = -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual
+  INCLUDES = -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support
+  OBJECT_DIR = src/CMakeFiles/rex.dir
+  OBJECT_FILE_DIR = src/CMakeFiles/rex.dir/passes
+
+build src/CMakeFiles/rex.dir/rex_binary_op.cpp.o: CXX_COMPILER__rex_unscanned_Debug /home/unknown/projects/Rex/src/rex_binary_op.cpp || cmake_object_order_depends_target_rex
+  DEP_FILE = src/CMakeFiles/rex.dir/rex_binary_op.cpp.o.d
+  FLAGS = -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual
   INCLUDES = -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support
   OBJECT_DIR = src/CMakeFiles/rex.dir
   OBJECT_FILE_DIR = src/CMakeFiles/rex.dir
@@ -188,7 +244,7 @@ build src/CMakeFiles/rex.dir/rex_ast_build.cpp.o: CXX_COMPILER__rex_unscanned_De
 #############################################
 # Link the executable src/rex
 
-build src/rex: CXX_EXECUTABLE_LINKER__rex_Debug src/CMakeFiles/rex.dir/main.cpp.o src/CMakeFiles/rex.dir/rex_ast.cpp.o src/CMakeFiles/rex.dir/rex_ast_build.cpp.o | libparser.a /home/unknown/antlr/antlr4-install/lib/libantlr4-runtime.a || libparser.a
+build src/rex: CXX_EXECUTABLE_LINKER__rex_Debug src/CMakeFiles/rex.dir/main.cpp.o src/CMakeFiles/rex.dir/rex_ast.cpp.o src/CMakeFiles/rex.dir/rex_exps.cpp.o src/CMakeFiles/rex.dir/rex_funcs.cpp.o src/CMakeFiles/rex.dir/rex_stmts.cpp.o src/CMakeFiles/rex.dir/rex_ast_nodes.cpp.o src/CMakeFiles/rex.dir/rex_ast_build.cpp.o src/CMakeFiles/rex.dir/rex_scope.cpp.o src/CMakeFiles/rex.dir/passes/rex_alias_pass.cpp.o src/CMakeFiles/rex.dir/passes/rex_exp_pass.cpp.o src/CMakeFiles/rex.dir/rex_binary_op.cpp.o | libparser.a /home/unknown/antlr/antlr4-install/lib/libantlr4-runtime.a || libparser.a
   FLAGS = -Wall -g
   LINK_LIBRARIES = libparser.a  /home/unknown/antlr/antlr4-install/lib/libantlr4-runtime.a
   OBJECT_DIR = src/CMakeFiles/rex.dir

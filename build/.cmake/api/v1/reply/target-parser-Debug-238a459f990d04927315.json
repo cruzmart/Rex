@@ -1,0 +1,226 @@
+{
+	"archive" : {},
+	"artifacts" : 
+	[
+		{
+			"path" : "libparser.a"
+		}
+	],
+	"backtrace" : 3,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"include",
+			"add_compile_options",
+			"target_include_directories",
+			"include_directories"
+		],
+		"files" : 
+		[
+			"cmake/rex_generate.cmake",
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 21,
+				"parent" : 0
+			},
+			{
+				"file" : 0,
+				"parent" : 1
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 72,
+				"parent" : 2
+			},
+			{
+				"command" : 2,
+				"file" : 1,
+				"line" : 12,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 73,
+				"parent" : 2
+			},
+			{
+				"command" : 4,
+				"file" : 1,
+				"line" : 23,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : " -Wall -g -std=gnu++20"
+				},
+				{
+					"backtrace" : 4,
+					"fragment" : "-Wall"
+				},
+				{
+					"backtrace" : 4,
+					"fragment" : "-Wno-overloaded-virtual"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 5,
+					"path" : "/home/unknown/antlr/antlr4-install/include/antlr4-runtime"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "/home/unknown/projects/Rex/include"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "/home/unknown/projects/Rex/gen/rex"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					3
+				],
+				"standard" : "20"
+			},
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"id" : "antlr::@6890427a1f51a3e7e1df"
+		}
+	],
+	"id" : "parser::@6890427a1f51a3e7e1df",
+	"name" : "parser",
+	"nameOnDisk" : "libparser.a",
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5
+			]
+		},
+		{
+			"name" : "CMake Rules",
+			"sourceIndexes" : 
+			[
+				6
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 3,
+			"compileGroupIndex" : 0,
+			"isGenerated" : true,
+			"path" : "gen/rex/RexBaseListener.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"compileGroupIndex" : 0,
+			"isGenerated" : true,
+			"path" : "gen/rex/RexBaseVisitor.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"compileGroupIndex" : 0,
+			"isGenerated" : true,
+			"path" : "gen/rex/RexLexer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"compileGroupIndex" : 0,
+			"isGenerated" : true,
+			"path" : "gen/rex/RexListener.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"compileGroupIndex" : 0,
+			"isGenerated" : true,
+			"path" : "gen/rex/RexParser.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"compileGroupIndex" : 0,
+			"isGenerated" : true,
+			"path" : "gen/rex/RexVisitor.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "gen/rex/RexBaseListener.cpp.rule",
+			"sourceGroupIndex" : 1
+		}
+	],
+	"type" : "STATIC_LIBRARY"
+}

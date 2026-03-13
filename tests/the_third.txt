@@ -10,7 +10,7 @@ let b: Int = 2 + 3;
 let c = a * b;
 
 // ---------- Tuple destructuring ----------
-let (x, y, z) = (1, 1.1, true);
+// let (x, y, z) = (1, 1.1, true);
 
 // ---------- Index expression ----------
 let arr = (1, 2, 3);
@@ -18,9 +18,6 @@ let first = arr[0];
 
 // ---------- Range expression ----------
 let r = 0 .. 10;
-
-// ---------- Pipe expression ----------
-let piped = 5 |> inc |> double;
 
 // ---------- Function definitions ----------
 function inc(x: Int) -> Int {
@@ -33,7 +30,7 @@ function double(x: Int) -> Int {
 
 function add_pair(p: Pair) -> Int {
     let (a, b) = p;
-    a + b
+    return a + b;
 }
 
 // ---------- Function call ----------
@@ -56,4 +53,8 @@ loop {
 
 // ------------ Reassignment -----------
 a = 4;
-(1 + 2) = 3;
+// (1 + 2) = 3;
+
+
+// ---------- Pipe expression ----------
+let piped = 5 |> inc |> double;

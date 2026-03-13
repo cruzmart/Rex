@@ -115,6 +115,9 @@ public:
   virtual void enterIndexExpr(RexParser::IndexExprContext *ctx) = 0;
   virtual void exitIndexExpr(RexParser::IndexExprContext *ctx) = 0;
 
+  virtual void enterArrayExpr(RexParser::ArrayExprContext *ctx) = 0;
+  virtual void exitArrayExpr(RexParser::ArrayExprContext *ctx) = 0;
+
   virtual void enterEqualityExpr(RexParser::EqualityExprContext *ctx) = 0;
   virtual void exitEqualityExpr(RexParser::EqualityExprContext *ctx) = 0;
 

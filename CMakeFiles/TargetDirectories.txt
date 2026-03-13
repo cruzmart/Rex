@@ -1,0 +1,8 @@
+/home/unknown/projects/Rex/CMakeFiles/antlr.dir
+/home/unknown/projects/Rex/CMakeFiles/parser.dir
+/home/unknown/projects/Rex/CMakeFiles/edit_cache.dir
+/home/unknown/projects/Rex/CMakeFiles/rebuild_cache.dir
+/home/unknown/projects/Rex/src/CMakeFiles/rex.dir
+/home/unknown/projects/Rex/src/CMakeFiles/symlink_rex.dir
+/home/unknown/projects/Rex/src/CMakeFiles/edit_cache.dir
+/home/unknown/projects/Rex/src/CMakeFiles/rebuild_cache.dir

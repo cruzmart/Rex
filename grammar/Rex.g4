@@ -16,7 +16,6 @@ file
 
 item
     : functionDef
-    | typeDef
     | statement
     ;
 
@@ -75,10 +74,11 @@ statement
     | ifStmt          
     | loopStmt
     | exprStmt
+    | typeDef
     ;
 
 letStmt
-    : LET pattern (':' type)? '=' expr ';'
+    : LET pattern  (':' type)? '=' expr ';'
     ;
 
 assignStmt
@@ -104,14 +104,11 @@ elseBlock
     : ELSE block                            
     ;
 
-// -------------------------------------------------
-// Patterns (for destructuring)
-// -------------------------------------------------
-
 pattern
     : ID
-    | '(' pattern (',' pattern)+ ')'
+    | '(' ID (',' ID)+ ')'
     ;
+
 
 // -------------------------------------------------
 // Loops
@@ -139,6 +136,7 @@ expr
     : op=(MINUS | PLUS) expr               #UnaryExpr
     | '(' expr ')'                         #ParenExpr
     |'(' expr (',' expr)+ ')'              #TupleExpr
+    |'[' (expr (',' expr)*)? ']'            #ArrayExpr
     | expr '[' expr ']'                    #IndexExpr
     | expr RANGE expr                       #RangeExpr
     | expr op=(STAR | DIV | MOD) expr       #MulExpr

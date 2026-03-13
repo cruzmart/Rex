@@ -1,0 +1,68 @@
+type integer = Int;
+type float = Real;
+type cap = Bool;
+
+// alias chain
+type number = integer;
+type decimal = float;
+
+// tuple alias
+type triple = (integer, float, cap);
+
+// array alias
+type int_array = integer[3];
+
+// global variable using aliases
+let (x, y, z) : (integer, float, cap) = (1, 1.1, true);
+
+// ------------------------------------------------
+// function 1
+// ------------------------------------------------
+function add(a: integer, b: integer) -> integer {
+    let result : integer = a + b;
+    result
+}
+
+// ------------------------------------------------
+// function 2 (alias usage)
+// ------------------------------------------------
+function average(a: decimal, b: decimal) -> decimal {
+    let sum : decimal = a + b;
+    sum / 2.0
+}
+
+// ------------------------------------------------
+// function 3 (tuple alias)
+// ------------------------------------------------
+function make_triple(a: integer, b: float, c: cap) -> triple {
+    let t : triple = (a, b, c);
+    t
+}
+
+// ------------------------------------------------
+// function 4 (array alias)
+// ------------------------------------------------
+function first_value(arr: int_array) -> integer {
+    arr[0]
+}
+
+// ------------------------------------------------
+// nested scope test
+// ------------------------------------------------
+function test_scope(a: integer) -> integer {
+
+    type local_int = integer;
+
+    let b : local_int = a + 1;
+
+    while b < 10 {
+
+        type deeper_int = local_int;
+
+        let c : deeper_int = b + 2;
+
+        b = c;
+    }
+
+    b
+}

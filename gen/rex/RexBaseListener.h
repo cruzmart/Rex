@@ -117,6 +117,9 @@ public:
   virtual void enterIndexExpr(RexParser::IndexExprContext * /*ctx*/) override { }
   virtual void exitIndexExpr(RexParser::IndexExprContext * /*ctx*/) override { }
 
+  virtual void enterArrayExpr(RexParser::ArrayExprContext * /*ctx*/) override { }
+  virtual void exitArrayExpr(RexParser::ArrayExprContext * /*ctx*/) override { }
+
   virtual void enterEqualityExpr(RexParser::EqualityExprContext * /*ctx*/) override { }
   virtual void exitEqualityExpr(RexParser::EqualityExprContext * /*ctx*/) override { }
 

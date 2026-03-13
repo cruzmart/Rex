@@ -1,0 +1,423 @@
+#include "rex_type_checker.h"
+#include "rex_scope.h"
+#include "rex_symbol.h"
+#include <iostream>
+
+using namespace rex;
+
+// ---------------------------------------------------------
+// Constructor
+// ---------------------------------------------------------
+TypeChecker::TypeChecker(std::shared_ptr<Scope> g)
+    : global(std::move(g))
+{
+    current_scope = global;
+}
+
+// ---------------------------------------------------------
+// Error helper
+// ---------------------------------------------------------
+void TypeChecker::error(const std::string msg, const size_t line) {
+    std::cerr << "[type error] line " << line << ": " << msg << "\n";
+    exit(1);
+}
+
+// =========================================================
+// TOP-LEVEL FILE CHECK
+// =========================================================
+void TypeChecker::check(std::shared_ptr<FileAst> file) {
+    for (auto& item : file->items) {
+
+        if (auto stmt = std::dynamic_pointer_cast<Stmt>(item))
+            check_stmt(stmt);
+
+        else if (auto fn = std::dynamic_pointer_cast<FunctionDecl>(item))
+            check_function(fn);
+
+        else if (auto td = std::dynamic_pointer_cast<TypeDecl>(item))
+            check_type_decl(td);
+
+        else
+            error("Unknown top-level AST node", item->loc.line);
+    }
+}
+
+// =========================================================
+// EXPRESSION TYPE CHECK
+// =========================================================
+type_ptr TypeChecker::check_expr(std::shared_ptr<Expr> e) {
+
+    if (auto lit = std::dynamic_pointer_cast<LiteralExpr>(e))
+        return check_literal(lit);
+
+    if (auto id = std::dynamic_pointer_cast<IdExpr>(e))
+        return check_id(id);
+
+    if (auto bin = std::dynamic_pointer_cast<BinaryExpr>(e))
+        return check_binary(bin);
+
+    if (auto un = std::dynamic_pointer_cast<UnaryExpr>(e))
+        return check_unary(un);
+
+    if (auto call = std::dynamic_pointer_cast<CallExpr>(e))
+        return check_call(call);
+
+    if (auto idx = std::dynamic_pointer_cast<IndexExpr>(e))
+        return check_index(idx);
+
+    if (auto tup = std::dynamic_pointer_cast<TupleExpr>(e))
+        return check_tuple(tup);
+
+    if (auto arr = std::dynamic_pointer_cast<ArrayExpr>(e))
+        return check_array(arr);
+
+    error("Unknown expression", e->loc.line);
+    return std::make_shared<Type>(TypeKind::Error);
+}
+
+// ---------------------------------------------------------
+// Literal
+// ---------------------------------------------------------
+type_ptr TypeChecker::check_literal(std::shared_ptr<LiteralExpr> e) {
+    // The parser already set PrimType on literal nodes.
+    return e->type;
+}
+
+// ---------------------------------------------------------
+// Identifier lookup
+// ---------------------------------------------------------
+type_ptr TypeChecker::check_id(std::shared_ptr<IdExpr> id) {
+    auto sym = current_scope->resolve(id->name);
+
+    if (!sym)
+        error("Undefined identifier '" + id->name + "'", id->loc.line);
+
+    id->resolved = sym;
+    id->type = sym->type;
+
+    return id->type;
+}
+
+// ---------------------------------------------------------
+// Tuple
+// ---------------------------------------------------------
+type_ptr TypeChecker::check_tuple(std::shared_ptr<TupleExpr> t) {
+
+    auto tupleT = std::make_shared<TupleType>();
+
+    for (auto& elem : t->elements) {
+        auto typeE = check_expr(elem);
+        tupleT->types.push_back(typeE);
+    }
+
+    t->type = tupleT;
+    return tupleT;
+}
+
+// ---------------------------------------------------------
+// Array literal
+// ---------------------------------------------------------
+type_ptr TypeChecker::check_array(std::shared_ptr<ArrayExpr> a) {
+
+    if (a->elements.empty()) {
+        error("Empty array literal is not allowed", a->loc.line);
+    }
+
+    // All elements must have the same type
+    auto firstT = check_expr(a->elements[0]);
+
+    for (auto& e : a->elements) {
+        auto t2 = check_expr(e);
+        if (t2->fundamental_kind != firstT->fundamental_kind)
+            error("Array elements must have same type", e->loc.line);
+    }
+
+    auto arrT = std::make_shared<ArrayType>(firstT, (int)a->elements.size());
+    a->type = arrT;
+
+    return arrT;
+}
+
+// ---------------------------------------------------------
+// Binary operations
+// ---------------------------------------------------------
+type_ptr TypeChecker::check_binary(std::shared_ptr<BinaryExpr> b) {
+
+    auto lt = check_expr(b->lhs);
+    auto rt = check_expr(b->rhs);
+
+    // TODO: implement real operator rules
+    // For now, enforce lt == rt
+    if (lt->fundamental_kind != rt->fundamental_kind)
+        error("Binary operands must have same type", b->loc.line);
+
+    b->type = lt;
+    return lt;
+}
+
+// ---------------------------------------------------------
+// Unary operations
+// ---------------------------------------------------------
+type_ptr TypeChecker::check_unary(std::shared_ptr<UnaryExpr> u) {
+
+    auto t = check_expr(u->rhs);
+
+    // TODO: operator rules
+    u->type = t;
+    return t;
+}
+
+// ---------------------------------------------------------
+// Function call
+// ---------------------------------------------------------
+type_ptr TypeChecker::check_call(std::shared_ptr<CallExpr> c) {
+
+    auto sym = current_scope->resolve(c->callee);
+    if (!sym)
+        error("Undefined function '" + c->callee + "'", c->loc.line);
+
+    auto fnT = std::dynamic_pointer_cast<FunctionType>(sym->type);
+    if (!fnT)
+        error("'" + c->callee + "' is not a function", c->loc.line);
+
+    if (fnT->params.size() != c->args.size())
+        error("Argument count mismatch calling '" + c->callee + "'", c->loc.line);
+
+    for (size_t i = 0; i < c->args.size(); i++) {
+        auto argT = check_expr(c->args[i]);
+        if (argT->fundamental_kind != fnT->params[i]->para_type->fundamental_kind)
+            error("Argument type mismatch in call to '" + c->callee + "'", c->loc.line);
+    }
+
+    c->type = fnT->return_type;
+    return c->type;
+}
+
+// ---------------------------------------------------------
+// Index
+// ---------------------------------------------------------
+type_ptr TypeChecker::check_index(std::shared_ptr<IndexExpr> i) {
+
+    auto baseT = check_expr(i->base);
+    auto idxT = check_expr(i->index);
+
+    // Must index an array/slice
+    if (baseT->fundamental_kind != TypeKind::Array &&
+        baseT->fundamental_kind != TypeKind::Slice)
+        error("Cannot index non-array type", i->loc.line);
+
+    // Index must be Int
+    if (idxT->fundamental_kind != TypeKind::Primitive)
+        error("Index must be Int", i->loc.line);
+
+    auto elem = (baseT->fundamental_kind == TypeKind::Array)
+        ? std::dynamic_pointer_cast<ArrayType>(baseT)->array_type
+        : std::dynamic_pointer_cast<SliceType>(baseT)->slice_type;
+
+    i->type = elem;
+    return elem;
+}
+
+// ---------------------------------------------------------
+// Function declaration
+// ---------------------------------------------------------
+type_ptr TypeChecker::check_function(std::shared_ptr<FunctionDecl> f) {
+
+    // Add to symbol table first
+    auto sym = std::make_shared<Symbol>(f->func_name, f->func_type);
+    current_scope->define(sym);
+    f->resolved = sym;
+
+    // Enter function scope
+    push_scope();
+
+    // Define parameters
+    for (auto& p : f->parameters) {
+        auto psym = std::make_shared<Symbol>(p->para_name, p->para_type);
+        current_scope->define(psym);
+        p->resolved = psym;
+    }
+
+    // Check function body
+    for (auto& stmt : f->body->stmts)
+        check_stmt(stmt);
+
+    pop_scope();
+
+    return f->func_type;
+}
+
+// ---------------------------------------------------------
+// Resolve type by name
+// ---------------------------------------------------------
+type_ptr TypeChecker::resolve_id(const std::string name) {
+    auto sym = current_scope->resolve(name);
+    if (!sym)
+        return nullptr;
+    return sym->type;
+}
+
+// =========================================================
+// STATEMENTS
+// =========================================================
+void TypeChecker::check_stmt(std::shared_ptr<Stmt> s) {
+
+    if (auto let = std::dynamic_pointer_cast<LetStmt>(s))
+        return check_let(let);
+
+    if (auto r = std::dynamic_pointer_cast<ReturnStmt>(s))
+        return check_return(r);
+
+    if (auto as = std::dynamic_pointer_cast<AssignStmt>(s))
+        return check_assign(as);
+
+    if (auto w = std::dynamic_pointer_cast<WhileStmt>(s))
+        return check_while(w);
+
+    if (auto f = std::dynamic_pointer_cast<ForStmt>(s))
+        return check_for(f);
+
+    if (auto t = std::dynamic_pointer_cast<TypeDecl>(s))
+        return check_type_decl(t);
+
+    if (auto i = std::dynamic_pointer_cast<IfStmt>(s))
+        return check_if(i);
+
+    // Unknown stmt
+    error("Unknown statement", s->loc.line);
+}
+
+// ---------------------------------------------------------
+// let x : T = expr
+// ---------------------------------------------------------
+void TypeChecker::check_let(std::shared_ptr<LetStmt> s) {
+
+    auto declaredT = s->type;
+    auto valueT = check_expr(s->exp);
+
+    if (declaredT->fundamental_kind != valueT->fundamental_kind)
+        error("Type mismatch in let-binding", s->loc.line);
+
+    // Extract name from pattern
+    std::string id;
+    if (auto pid = std::dynamic_pointer_cast<PatternId>(s->id_pattern))
+        id = pid->id;
+    else
+        error("Tuple patterns not supported yet", s->loc.line);
+
+    auto sym = std::make_shared<Symbol>(id, declaredT);
+    current_scope->define(sym);
+}
+
+// ---------------------------------------------------------
+void TypeChecker::check_assign(std::shared_ptr<AssignStmt> s) {
+
+    auto t1 = check_expr(s->target);
+    auto t2 = check_expr(s->value);
+
+    if (t1->fundamental_kind != t2->fundamental_kind)
+        error("Assignment type mismatch", s->loc.line);
+}
+
+// ---------------------------------------------------------
+void TypeChecker::check_return(std::shared_ptr<ReturnStmt> s) {
+    if (!s->value) return;
+    check_expr(s->value);
+}
+
+// ---------------------------------------------------------
+void TypeChecker::check_if(std::shared_ptr<IfStmt> s) {
+
+    auto condT = check_expr(s->condition);
+
+    if (condT->fundamental_kind != TypeKind::Primitive)
+        error("If condition must be Bool", s->loc.line);
+
+    push_scope();
+    for (auto& st : s->then_block->stmts)
+        check_stmt(st);
+    pop_scope();
+
+    for (auto& [c, blk] : s->elifx_blocks) {
+        auto ct = check_expr(c);
+        if (ct->fundamental_kind != TypeKind::Primitive)
+            error("elif condition must be Bool", c->loc.line);
+
+        push_scope();
+        for (auto& st : blk->stmts)
+            check_stmt(st);
+        pop_scope();
+    }
+
+    if (s->else_block) {
+        push_scope();
+        for (auto& st : s->else_block->stmts)
+            check_stmt(st);
+        pop_scope();
+    }
+}
+
+// ---------------------------------------------------------
+void TypeChecker::check_while(std::shared_ptr<WhileStmt> s) {
+
+    auto condT = check_expr(s->cond);
+    if (condT->fundamental_kind != TypeKind::Primitive)
+        error("While condition must be Bool", s->loc.line);
+
+    push_scope();
+    for (auto& st : s->body->stmts)
+        check_stmt(st);
+    pop_scope();
+}
+
+// ---------------------------------------------------------
+void TypeChecker::check_loop(std::shared_ptr<LoopStmt> s) {
+
+    push_scope();
+    for (auto& st : s->body->stmts)
+        check_stmt(st);
+    pop_scope();
+}
+
+// ---------------------------------------------------------
+void TypeChecker::check_for(std::shared_ptr<ForStmt> s) {
+
+    auto iterT = check_expr(s->iterable);
+
+    if (iterT->fundamental_kind != TypeKind::Array &&
+        iterT->fundamental_kind != TypeKind::Slice)
+        error("Cannot iterate non-array type", s->loc.line);
+
+    auto elemT = (iterT->fundamental_kind == TypeKind::Array)
+        ? std::dynamic_pointer_cast<ArrayType>(iterT)->array_type
+        : std::dynamic_pointer_cast<SliceType>(iterT)->slice_type;
+
+    push_scope();
+
+    auto sym = std::make_shared<Symbol>(s->iter_var, elemT);
+    current_scope->define(sym);
+    s->resolved = sym;
+
+    for (auto& st : s->body->stmts)
+        check_stmt(st);
+
+    pop_scope();
+}
+
+// ---------------------------------------------------------
+void TypeChecker::check_type_decl(std::shared_ptr<TypeDecl> t) {
+
+    auto sym = std::make_shared<Symbol>(t->name, t->type);
+    current_scope->define(sym);
+
+    t->resolved = sym;
+}
+
+// ---------------------------------------------------------
+void TypeChecker::push_scope() {
+    current_scope = current_scope->push();
+}
+
+void TypeChecker::pop_scope() {
+    current_scope = current_scope->parent;
+}

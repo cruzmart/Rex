@@ -86,6 +86,8 @@ public:
 
     virtual std::any visitIndexExpr(RexParser::IndexExprContext *context) = 0;
 
+    virtual std::any visitArrayExpr(RexParser::ArrayExprContext *context) = 0;
+
     virtual std::any visitEqualityExpr(RexParser::EqualityExprContext *context) = 0;
 
     virtual std::any visitCompareExpr(RexParser::CompareExprContext *context) = 0;
