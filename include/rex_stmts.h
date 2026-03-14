@@ -152,7 +152,7 @@ struct WhileStmt : Stmt {
 };
 
 struct ForStmt : Stmt {
-    std::string iter_var;
+    std::shared_ptr<Expr> iter_var;
     std::shared_ptr<Expr> iterable;
     std::shared_ptr<BlockExpr> body;
     std::shared_ptr<Symbol> resolved;

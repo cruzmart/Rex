@@ -113,7 +113,7 @@
         }
     }
 
-    void ExprPass ::visitBlock(const std::shared_ptr<BlockExpr> block){
+    void ExprPass::visitBlock(const std::shared_ptr<BlockExpr> block){
         if (!block) return;
 
         print("Entering Scope Depth: " + std::to_string(scope_depth) + "\n");
@@ -220,6 +220,53 @@
         visitExpr(ws->cond);
         visitBlock(ws->body);
     }
+
+
+    void ExprPass::visitForStmt(const std::shared_ptr<ForStmt> fs){
+        // got to check if the 
+        std:: cout << "inside for loop" << std::endl;
+
+        print("Entering Scope Depth: " + std::to_string(scope_depth) + "\n");
+        auto prev = current_scope;
+        current_scope = current_scope->push();
+        scope_depth += 1;
+
+        auto itr_var = std::static_pointer_cast<IdExpr>(fs->iter_var);
+        
+
+        // check what type is the iterable (it can only be range type or array type)
+
+        auto sym = std::make_shared<Symbol>(SymbolType::Variable, itr_var->name);
+
+        visitExpr(fs->iterable); // We will find out the identify by doing this
+
+        if(fs->iterable->exp_kind == ExprKind::Array){
+            // get the type of the overall array 
+            auto arr_type = std::static_pointer_cast<ArrayType>(fs->iterable->type);
+            sym->type = arr_type->elem;
+        }
+
+        if(fs->iterable->exp_kind == ExprKind::Range){
+            sym->type = std::make_shared<PrimType>(PrimType::Prims::Int);
+        }
+        if(fs->iterable->exp_kind == ExprKind::Id){
+            auto ite_id = std::static_pointer_cast<IdExpr>(fs);
+            // while loop to fin the base case, when the ID type is array or range, if it is nto that throw error, if it is another id, go to the next expression.
+            // we got to fetch info from the symbol table, and find out what type it is (array or range, anything else throw a error)
+        }
+
+
+
+        // visit the block, thats it. Also it is a completely new scope we enter the for loop, so we must go to the next scope. inside visitBlock it will go on another scope which is fine.
+
+
+        current_scope = prev; // pop
+        print("Leaving Scope Depth: " + std::to_string(scope_depth) + "\n");
+        scope_depth -= 1;
+
+
+    }
+
 
     std::shared_ptr<Type> ExprPass::visitLiteral(const std::shared_ptr<LiteralExpr> literal){
         return literal->type;
@@ -351,6 +398,6 @@
         visitExpr(as->target);
     }
     void ExprPass::visitExprStmt(const std::shared_ptr<ExprStmt> es){}
-    void ExprPass::visitForStmt(const std::shared_ptr<ForStmt> fs){}
+    
 
   }

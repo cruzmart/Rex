@@ -58,7 +58,8 @@ void WhileStmt::dump(std::ostream& os, int i) const {
 }
 
 void ForStmt::dump(std::ostream& os, int i) const {
-    indent(os, i); os << "for " << iter_var << " in\n";
+    indent(os, i); os << " for \n"; iter_var->dump(os,i + 1);
+    os << "   in\n";
     iterable->dump(os, i + 1);
     body->dump(os, i + 1);
 }
