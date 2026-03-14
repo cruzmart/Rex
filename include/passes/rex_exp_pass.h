@@ -46,7 +46,7 @@ struct ExprPass {
         std::shared_ptr<Type> visitLiteral(const std::shared_ptr<LiteralExpr> literal);
         std::shared_ptr<Type> visitId(const std::shared_ptr<IdExpr> id);
         std::shared_ptr<Type> visitBinary(const std::shared_ptr<BinaryExpr> bexp);
-        std::shared_ptr<Type> visitUnary (const std::shared_ptr<Type> uexp);        
+        std::shared_ptr<Type> visitUnary (const std::shared_ptr<UnaryExpr> uexp);        
         
         std::shared_ptr<Type> visitTuple(const std::shared_ptr<TupleExpr> texp);
         std::shared_ptr<Type> visitArray (const std::shared_ptr<ArrayExpr> aexp);
