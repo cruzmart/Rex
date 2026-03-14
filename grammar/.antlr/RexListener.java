@@ -365,6 +365,18 @@ public interface RexListener extends ParseTreeListener {
 	 */
 	void exitIndexExpr(RexParser.IndexExprContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code ArrayExpr}
+	 * labeled alternative in {@link RexParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterArrayExpr(RexParser.ArrayExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ArrayExpr}
+	 * labeled alternative in {@link RexParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitArrayExpr(RexParser.ArrayExprContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code EqualityExpr}
 	 * labeled alternative in {@link RexParser#expr}.
 	 * @param ctx the parse tree

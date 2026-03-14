@@ -15,7 +15,12 @@ let y : integer = 1;
 
 
 // let a : integer = w(x) + [1,2] + 4.8 + [2,3,5,8];
-let s : integer = +1 - 7;
+//let s : integer = +1 - 7;
+
+
+for l in [1,2,3] {
+    x = 1 + l;
+}
 
 
 /*

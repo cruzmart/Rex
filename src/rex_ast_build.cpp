@@ -261,7 +261,8 @@ antlrcpp::Any rex_ast_build::visitLoopStmt(RexParser::LoopStmtContext* ctx) {
     if(ctx->FOR()) {
         auto f = std::make_shared<ForStmt>();
         f->loc = loc(ctx);
-        f->iter_var = ctx->ID()->getText();
+        // f->iter_var = ctx->ID()->getText();
+        f->iter_var = std::make_shared<IdExpr>(ctx->ID()->getText());
         f->iterable = as_expr<Expr>(visit(ctx->expr()));
         f->body = std::any_cast<std::shared_ptr<BlockExpr>>(visit(ctx->block()));
         return std::static_pointer_cast<Stmt>(f);
