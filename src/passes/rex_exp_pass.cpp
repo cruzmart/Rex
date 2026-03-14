@@ -235,35 +235,35 @@
         
 
         // check what type is the iterable (it can only be range type or array type)
+        auto itera_type = visitExpr(fs->iterable); 
+
+        switch(fs->iterable->exp_kind){
+            case ExprKind::Array:
+                itr_var->type = std::static_pointer_cast<ArrayType>(itera_type)->elem;
+                break;
+            case ExprKind::Range:
+                itr_var->type = std::make_shared<PrimType>(PrimType::Prims::Int);
+                break;
+            case ExprKind::Id:
+                itr_var->type = itera_type;
+                break;
+            default:
+                throw std::runtime_error("Iterable value MUST be either of type 'Array' or 'Range'");
+        }
 
         auto sym = std::make_shared<Symbol>(SymbolType::Variable, itr_var->name);
+        sym->type = itr_var->type;
+        itr_var->resolved = sym;
 
-        visitExpr(fs->iterable); // We will find out the identify by doing this
-
-        if(fs->iterable->exp_kind == ExprKind::Array){
-            // get the type of the overall array 
-            auto arr_type = std::static_pointer_cast<ArrayType>(fs->iterable->type);
-            sym->type = arr_type->elem;
-        }
-
-        if(fs->iterable->exp_kind == ExprKind::Range){
-            sym->type = std::make_shared<PrimType>(PrimType::Prims::Int);
-        }
-        if(fs->iterable->exp_kind == ExprKind::Id){
-            auto ite_id = std::static_pointer_cast<IdExpr>(fs);
-            // while loop to fin the base case, when the ID type is array or range, if it is nto that throw error, if it is another id, go to the next expression.
-            // we got to fetch info from the symbol table, and find out what type it is (array or range, anything else throw a error)
-        }
-
-
+        current_scope->define(sym);
 
         // visit the block, thats it. Also it is a completely new scope we enter the for loop, so we must go to the next scope. inside visitBlock it will go on another scope which is fine.
+        visitBlock(fs->body);
 
 
         current_scope = prev; // pop
         print("Leaving Scope Depth: " + std::to_string(scope_depth) + "\n");
         scope_depth -= 1;
-
 
     }
 
@@ -399,5 +399,4 @@
     }
     void ExprPass::visitExprStmt(const std::shared_ptr<ExprStmt> es){}
     
-
   }
