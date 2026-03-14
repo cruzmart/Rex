@@ -9,18 +9,27 @@ function w(a: integer) -> integer {
 */
 
 
+
 let x : integer = 2;
+
+/*
 let y : integer = 1;
+let w : integer = 3;
 
+y =  x + 2;
+x = w + y;
 
+*/
 
 // let a : integer = w(x) + [1,2] + 4.8 + [2,3,5,8];
 //let s : integer = +1 - 7;
 
+let m : integer[2] = [1,3];
 
-for l in [1,2,3] {
+for l in m {
     x = 1 + l;
 }
+
 
 
 /*
