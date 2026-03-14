@@ -67,7 +67,11 @@
         case ExprKind::Pipe:
             return visitPipe(std::static_pointer_cast<PipeExpr>(exp));
 
+        case ExprKind::Unary:
+            return visitUnary(std::static_pointer_cast<UnaryExpr>(exp));
+
         default:
+            std::cout << exp->expr_string() << std::endl;
             throw std::runtime_error("Unknown expression type");
     }
     }
@@ -257,6 +261,7 @@
         return cexp->type;
     }
     std::shared_ptr<Type> ExprPass::visitBinary(const std::shared_ptr<BinaryExpr> bexp){
+
         bexp->type = ots.check_binary(bexp->operation, visitExpr(bexp->lhs), visitExpr(bexp->rhs));
         return bexp->type;
     }    
@@ -276,20 +281,42 @@
         // we should check that ALL expressions within this array are ALL of the same type
         // because now in expressions, we are giving it actual information
 
-        int size = aexp->elements.size(); // get the size of all of the elements in it
+        size_t size = aexp->elements.size();
 
-        if(size){
-            for(auto exp : aexp->elements)
-                exp->type = visitExpr(exp);
-            aexp -> type = std::make_shared<ArrayType>(aexp->elements[0]->type, size);
+        // Empty array case
+        if (size == 0) {
+            aexp->type = std::make_shared<ArrayType>(
+                std::make_shared<PrimType>(PrimType::Prims::Null),
+                0
+            );
+            return aexp->type;
         }
-        else
-            aexp -> type = std::make_shared<ArrayType>(std::make_shared<PrimType>(PrimType::Prims::Null));
 
-        
+        // Resolve first element type
+        auto first_type = visitExpr(aexp->elements[0]);
+
+        // Check all other elements
+        for (size_t i = 1; i < size; i++) {
+
+            auto t = visitExpr(aexp->elements[i]);
+
+            if (!t->equals(first_type)) {
+                throw std::runtime_error(
+                    "Array elements must all have the same type. Found '" +
+                    first_type->to_string() + "' and '" +
+                    t->to_string() + "'"
+                );
+            }
+        }
+
+        aexp->type = std::make_shared<ArrayType>(first_type, size);
+
         return aexp->type;
 
     }
+    std::shared_ptr<Type> ExprPass::visitUnary (const std::shared_ptr<UnaryExpr> uexp){
+        return uexp->rhs->type;
+    }  
 
     std::shared_ptr<Type> ExprPass::visitIndex (const std::shared_ptr<IndexExpr> iexp){
         auto base_type = visitExpr(iexp->base);
@@ -316,9 +343,13 @@
 
     std::shared_ptr<Type> ExprPass::visitPipe ( const std::shared_ptr<PipeExpr> pexp){}
     std::shared_ptr<Type> ExprPass::resolveExp(const std::shared_ptr<Expr> type){}
-    std::shared_ptr<Type> ExprPass::visitUnary (const std::shared_ptr<Type> uexp){}  
+ 
     std::shared_ptr<Type> ExprPass::visitRangeExpr (const std::shared_ptr<Type> rexp){}
-    void ExprPass::visitAsgStmt(const std::shared_ptr<AssignStmt> as){}
+    void ExprPass::visitAsgStmt(const std::shared_ptr<AssignStmt> as){
+        // do not we have to make the logic to make sure it is compatible re assignment
+        visitExpr(as->value);
+        visitExpr(as->target);
+    }
     void ExprPass::visitExprStmt(const std::shared_ptr<ExprStmt> es){}
     void ExprPass::visitForStmt(const std::shared_ptr<ForStmt> fs){}
 
