@@ -163,12 +163,12 @@ void rexParserInitialize() {
   	245,1,0,0,0,246,247,1,0,0,0,247,248,1,0,0,0,248,252,5,38,0,0,249,252,
   	3,44,22,0,250,252,5,46,0,0,251,214,1,0,0,0,251,217,1,0,0,0,251,221,1,
   	0,0,0,251,231,1,0,0,0,251,243,1,0,0,0,251,249,1,0,0,0,251,250,1,0,0,0,
-  	252,284,1,0,0,0,253,254,10,11,0,0,254,255,5,36,0,0,255,283,3,40,20,12,
-  	256,257,10,10,0,0,257,258,7,2,0,0,258,283,3,40,20,11,259,260,10,9,0,0,
-  	260,261,7,1,0,0,261,283,3,40,20,10,262,263,10,8,0,0,263,264,7,3,0,0,264,
-  	283,3,40,20,9,265,266,10,7,0,0,266,267,7,4,0,0,267,283,3,40,20,8,268,
-  	269,10,6,0,0,269,270,5,20,0,0,270,283,3,40,20,7,271,272,10,5,0,0,272,
-  	273,5,21,0,0,273,283,3,40,20,6,274,275,10,4,0,0,275,276,5,23,0,0,276,
+  	252,284,1,0,0,0,253,254,10,11,0,0,254,255,7,2,0,0,255,283,3,40,20,12,
+  	256,257,10,10,0,0,257,258,7,1,0,0,258,283,3,40,20,11,259,260,10,9,0,0,
+  	260,261,7,3,0,0,261,283,3,40,20,10,262,263,10,8,0,0,263,264,7,4,0,0,264,
+  	283,3,40,20,9,265,266,10,7,0,0,266,267,5,20,0,0,267,283,3,40,20,8,268,
+  	269,10,6,0,0,269,270,5,21,0,0,270,283,3,40,20,7,271,272,10,5,0,0,272,
+  	273,5,36,0,0,273,283,3,40,20,6,274,275,10,4,0,0,275,276,5,23,0,0,276,
   	283,3,40,20,5,277,278,10,12,0,0,278,279,5,41,0,0,279,280,3,40,20,0,280,
   	281,5,42,0,0,281,283,1,0,0,0,282,253,1,0,0,0,282,256,1,0,0,0,282,259,
   	1,0,0,0,282,262,1,0,0,0,282,265,1,0,0,0,282,268,1,0,0,0,282,271,1,0,0,
@@ -3078,27 +3078,13 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
         _errHandler->sync(this);
         switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 26, _ctx)) {
         case 1: {
-          auto newContext = _tracker.createInstance<RangeExprContext>(_tracker.createInstance<ExprContext>(parentContext, parentState));
+          auto newContext = _tracker.createInstance<MulExprContext>(_tracker.createInstance<ExprContext>(parentContext, parentState));
           _localctx = newContext;
           pushNewRecursionContext(newContext, startState, RuleExpr);
           setState(253);
 
           if (!(precpred(_ctx, 11))) throw FailedPredicateException(this, "precpred(_ctx, 11)");
           setState(254);
-          match(RexParser::RANGE);
-          setState(255);
-          expr(12);
-          break;
-        }
-
-        case 2: {
-          auto newContext = _tracker.createInstance<MulExprContext>(_tracker.createInstance<ExprContext>(parentContext, parentState));
-          _localctx = newContext;
-          pushNewRecursionContext(newContext, startState, RuleExpr);
-          setState(256);
-
-          if (!(precpred(_ctx, 10))) throw FailedPredicateException(this, "precpred(_ctx, 10)");
-          setState(257);
           antlrcpp::downCast<MulExprContext *>(_localctx)->op = _input->LT(1);
           _la = _input->LA(1);
           if (!((((_la & ~ 0x3fULL) == 0) &&
@@ -3109,19 +3095,19 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
             _errHandler->reportMatch(this);
             consume();
           }
-          setState(258);
-          expr(11);
+          setState(255);
+          expr(12);
           break;
         }
 
-        case 3: {
+        case 2: {
           auto newContext = _tracker.createInstance<AddExprContext>(_tracker.createInstance<ExprContext>(parentContext, parentState));
           _localctx = newContext;
           pushNewRecursionContext(newContext, startState, RuleExpr);
-          setState(259);
+          setState(256);
 
-          if (!(precpred(_ctx, 9))) throw FailedPredicateException(this, "precpred(_ctx, 9)");
-          setState(260);
+          if (!(precpred(_ctx, 10))) throw FailedPredicateException(this, "precpred(_ctx, 10)");
+          setState(257);
           antlrcpp::downCast<AddExprContext *>(_localctx)->op = _input->LT(1);
           _la = _input->LA(1);
           if (!(_la == RexParser::PLUS
@@ -3133,19 +3119,19 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
             _errHandler->reportMatch(this);
             consume();
           }
-          setState(261);
-          expr(10);
+          setState(258);
+          expr(11);
           break;
         }
 
-        case 4: {
+        case 3: {
           auto newContext = _tracker.createInstance<CompareExprContext>(_tracker.createInstance<ExprContext>(parentContext, parentState));
           _localctx = newContext;
           pushNewRecursionContext(newContext, startState, RuleExpr);
-          setState(262);
+          setState(259);
 
-          if (!(precpred(_ctx, 8))) throw FailedPredicateException(this, "precpred(_ctx, 8)");
-          setState(263);
+          if (!(precpred(_ctx, 9))) throw FailedPredicateException(this, "precpred(_ctx, 9)");
+          setState(260);
           antlrcpp::downCast<CompareExprContext *>(_localctx)->op = _input->LT(1);
           _la = _input->LA(1);
           if (!((((_la & ~ 0x3fULL) == 0) &&
@@ -3156,19 +3142,19 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
             _errHandler->reportMatch(this);
             consume();
           }
-          setState(264);
-          expr(9);
+          setState(261);
+          expr(10);
           break;
         }
 
-        case 5: {
+        case 4: {
           auto newContext = _tracker.createInstance<EqualityExprContext>(_tracker.createInstance<ExprContext>(parentContext, parentState));
           _localctx = newContext;
           pushNewRecursionContext(newContext, startState, RuleExpr);
-          setState(265);
+          setState(262);
 
-          if (!(precpred(_ctx, 7))) throw FailedPredicateException(this, "precpred(_ctx, 7)");
-          setState(266);
+          if (!(precpred(_ctx, 8))) throw FailedPredicateException(this, "precpred(_ctx, 8)");
+          setState(263);
           antlrcpp::downCast<EqualityExprContext *>(_localctx)->op = _input->LT(1);
           _la = _input->LA(1);
           if (!(_la == RexParser::EQ
@@ -3180,34 +3166,48 @@ RexParser::ExprContext* RexParser::expr(int precedence) {
             _errHandler->reportMatch(this);
             consume();
           }
+          setState(264);
+          expr(9);
+          break;
+        }
+
+        case 5: {
+          auto newContext = _tracker.createInstance<AndExprContext>(_tracker.createInstance<ExprContext>(parentContext, parentState));
+          _localctx = newContext;
+          pushNewRecursionContext(newContext, startState, RuleExpr);
+          setState(265);
+
+          if (!(precpred(_ctx, 7))) throw FailedPredicateException(this, "precpred(_ctx, 7)");
+          setState(266);
+          antlrcpp::downCast<AndExprContext *>(_localctx)->op = match(RexParser::AND);
           setState(267);
           expr(8);
           break;
         }
 
         case 6: {
-          auto newContext = _tracker.createInstance<AndExprContext>(_tracker.createInstance<ExprContext>(parentContext, parentState));
+          auto newContext = _tracker.createInstance<OrExprContext>(_tracker.createInstance<ExprContext>(parentContext, parentState));
           _localctx = newContext;
           pushNewRecursionContext(newContext, startState, RuleExpr);
           setState(268);
 
           if (!(precpred(_ctx, 6))) throw FailedPredicateException(this, "precpred(_ctx, 6)");
           setState(269);
-          antlrcpp::downCast<AndExprContext *>(_localctx)->op = match(RexParser::AND);
+          antlrcpp::downCast<OrExprContext *>(_localctx)->op = match(RexParser::OR);
           setState(270);
           expr(7);
           break;
         }
 
         case 7: {
-          auto newContext = _tracker.createInstance<OrExprContext>(_tracker.createInstance<ExprContext>(parentContext, parentState));
+          auto newContext = _tracker.createInstance<RangeExprContext>(_tracker.createInstance<ExprContext>(parentContext, parentState));
           _localctx = newContext;
           pushNewRecursionContext(newContext, startState, RuleExpr);
           setState(271);
 
           if (!(precpred(_ctx, 5))) throw FailedPredicateException(this, "precpred(_ctx, 5)");
           setState(272);
-          antlrcpp::downCast<OrExprContext *>(_localctx)->op = match(RexParser::OR);
+          match(RexParser::RANGE);
           setState(273);
           expr(6);
           break;

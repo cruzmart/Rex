@@ -52,7 +52,7 @@ struct ExprPass {
         std::shared_ptr<Type> visitArray (const std::shared_ptr<ArrayExpr> aexp);
         std::shared_ptr<Type> visitIndex (const std::shared_ptr<IndexExpr> iexp);
 
-        std::shared_ptr<Type> visitRangeExpr (const std::shared_ptr<Type> rexp);
+        std::shared_ptr<Type> visitRangeExpr (const std::shared_ptr<RangeExpr> rexp);
         std::shared_ptr<Type> visitCall (const std::shared_ptr<CallExpr> cexp);
         std::shared_ptr<Type> visitPipe ( const std::shared_ptr<PipeExpr> pexp);
 

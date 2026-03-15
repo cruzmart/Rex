@@ -123,7 +123,7 @@ type_ptr BinaryOpSystem::promote_primitive(std::shared_ptr<PrimType> A, std::sha
 // -------------------------------------------------
 type_ptr BinaryOpSystem::promote(type_ptr L, type_ptr R, const std::string& op){
 
-    
+
     // same type
     if(L->equals(R)) {
         if((is_prim(L, PrimKind::String) && op != "+"))
