@@ -69,7 +69,9 @@
 
         case ExprKind::Unary:
             return visitUnary(std::static_pointer_cast<UnaryExpr>(exp));
-
+            
+        case ExprKind::Range:
+            return visitRangeExpr(std::static_pointer_cast<RangeExpr>(exp));
         default:
             std::cout << exp->expr_string() << std::endl;
             throw std::runtime_error("Unknown expression type");
@@ -142,6 +144,7 @@
                 auto expr_t = visitExpr(ls->exp);
 
                 sym->type = ls->type ? ls->type : expr_t;
+                ls->type = sym->type;
                 sym->expr = ls->exp;
                 current_scope->define(sym);
                 break;
@@ -271,22 +274,36 @@
     std::shared_ptr<Type> ExprPass::visitLiteral(const std::shared_ptr<LiteralExpr> literal){
         return literal->type;
     }
+
     std::shared_ptr<Type> ExprPass::visitId(const std::shared_ptr<IdExpr> id){
+
 
         if(!id->resolved){
             auto value = current_scope->resolve(id->name);
+
             if(value->kind == SymbolType::Function){
                 throw std::runtime_error("[ExpPass] '" + id->name + "' is a function that requires arguments");
             }
+
+            if(value->kind == SymbolType::Variable){
+            }
+
+    
             id->resolved = value;
             id->type = id->resolved->type;
         } 
+
+
 
         id->type = id->resolved->type;
 
         return id->resolved->type;
     }
+
     std::shared_ptr<Type> ExprPass::visitCall (const std::shared_ptr<CallExpr> cexp){
+
+      
+
         auto sym = current_scope->resolve(cexp->callee);
 
         if(!sym)
@@ -295,15 +312,20 @@
         if(sym->kind != SymbolType::Function)
             throw std::runtime_error("'" + cexp->callee + "' is not a function");
 
+
         auto fn = std::static_pointer_cast<FunctionType>(sym->type);
 
         if(fn->params.size() != cexp->args.size())
             throw std::runtime_error("Argument count mismatch");
 
+
+
         for(size_t i=0;i<cexp->args.size();i++)
             visitExpr(cexp->args[i]);
 
         cexp->type = fn->ret;
+
+  
 
         return cexp->type;
     }
@@ -385,18 +407,35 @@
         rs->value->type = visitExpr(rs->value);
     }
 
-
-
-
-    std::shared_ptr<Type> ExprPass::visitPipe ( const std::shared_ptr<PipeExpr> pexp){}
-    std::shared_ptr<Type> ExprPass::resolveExp(const std::shared_ptr<Expr> type){}
- 
-    std::shared_ptr<Type> ExprPass::visitRangeExpr (const std::shared_ptr<Type> rexp){}
     void ExprPass::visitAsgStmt(const std::shared_ptr<AssignStmt> as){
         // do not we have to make the logic to make sure it is compatible re assignment
         visitExpr(as->value);
         visitExpr(as->target);
     }
+
+    std::shared_ptr<Type> ExprPass::visitRangeExpr (const std::shared_ptr<RangeExpr> rexp){
+        // both lhs and rhs must be integer values, and we will return a array type, its easy because it will ALWAYS be a array of integers. 
+        // later though we would have to be clear this is NOT a array
+        auto lhs_type = visitExpr(rexp->lhs);
+        auto rhs_type = visitExpr(rexp->rhs);
+        auto prim_lht = std::static_pointer_cast<PrimType>(lhs_type);
+
+        if(lhs_type->kind == TypeKind::Primitive)
+            if(std::static_pointer_cast<PrimType>(lhs_type)->prim != PrimType::Prims::Int)
+                throw std::runtime_error("lh range size is not INT");
+   
+ 
+        if(rhs_type->kind == TypeKind::Primitive)
+             if(std::static_pointer_cast<PrimType>(rhs_type)->prim != PrimType::Prims::Int)
+                throw std::runtime_error("rh range size is not INT");
+
+        return rexp->type;
+    }
+
+
+
+    std::shared_ptr<Type> ExprPass::visitPipe ( const std::shared_ptr<PipeExpr> pexp){}
+    std::shared_ptr<Type> ExprPass::resolveExp(const std::shared_ptr<Expr> type){}
     void ExprPass::visitExprStmt(const std::shared_ptr<ExprStmt> es){}
     
   }

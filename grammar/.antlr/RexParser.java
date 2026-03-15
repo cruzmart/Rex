@@ -126,14 +126,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_file; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterFile(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitFile(this);
-		}
 	}
 
 	public final FileContext file() throws RecognitionException {
@@ -184,14 +176,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_item; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterItem(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitItem(this);
-		}
 	}
 
 	public final ItemContext item() throws RecognitionException {
@@ -260,14 +244,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_typeDef; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterTypeDef(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitTypeDef(this);
-		}
 	}
 
 	public final TypeDefContext typeDef() throws RecognitionException {
@@ -320,27 +296,11 @@ public class RexParser extends Parser {
 		public TerminalNode INT_LITERAL() { return getToken(RexParser.INT_LITERAL, 0); }
 		public TerminalNode RBRACK() { return getToken(RexParser.RBRACK, 0); }
 		public ArrayTypeContext(TypeContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterArrayType(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitArrayType(this);
-		}
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class NamedTypeContext extends TypeContext {
 		public TerminalNode ID() { return getToken(RexParser.ID, 0); }
 		public NamedTypeContext(TypeContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterNamedType(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitNamedType(this);
-		}
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class PrimeTypeContext extends TypeContext {
@@ -348,14 +308,6 @@ public class RexParser extends Parser {
 			return getRuleContext(PrimitiveTypeContext.class,0);
 		}
 		public PrimeTypeContext(TypeContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterPrimeType(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitPrimeType(this);
-		}
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class TupleTypeContext extends TypeContext {
@@ -372,14 +324,6 @@ public class RexParser extends Parser {
 			return getToken(RexParser.COMMA, i);
 		}
 		public TupleTypeContext(TypeContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterTupleType(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitTupleType(this);
-		}
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class SliceTypeContext extends TypeContext {
@@ -389,14 +333,6 @@ public class RexParser extends Parser {
 		public TerminalNode LBRACK() { return getToken(RexParser.LBRACK, 0); }
 		public TerminalNode RBRACK() { return getToken(RexParser.RBRACK, 0); }
 		public SliceTypeContext(TypeContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterSliceType(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitSliceType(this);
-		}
 	}
 
 	public final TypeContext type() throws RecognitionException {
@@ -542,14 +478,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_primitiveType; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterPrimitiveType(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitPrimitiveType(this);
-		}
 	}
 
 	public final PrimitiveTypeContext primitiveType() throws RecognitionException {
@@ -601,14 +529,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_functionDef; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterFunctionDef(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitFunctionDef(this);
-		}
 	}
 
 	public final FunctionDefContext functionDef() throws RecognitionException {
@@ -677,14 +597,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_paramList; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterParamList(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitParamList(this);
-		}
 	}
 
 	public final ParamListContext paramList() throws RecognitionException {
@@ -737,14 +649,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_param; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterParam(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitParam(this);
-		}
 	}
 
 	public final ParamContext param() throws RecognitionException {
@@ -793,14 +697,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_returnType; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterReturnType(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitReturnType(this);
-		}
 	}
 
 	public final ReturnTypeContext returnType() throws RecognitionException {
@@ -853,14 +749,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_statement; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterStatement(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitStatement(this);
-		}
 	}
 
 	public final StatementContext statement() throws RecognitionException {
@@ -951,14 +839,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_letStmt; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterLetStmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitLetStmt(this);
-		}
 	}
 
 	public final LetStmtContext letStmt() throws RecognitionException {
@@ -1017,14 +897,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_assignStmt; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterAssignStmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitAssignStmt(this);
-		}
 	}
 
 	public final AssignStmtContext assignStmt() throws RecognitionException {
@@ -1065,14 +937,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_returnStmt; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterReturnStmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitReturnStmt(this);
-		}
 	}
 
 	public final ReturnStmtContext returnStmt() throws RecognitionException {
@@ -1119,14 +983,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_exprStmt; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterExprStmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitExprStmt(this);
-		}
 	}
 
 	public final ExprStmtContext exprStmt() throws RecognitionException {
@@ -1171,14 +1027,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_ifStmt; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterIfStmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitIfStmt(this);
-		}
 	}
 
 	public final IfStmtContext ifStmt() throws RecognitionException {
@@ -1249,14 +1097,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_elifxChain; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterElifxChain(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitElifxChain(this);
-		}
 	}
 
 	public final ElifxChainContext elifxChain() throws RecognitionException {
@@ -1307,14 +1147,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_elseBlock; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterElseBlock(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitElseBlock(this);
-		}
 	}
 
 	public final ElseBlockContext elseBlock() throws RecognitionException {
@@ -1356,14 +1188,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_pattern; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterPattern(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitPattern(this);
-		}
 	}
 
 	public final PatternContext pattern() throws RecognitionException {
@@ -1440,14 +1264,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_loopStmt; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterLoopStmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitLoopStmt(this);
-		}
 	}
 
 	public final LoopStmtContext loopStmt() throws RecognitionException {
@@ -1524,14 +1340,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_block; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterBlock(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitBlock(this);
-		}
 	}
 
 	public final BlockContext block() throws RecognitionException {
@@ -1610,14 +1418,6 @@ public class RexParser extends Parser {
 		public TerminalNode DIV() { return getToken(RexParser.DIV, 0); }
 		public TerminalNode MOD() { return getToken(RexParser.MOD, 0); }
 		public MulExprContext(ExprContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterMulExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitMulExpr(this);
-		}
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class AndExprContext extends ExprContext {
@@ -1630,27 +1430,11 @@ public class RexParser extends Parser {
 		}
 		public TerminalNode AND() { return getToken(RexParser.AND, 0); }
 		public AndExprContext(ExprContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterAndExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitAndExpr(this);
-		}
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class IdExprContext extends ExprContext {
 		public TerminalNode ID() { return getToken(RexParser.ID, 0); }
 		public IdExprContext(ExprContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterIdExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitIdExpr(this);
-		}
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class AddExprContext extends ExprContext {
@@ -1664,14 +1448,6 @@ public class RexParser extends Parser {
 		public TerminalNode PLUS() { return getToken(RexParser.PLUS, 0); }
 		public TerminalNode MINUS() { return getToken(RexParser.MINUS, 0); }
 		public AddExprContext(ExprContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterAddExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitAddExpr(this);
-		}
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class RangeExprContext extends ExprContext {
@@ -1683,14 +1459,6 @@ public class RexParser extends Parser {
 		}
 		public TerminalNode RANGE() { return getToken(RexParser.RANGE, 0); }
 		public RangeExprContext(ExprContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterRangeExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitRangeExpr(this);
-		}
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class UnaryExprContext extends ExprContext {
@@ -1701,14 +1469,6 @@ public class RexParser extends Parser {
 		public TerminalNode MINUS() { return getToken(RexParser.MINUS, 0); }
 		public TerminalNode PLUS() { return getToken(RexParser.PLUS, 0); }
 		public UnaryExprContext(ExprContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterUnaryExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitUnaryExpr(this);
-		}
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class TupleExprContext extends ExprContext {
@@ -1725,14 +1485,6 @@ public class RexParser extends Parser {
 			return getToken(RexParser.COMMA, i);
 		}
 		public TupleExprContext(ExprContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterTupleExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitTupleExpr(this);
-		}
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class OrExprContext extends ExprContext {
@@ -1745,14 +1497,6 @@ public class RexParser extends Parser {
 		}
 		public TerminalNode OR() { return getToken(RexParser.OR, 0); }
 		public OrExprContext(ExprContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterOrExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitOrExpr(this);
-		}
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class IndexExprContext extends ExprContext {
@@ -1765,14 +1509,6 @@ public class RexParser extends Parser {
 		public TerminalNode LBRACK() { return getToken(RexParser.LBRACK, 0); }
 		public TerminalNode RBRACK() { return getToken(RexParser.RBRACK, 0); }
 		public IndexExprContext(ExprContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterIndexExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitIndexExpr(this);
-		}
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class ArrayExprContext extends ExprContext {
@@ -1789,14 +1525,6 @@ public class RexParser extends Parser {
 			return getToken(RexParser.COMMA, i);
 		}
 		public ArrayExprContext(ExprContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterArrayExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitArrayExpr(this);
-		}
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class EqualityExprContext extends ExprContext {
@@ -1810,14 +1538,6 @@ public class RexParser extends Parser {
 		public TerminalNode EQ() { return getToken(RexParser.EQ, 0); }
 		public TerminalNode NEQ() { return getToken(RexParser.NEQ, 0); }
 		public EqualityExprContext(ExprContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterEqualityExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitEqualityExpr(this);
-		}
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class CompareExprContext extends ExprContext {
@@ -1833,14 +1553,6 @@ public class RexParser extends Parser {
 		public TerminalNode LTE() { return getToken(RexParser.LTE, 0); }
 		public TerminalNode GTE() { return getToken(RexParser.GTE, 0); }
 		public CompareExprContext(ExprContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterCompareExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitCompareExpr(this);
-		}
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class PipeExprContext extends ExprContext {
@@ -1852,14 +1564,6 @@ public class RexParser extends Parser {
 		}
 		public TerminalNode PIPE() { return getToken(RexParser.PIPE, 0); }
 		public PipeExprContext(ExprContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterPipeExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitPipeExpr(this);
-		}
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class LiteralExprContext extends ExprContext {
@@ -1867,14 +1571,6 @@ public class RexParser extends Parser {
 			return getRuleContext(LiteralContext.class,0);
 		}
 		public LiteralExprContext(ExprContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterLiteralExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitLiteralExpr(this);
-		}
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class CallExprContext extends ExprContext {
@@ -1885,14 +1581,6 @@ public class RexParser extends Parser {
 			return getRuleContext(ArgListContext.class,0);
 		}
 		public CallExprContext(ExprContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterCallExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitCallExpr(this);
-		}
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class ParenExprContext extends ExprContext {
@@ -1902,14 +1590,6 @@ public class RexParser extends Parser {
 		}
 		public TerminalNode RPAREN() { return getToken(RexParser.RPAREN, 0); }
 		public ParenExprContext(ExprContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterParenExpr(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitParenExpr(this);
-		}
 	}
 
 	public final ExprContext expr() throws RecognitionException {
@@ -2087,27 +1767,36 @@ public class RexParser extends Parser {
 					switch ( getInterpreter().adaptivePredict(_input,26,_ctx) ) {
 					case 1:
 						{
-						_localctx = new RangeExprContext(new ExprContext(_parentctx, _parentState));
+						_localctx = new MulExprContext(new ExprContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
 						setState(253);
 						if (!(precpred(_ctx, 11))) throw new FailedPredicateException(this, "precpred(_ctx, 11)");
 						setState(254);
-						match(RANGE);
+						((MulExprContext)_localctx).op = _input.LT(1);
+						_la = _input.LA(1);
+						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 60129542144L) != 0)) ) {
+							((MulExprContext)_localctx).op = (Token)_errHandler.recoverInline(this);
+						}
+						else {
+							if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+							_errHandler.reportMatch(this);
+							consume();
+						}
 						setState(255);
 						expr(12);
 						}
 						break;
 					case 2:
 						{
-						_localctx = new MulExprContext(new ExprContext(_parentctx, _parentState));
+						_localctx = new AddExprContext(new ExprContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
 						setState(256);
 						if (!(precpred(_ctx, 10))) throw new FailedPredicateException(this, "precpred(_ctx, 10)");
 						setState(257);
-						((MulExprContext)_localctx).op = _input.LT(1);
+						((AddExprContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
-						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 60129542144L) != 0)) ) {
-							((MulExprContext)_localctx).op = (Token)_errHandler.recoverInline(this);
+						if ( !(_la==PLUS || _la==MINUS) ) {
+							((AddExprContext)_localctx).op = (Token)_errHandler.recoverInline(this);
 						}
 						else {
 							if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
@@ -2120,15 +1809,15 @@ public class RexParser extends Parser {
 						break;
 					case 3:
 						{
-						_localctx = new AddExprContext(new ExprContext(_parentctx, _parentState));
+						_localctx = new CompareExprContext(new ExprContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
 						setState(259);
 						if (!(precpred(_ctx, 9))) throw new FailedPredicateException(this, "precpred(_ctx, 9)");
 						setState(260);
-						((AddExprContext)_localctx).op = _input.LT(1);
+						((CompareExprContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
-						if ( !(_la==PLUS || _la==MINUS) ) {
-							((AddExprContext)_localctx).op = (Token)_errHandler.recoverInline(this);
+						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 2013265920L) != 0)) ) {
+							((CompareExprContext)_localctx).op = (Token)_errHandler.recoverInline(this);
 						}
 						else {
 							if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
@@ -2141,15 +1830,15 @@ public class RexParser extends Parser {
 						break;
 					case 4:
 						{
-						_localctx = new CompareExprContext(new ExprContext(_parentctx, _parentState));
+						_localctx = new EqualityExprContext(new ExprContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
 						setState(262);
 						if (!(precpred(_ctx, 8))) throw new FailedPredicateException(this, "precpred(_ctx, 8)");
 						setState(263);
-						((CompareExprContext)_localctx).op = _input.LT(1);
+						((EqualityExprContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
-						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 2013265920L) != 0)) ) {
-							((CompareExprContext)_localctx).op = (Token)_errHandler.recoverInline(this);
+						if ( !(_la==EQ || _la==NEQ) ) {
+							((EqualityExprContext)_localctx).op = (Token)_errHandler.recoverInline(this);
 						}
 						else {
 							if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
@@ -2162,45 +1851,36 @@ public class RexParser extends Parser {
 						break;
 					case 5:
 						{
-						_localctx = new EqualityExprContext(new ExprContext(_parentctx, _parentState));
+						_localctx = new AndExprContext(new ExprContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
 						setState(265);
 						if (!(precpred(_ctx, 7))) throw new FailedPredicateException(this, "precpred(_ctx, 7)");
 						setState(266);
-						((EqualityExprContext)_localctx).op = _input.LT(1);
-						_la = _input.LA(1);
-						if ( !(_la==EQ || _la==NEQ) ) {
-							((EqualityExprContext)_localctx).op = (Token)_errHandler.recoverInline(this);
-						}
-						else {
-							if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
-							_errHandler.reportMatch(this);
-							consume();
-						}
+						((AndExprContext)_localctx).op = match(AND);
 						setState(267);
 						expr(8);
 						}
 						break;
 					case 6:
 						{
-						_localctx = new AndExprContext(new ExprContext(_parentctx, _parentState));
+						_localctx = new OrExprContext(new ExprContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
 						setState(268);
 						if (!(precpred(_ctx, 6))) throw new FailedPredicateException(this, "precpred(_ctx, 6)");
 						setState(269);
-						((AndExprContext)_localctx).op = match(AND);
+						((OrExprContext)_localctx).op = match(OR);
 						setState(270);
 						expr(7);
 						}
 						break;
 					case 7:
 						{
-						_localctx = new OrExprContext(new ExprContext(_parentctx, _parentState));
+						_localctx = new RangeExprContext(new ExprContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
 						setState(271);
 						if (!(precpred(_ctx, 5))) throw new FailedPredicateException(this, "precpred(_ctx, 5)");
 						setState(272);
-						((OrExprContext)_localctx).op = match(OR);
+						match(RANGE);
 						setState(273);
 						expr(6);
 						}
@@ -2267,14 +1947,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_argList; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterArgList(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitArgList(this);
-		}
 	}
 
 	public final ArgListContext argList() throws RecognitionException {
@@ -2327,14 +1999,6 @@ public class RexParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_literal; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).enterLiteral(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RexListener ) ((RexListener)listener).exitLiteral(this);
-		}
 	}
 
 	public final LiteralContext literal() throws RecognitionException {
@@ -2576,33 +2240,33 @@ public class RexParser extends Parser {
 		"\u00fb\u00e7\u0001\u0000\u0000\u0000\u00fb\u00f3\u0001\u0000\u0000\u0000"+
 		"\u00fb\u00f9\u0001\u0000\u0000\u0000\u00fb\u00fa\u0001\u0000\u0000\u0000"+
 		"\u00fc\u011c\u0001\u0000\u0000\u0000\u00fd\u00fe\n\u000b\u0000\u0000\u00fe"+
-		"\u00ff\u0005$\u0000\u0000\u00ff\u011b\u0003(\u0014\f\u0100\u0101\n\n\u0000"+
-		"\u0000\u0101\u0102\u0007\u0002\u0000\u0000\u0102\u011b\u0003(\u0014\u000b"+
-		"\u0103\u0104\n\t\u0000\u0000\u0104\u0105\u0007\u0001\u0000\u0000\u0105"+
-		"\u011b\u0003(\u0014\n\u0106\u0107\n\b\u0000\u0000\u0107\u0108\u0007\u0003"+
-		"\u0000\u0000\u0108\u011b\u0003(\u0014\t\u0109\u010a\n\u0007\u0000\u0000"+
-		"\u010a\u010b\u0007\u0004\u0000\u0000\u010b\u011b\u0003(\u0014\b\u010c"+
-		"\u010d\n\u0006\u0000\u0000\u010d\u010e\u0005\u0014\u0000\u0000\u010e\u011b"+
-		"\u0003(\u0014\u0007\u010f\u0110\n\u0005\u0000\u0000\u0110\u0111\u0005"+
-		"\u0015\u0000\u0000\u0111\u011b\u0003(\u0014\u0006\u0112\u0113\n\u0004"+
-		"\u0000\u0000\u0113\u0114\u0005\u0017\u0000\u0000\u0114\u011b\u0003(\u0014"+
-		"\u0005\u0115\u0116\n\f\u0000\u0000\u0116\u0117\u0005)\u0000\u0000\u0117"+
-		"\u0118\u0003(\u0014\u0000\u0118\u0119\u0005*\u0000\u0000\u0119\u011b\u0001"+
-		"\u0000\u0000\u0000\u011a\u00fd\u0001\u0000\u0000\u0000\u011a\u0100\u0001"+
-		"\u0000\u0000\u0000\u011a\u0103\u0001\u0000\u0000\u0000\u011a\u0106\u0001"+
-		"\u0000\u0000\u0000\u011a\u0109\u0001\u0000\u0000\u0000\u011a\u010c\u0001"+
-		"\u0000\u0000\u0000\u011a\u010f\u0001\u0000\u0000\u0000\u011a\u0112\u0001"+
-		"\u0000\u0000\u0000\u011a\u0115\u0001\u0000\u0000\u0000\u011b\u011e\u0001"+
-		"\u0000\u0000\u0000\u011c\u011a\u0001\u0000\u0000\u0000\u011c\u011d\u0001"+
-		"\u0000\u0000\u0000\u011d)\u0001\u0000\u0000\u0000\u011e\u011c\u0001\u0000"+
-		"\u0000\u0000\u011f\u0124\u0003(\u0014\u0000\u0120\u0121\u0005+\u0000\u0000"+
-		"\u0121\u0123\u0003(\u0014\u0000\u0122\u0120\u0001\u0000\u0000\u0000\u0123"+
-		"\u0126\u0001\u0000\u0000\u0000\u0124\u0122\u0001\u0000\u0000\u0000\u0124"+
-		"\u0125\u0001\u0000\u0000\u0000\u0125+\u0001\u0000\u0000\u0000\u0126\u0124"+
-		"\u0001\u0000\u0000\u0000\u0127\u0128\u0007\u0005\u0000\u0000\u0128-\u0001"+
-		"\u0000\u0000\u0000\u001d18IMVXaenr\u0082\u0088\u0095\u00a0\u00a3\u00ab"+
-		"\u00b7\u00ba\u00c8\u00ce\u00d2\u00e3\u00ed\u00f0\u00f6\u00fb\u011a\u011c"+
-		"\u0124";
+		"\u00ff\u0007\u0002\u0000\u0000\u00ff\u011b\u0003(\u0014\f\u0100\u0101"+
+		"\n\n\u0000\u0000\u0101\u0102\u0007\u0001\u0000\u0000\u0102\u011b\u0003"+
+		"(\u0014\u000b\u0103\u0104\n\t\u0000\u0000\u0104\u0105\u0007\u0003\u0000"+
+		"\u0000\u0105\u011b\u0003(\u0014\n\u0106\u0107\n\b\u0000\u0000\u0107\u0108"+
+		"\u0007\u0004\u0000\u0000\u0108\u011b\u0003(\u0014\t\u0109\u010a\n\u0007"+
+		"\u0000\u0000\u010a\u010b\u0005\u0014\u0000\u0000\u010b\u011b\u0003(\u0014"+
+		"\b\u010c\u010d\n\u0006\u0000\u0000\u010d\u010e\u0005\u0015\u0000\u0000"+
+		"\u010e\u011b\u0003(\u0014\u0007\u010f\u0110\n\u0005\u0000\u0000\u0110"+
+		"\u0111\u0005$\u0000\u0000\u0111\u011b\u0003(\u0014\u0006\u0112\u0113\n"+
+		"\u0004\u0000\u0000\u0113\u0114\u0005\u0017\u0000\u0000\u0114\u011b\u0003"+
+		"(\u0014\u0005\u0115\u0116\n\f\u0000\u0000\u0116\u0117\u0005)\u0000\u0000"+
+		"\u0117\u0118\u0003(\u0014\u0000\u0118\u0119\u0005*\u0000\u0000\u0119\u011b"+
+		"\u0001\u0000\u0000\u0000\u011a\u00fd\u0001\u0000\u0000\u0000\u011a\u0100"+
+		"\u0001\u0000\u0000\u0000\u011a\u0103\u0001\u0000\u0000\u0000\u011a\u0106"+
+		"\u0001\u0000\u0000\u0000\u011a\u0109\u0001\u0000\u0000\u0000\u011a\u010c"+
+		"\u0001\u0000\u0000\u0000\u011a\u010f\u0001\u0000\u0000\u0000\u011a\u0112"+
+		"\u0001\u0000\u0000\u0000\u011a\u0115\u0001\u0000\u0000\u0000\u011b\u011e"+
+		"\u0001\u0000\u0000\u0000\u011c\u011a\u0001\u0000\u0000\u0000\u011c\u011d"+
+		"\u0001\u0000\u0000\u0000\u011d)\u0001\u0000\u0000\u0000\u011e\u011c\u0001"+
+		"\u0000\u0000\u0000\u011f\u0124\u0003(\u0014\u0000\u0120\u0121\u0005+\u0000"+
+		"\u0000\u0121\u0123\u0003(\u0014\u0000\u0122\u0120\u0001\u0000\u0000\u0000"+
+		"\u0123\u0126\u0001\u0000\u0000\u0000\u0124\u0122\u0001\u0000\u0000\u0000"+
+		"\u0124\u0125\u0001\u0000\u0000\u0000\u0125+\u0001\u0000\u0000\u0000\u0126"+
+		"\u0124\u0001\u0000\u0000\u0000\u0127\u0128\u0007\u0005\u0000\u0000\u0128"+
+		"-\u0001\u0000\u0000\u0000\u001d18IMVXaenr\u0082\u0088\u0095\u00a0\u00a3"+
+		"\u00ab\u00b7\u00ba\u00c8\u00ce\u00d2\u00e3\u00ed\u00f0\u00f6\u00fb\u011a"+
+		"\u011c\u0124";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {
