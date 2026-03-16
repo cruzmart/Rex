@@ -1,4 +1,5 @@
 #pragma once
+#include "rex_ast.h"
 #include "rex_funcs.h"
 #include <iostream>
 #include <memory>
@@ -39,9 +40,10 @@ enum class TypeKind {
 // -------------------------------------------------
 // Base type
 // -------------------------------------------------
-struct Type {
+struct Type  {
     TypeKind kind;
-
+    SourceLocation loc;
+    
     Type() : kind(TypeKind::Error) {}
     explicit Type(TypeKind k) : kind(k) {}
     virtual ~Type() = default;

@@ -10,6 +10,7 @@ enum class AstNodeKind {
     FunctionDecl,
     Expr,
     Parameter,
+    Type,
     Null
 };
 
