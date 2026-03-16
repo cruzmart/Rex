@@ -315,6 +315,7 @@
 
         auto fn = std::static_pointer_cast<FunctionType>(sym->type);
 
+
         if(fn->params.size() != cexp->args.size())
             throw std::runtime_error("Argument count mismatch");
 
@@ -324,8 +325,6 @@
             visitExpr(cexp->args[i]);
 
         cexp->type = fn->ret;
-
-  
 
         return cexp->type;
     }
@@ -414,11 +413,9 @@
     }
 
     std::shared_ptr<Type> ExprPass::visitRangeExpr (const std::shared_ptr<RangeExpr> rexp){
-        // both lhs and rhs must be integer values, and we will return a array type, its easy because it will ALWAYS be a array of integers. 
-        // later though we would have to be clear this is NOT a array
+        
         auto lhs_type = visitExpr(rexp->lhs);
         auto rhs_type = visitExpr(rexp->rhs);
-        auto prim_lht = std::static_pointer_cast<PrimType>(lhs_type);
 
         if(lhs_type->kind == TypeKind::Primitive)
             if(std::static_pointer_cast<PrimType>(lhs_type)->prim != PrimType::Prims::Int)
@@ -434,7 +431,65 @@
 
 
 
-    std::shared_ptr<Type> ExprPass::visitPipe ( const std::shared_ptr<PipeExpr> pexp){}
+    std::shared_ptr<Type> ExprPass::visitPipe ( const std::shared_ptr<PipeExpr> pexp){
+
+       // Resolve LHS
+        auto lhs_type = visitExpr(pexp->lhs);
+
+        if (pexp->rhs->exp_kind != ExprKind::Call)
+            throw std::runtime_error("Pipe RHS must be a function call");
+
+        auto call = std::static_pointer_cast<CallExpr>(pexp->rhs);
+        call->args.insert(call->args.begin(), pexp->lhs);
+        
+        auto sym = current_scope->resolve(call->callee);
+
+        if(!sym)
+            throw std::runtime_error("Undefined function: " + call->callee);
+
+        if(sym->kind != SymbolType::Function)
+            throw std::runtime_error("'" + call->callee + "' is not a function");
+
+        auto fn = std::static_pointer_cast<FunctionType>(sym->type);
+
+        // pipe adds one argument
+        size_t expected = fn->params.size();
+        size_t provided = call->args.size();
+
+        if(expected != provided)
+            throw std::runtime_error(
+                "Pipe argument mismatch: function '" + call->callee +
+                "' expects " + std::to_string(expected) +
+                " arguments but got " + std::to_string(provided)
+            );
+
+        // type check pipe argument
+        if(!lhs_type->equals(fn->params[0]->para_type))
+            throw std::runtime_error(
+                "Pipe type mismatch: expected '" +
+                fn->params[0]->para_type->to_string() +
+                "' but got '" +
+                lhs_type->to_string() + "'"
+            );
+
+        // type check remaining args
+        for(size_t i = 0; i < call->args.size(); i++)
+        {
+            auto arg_t = visitExpr(call->args[i]);
+
+            if(!arg_t->equals(fn->params[i]->para_type))
+                throw std::runtime_error(
+                    "Argument " + std::to_string(i+1) +
+                    " type mismatch in call to '" + call->callee + "'"
+                );
+        }
+
+        pexp->rhs->type = fn->ret;
+        pexp->type = fn->ret;
+
+        return pexp->type;
+
+    }
     std::shared_ptr<Type> ExprPass::resolveExp(const std::shared_ptr<Expr> type){}
     void ExprPass::visitExprStmt(const std::shared_ptr<ExprStmt> es){}
     
