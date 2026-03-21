@@ -78,14 +78,14 @@
 				{
 					"directoryIndex" : 1,
 					"id" : "rex::@145eef247bfb46b6828c",
-					"jsonFile" : "target-rex-Debug-caa83f9adb626bd209da.json",
+					"jsonFile" : "target-rex-Debug-57c61c11d326a7bdeb88.json",
 					"name" : "rex",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 1,
 					"id" : "symlink_rex::@145eef247bfb46b6828c",
-					"jsonFile" : "target-symlink_rex-Debug-0838923219f124ccd76a.json",
+					"jsonFile" : "target-symlink_rex-Debug-eadbf15de9642e2721d4.json",
 					"name" : "symlink_rex",
 					"projectIndex" : 0
 				}

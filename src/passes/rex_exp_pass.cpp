@@ -109,6 +109,8 @@
             case StmtKind::Return:
                 visitReturnStmt(std::static_pointer_cast<ReturnStmt>(stmt));
                 break;
+            
+
 
             default:
                 break;
@@ -138,7 +140,7 @@
 
                 auto pid = std::static_pointer_cast<PatternId>(ls->id_pattern);
                  if (current_scope->symbols.contains(pid->id))
-                    throw std::runtime_error("Variable/Function '" + pid->id + "' is already defined");
+                    err.error(ls,"Variable/Function '" + pid->id + "' is already defined");
                 auto sym = std::make_shared<Symbol>(SymbolType::Variable, pid->id);
 
                 auto expr_t = visitExpr(ls->exp);
@@ -158,7 +160,7 @@
 
                 for(size_t i = 0; i < pids->ids.size(); ++i) {
                     if (current_scope->symbols.contains(pids->ids[i]))
-                        throw std::runtime_error("Variable/Function '" + pids->ids[i]+ "' is already defined");
+                        err.error(ls,"Variable/Function '" + pids->ids[i]+ "' is already defined");
                     auto sym = std::make_shared<Symbol>(SymbolType::Variable, pids->ids[i]);
 
                     if(no_init_type){
@@ -177,28 +179,38 @@
                 break;
              }
              default:
-                throw std::runtime_error("Pattern for Let Decleration does not exist");
+                err.error(ls,"Pattern for Let Decleration does not exist");
 
         }
 
     }
 
-    void ExprPass ::visitFunctionDecl(const std::shared_ptr<FunctionDecl> f){
+   void ExprPass::visitFunctionDecl(const std::shared_ptr<FunctionDecl> f){
 
+        // 1. define function
         if (current_scope->symbols.contains(f->func_name))
-                throw std::runtime_error("Variable/Function '" + f->func_name + "' already defined");
+            err.error(f, "Function '" + f->func_name + "' already defined");
 
         auto sym = std::make_shared<Symbol>(SymbolType::Function, f->func_name);
         sym->type = f->func_type;
-        
         current_scope->define(sym);
 
-        // in the body solve every expression in it
+        // 2. new scope
+        auto prev = current_scope;
+        current_scope = current_scope->push();
+
+        // 3. define parameters
+        for (auto param : f->func_type->params) {
+            auto psym = std::make_shared<Symbol>(SymbolType::Variable, param->para_name);
+            psym->type = param->para_type;
+            current_scope->define(psym);
+        }
+
+        // 4. visit body
         visitBlock(f->body);
 
-        sym->expr = f->body;
-            
-
+        // 5. restore scope
+        current_scope = prev;
     }
     void ExprPass::visitIfStmt(const std::shared_ptr<IfStmt> is){
         // check condition of if statement
@@ -251,7 +263,7 @@
                 itr_var->type = itera_type;
                 break;
             default:
-                throw std::runtime_error("Iterable value MUST be either of type 'Array' or 'Range'");
+                err.error(fs->iterable,"Iterable value MUST be either of type 'Array' or 'Range'");
         }
 
         auto sym = std::make_shared<Symbol>(SymbolType::Variable, itr_var->name);
@@ -277,27 +289,22 @@
 
     std::shared_ptr<Type> ExprPass::visitId(const std::shared_ptr<IdExpr> id){
 
-
-        if(!id->resolved){
+    if(!id->resolved){
             auto value = current_scope->resolve(id->name);
 
+            if(!value){
+                err.error(id, "Undefined identifier: '" + id->name + "'");
+            }
+
             if(value->kind == SymbolType::Function){
-                throw std::runtime_error("[ExpPass] '" + id->name + "' is a function that requires arguments");
+                err.error(id, "'" + id->name + "' is a function that requires arguments");
             }
 
-            if(value->kind == SymbolType::Variable){
-            }
-
-    
             id->resolved = value;
-            id->type = id->resolved->type;
-        } 
+            id->type = value->type;
+        }
 
-
-
-        id->type = id->resolved->type;
-
-        return id->resolved->type;
+        return id->type;
     }
 
     std::shared_ptr<Type> ExprPass::visitCall (const std::shared_ptr<CallExpr> cexp){
@@ -307,17 +314,17 @@
         auto sym = current_scope->resolve(cexp->callee);
 
         if(!sym)
-            throw std::runtime_error("Undefined function: " + cexp->callee);
+            err.error(cexp, "Undefined function: " + cexp->callee);
 
         if(sym->kind != SymbolType::Function)
-            throw std::runtime_error("'" + cexp->callee + "' is not a function");
+            err.error(cexp, "'" + cexp->callee + "' is not a function");
 
 
         auto fn = std::static_pointer_cast<FunctionType>(sym->type);
 
 
         if(fn->params.size() != cexp->args.size())
-            throw std::runtime_error("Argument count mismatch");
+            err.error(cexp, "Argument count mismatch");
 
 
 
@@ -369,7 +376,7 @@
             auto t = visitExpr(aexp->elements[i]);
 
             if (!t->equals(first_type)) {
-                throw std::runtime_error(
+                err.error(aexp,
                     "Array elements must all have the same type. Found '" +
                     first_type->to_string() + "' and '" +
                     t->to_string() + "'"
@@ -391,10 +398,10 @@
         auto index_type = visitExpr(iexp->index);
 
         if(!(base_type->kind == TypeKind::Array))
-            throw std::runtime_error("Indexing Non-Array");
+            err.error(iexp->base, "Indexing Non-Array");
 
         if(!(index_type->kind == TypeKind::Primitive))
-            throw std::runtime_error("Index value is not of type INT");
+            err.error(iexp->index, "Index value is not of type INT");
     
         auto arr = std::static_pointer_cast<ArrayType>(base_type);
         iexp->type = arr->elem;
@@ -419,12 +426,12 @@
 
         if(lhs_type->kind == TypeKind::Primitive)
             if(std::static_pointer_cast<PrimType>(lhs_type)->prim != PrimType::Prims::Int)
-                throw std::runtime_error("lh range size is not INT");
+                err.error(rexp->lhs,"lh range size is not INT");
    
  
         if(rhs_type->kind == TypeKind::Primitive)
              if(std::static_pointer_cast<PrimType>(rhs_type)->prim != PrimType::Prims::Int)
-                throw std::runtime_error("rh range size is not INT");
+                err.error(rexp->rhs, "rh range size is not INT");
 
         return rexp->type;
     }
@@ -437,7 +444,7 @@
         auto lhs_type = visitExpr(pexp->lhs);
 
         if (pexp->rhs->exp_kind != ExprKind::Call)
-            throw std::runtime_error("Pipe RHS must be a function call");
+            err.error(pexp->rhs, "Pipe RHS must be a function call");
 
         auto call = std::static_pointer_cast<CallExpr>(pexp->rhs);
         call->args.insert(call->args.begin(), pexp->lhs);
@@ -445,7 +452,7 @@
         auto sym = current_scope->resolve(call->callee);
 
         if(!sym)
-            throw std::runtime_error("Undefined function: " + call->callee);
+              err.error(call,"Undefined function: " + call->callee);
 
         if(sym->kind != SymbolType::Function)
             throw std::runtime_error("'" + call->callee + "' is not a function");
@@ -456,16 +463,17 @@
         size_t expected = fn->params.size();
         size_t provided = call->args.size();
 
-        if(expected != provided)
-            throw std::runtime_error(
+        if(expected != provided){
+        err.error(pexp,
                 "Pipe argument mismatch: function '" + call->callee +
                 "' expects " + std::to_string(expected) +
                 " arguments but got " + std::to_string(provided)
             );
+        }
 
         // type check pipe argument
         if(!lhs_type->equals(fn->params[0]->para_type))
-            throw std::runtime_error(
+            err.error(pexp->lhs,
                 "Pipe type mismatch: expected '" +
                 fn->params[0]->para_type->to_string() +
                 "' but got '" +
@@ -478,7 +486,7 @@
             auto arg_t = visitExpr(call->args[i]);
 
             if(!arg_t->equals(fn->params[i]->para_type))
-                throw std::runtime_error(
+                err.error(call->args[i],
                     "Argument " + std::to_string(i+1) +
                     " type mismatch in call to '" + call->callee + "'"
                 );
@@ -491,6 +499,9 @@
 
     }
     std::shared_ptr<Type> ExprPass::resolveExp(const std::shared_ptr<Expr> type){}
-    void ExprPass::visitExprStmt(const std::shared_ptr<ExprStmt> es){}
+    void ExprPass::visitExprStmt(const std::shared_ptr<ExprStmt> es){
+        std::cout << "hello world" << std::endl;
+        exit(1);
+    }
     
   }

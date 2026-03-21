@@ -6,7 +6,7 @@ function w(a: integer, b : integer) -> integer {
 }
 
 let x : integer = 2 / 4;
-//let a  = w(x,1) + 1 + [2,3];
+//let a  = w(x,1) + 1 + [2,3.0];
 
 
 //let v : Int = 2 + a[1] .. 3 + 7;

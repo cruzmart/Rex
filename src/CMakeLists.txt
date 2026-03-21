@@ -14,6 +14,7 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/passes/rex_alias_pass.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/passes/rex_exp_pass.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/rex_binary_op.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/rex_errors.cpp"
     
 )
 

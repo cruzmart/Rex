@@ -8,6 +8,7 @@
 #include "rex_exps.h"
 #include "rex_symbol.h"
 #include "rex_stmts.h"
+#include "rex_errors.h"
 
 
 namespace rex {
@@ -16,6 +17,7 @@ struct ExprPass {
 
     private: 
         BinaryOpSystem ots;
+        Errors err;
         std::shared_ptr<Scope> current_scope;
         int scope_depth = 0;
         bool debug = false;

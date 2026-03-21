@@ -27,7 +27,7 @@ enum class StmtKind {
     For,
     Loop,
     If,
-    Return
+    Return,
 };
 
 enum class PatternType {
