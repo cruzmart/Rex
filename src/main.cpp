@@ -14,7 +14,7 @@ using namespace antlr4;
 using namespace rex;
 
 int main() {
-    std::ifstream file("tests/the_twelve.txt");
+    std::ifstream file("tests/the_fourteen.txt");
     if (!file) {
         std::cerr << "Failed to open .txt file\n";
         return 1;

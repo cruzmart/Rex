@@ -1,0 +1,25 @@
+type integer = Int;
+type float = Real;
+type cap = Bool;
+
+// alias chain
+type number = integer;
+type decimal = float;
+
+// tuple alias
+type triple = (integer, float, cap);
+
+// array alias
+type int_array = integer[3];
+
+// global variable using aliases
+let (x, y, z) : (integer, float, cap) = (1, 1.1, true);
+
+// ------------------------------------------------
+// function 1
+// ------------------------------------------------
+function add(a: integer, b: integer) -> integer {
+    let result : integer = a + b;
+    result
+}
+
