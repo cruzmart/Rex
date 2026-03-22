@@ -9,8 +9,10 @@ namespace rex {
 
 void BlockExpr::dump(std::ostream& os, int i) const {
     indent(os, i); os << "block\n";
-    for (auto& s : statements) s->dump(os, i + 1);
-    if (result) { indent(os, i + 1); os << "result\n"; result->dump(os, i + 2); }
+    for (auto& s : statements){
+
+        s->dump(os, i + 1);
+    } 
 }
 
 // IdExpr

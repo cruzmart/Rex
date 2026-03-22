@@ -28,6 +28,7 @@ void FunctionDecl::dump(std::ostream& os, int i) const {
         indent(os, i + 1); os << "body:\n";
         body->dump(os, i + 2);
     }
+    std::cout << std::endl;
 }
 
 } // namespace rex
