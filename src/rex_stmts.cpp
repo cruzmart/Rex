@@ -47,7 +47,7 @@ void ReturnStmt::dump(std::ostream& os, int i) const {
 }
 
 void ExprStmt::dump(std::ostream& os, int i) const {
-    indent(os, i); os << "expr_stmt\n";
+    indent(os, i); os << "return_expr\n";
     value->dump(os, i + 1);
 }
 

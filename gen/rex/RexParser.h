@@ -304,11 +304,11 @@ public:
     virtual size_t getRuleIndex() const override;
     LetStmtContext *letStmt();
     AssignStmtContext *assignStmt();
-    ReturnStmtContext *returnStmt();
     IfStmtContext *ifStmt();
     LoopStmtContext *loopStmt();
     ExprStmtContext *exprStmt();
     TypeDefContext *typeDef();
+    ReturnStmtContext *returnStmt();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -495,7 +495,6 @@ public:
     antlr4::tree::TerminalNode *RBRACE();
     std::vector<StatementContext *> statement();
     StatementContext* statement(size_t i);
-    ExprContext *expr();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;

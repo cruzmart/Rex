@@ -38,11 +38,11 @@ struct ExprPass {
         void visitLetStmt(const std::shared_ptr<LetStmt> ls);
         void visitAsgStmt(const std::shared_ptr<AssignStmt> as);
         void visitFunctionDecl(const std::shared_ptr<FunctionDecl> f);
-        void visitExprStmt(const std::shared_ptr<ExprStmt> es);
+        void visitReturnExprStmt(const std::shared_ptr<ExprStmt> es);
         void visitWhileStmt(const std::shared_ptr<WhileStmt> ws);
         void visitForStmt(const std::shared_ptr<ForStmt> fs);
         void visitIfStmt(const std::shared_ptr<IfStmt> is);
-        void visitReturnStmt(const std::shared_ptr<ReturnStmt> rs);
+        void visitReturnNormalStmt(const std::shared_ptr<ReturnStmt> rs);
    
 
         std::shared_ptr<Type> visitLiteral(const std::shared_ptr<LiteralExpr> literal);
@@ -57,8 +57,6 @@ struct ExprPass {
         std::shared_ptr<Type> visitRangeExpr (const std::shared_ptr<RangeExpr> rexp);
         std::shared_ptr<Type> visitCall (const std::shared_ptr<CallExpr> cexp);
         std::shared_ptr<Type> visitPipe ( const std::shared_ptr<PipeExpr> pexp);
-
-        std::shared_ptr<Type> resolveExp(const std::shared_ptr<Expr> type);
 
 
 };

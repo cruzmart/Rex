@@ -27,7 +27,8 @@ enum class StmtKind {
     For,
     Loop,
     If,
-    Return,
+    Return_Normal,
+    Return_Expr,
 };
 
 enum class PatternType {
@@ -61,8 +62,10 @@ struct Stmt : AstNode {
                 return "Loop";
             case StmtKind::If:
                 return "If";
-            case StmtKind::Return:
-                return "Return";
+            case StmtKind::Return_Normal:
+                return "Return_Normal";
+            case StmtKind::Return_Expr:
+                return "Return_Expr";
             default:
                     return "<?>";
         }
@@ -134,13 +137,13 @@ struct AssignStmt : Stmt {
 
 struct ReturnStmt : Stmt {
     std::shared_ptr<Expr> value;
-    ReturnStmt() : Stmt(StmtKind::Return) {}
+    ReturnStmt() : Stmt(StmtKind::Return_Normal) {}
     void dump(std::ostream& os, int i) const override;
 };
 
 struct ExprStmt : Stmt {
     std::shared_ptr<Expr> value;
-    ExprStmt() : Stmt(StmtKind::Expr) {}
+    ExprStmt() : Stmt(StmtKind::Return_Expr) {}
     void dump(std::ostream& os, int i) const override;
 };
 

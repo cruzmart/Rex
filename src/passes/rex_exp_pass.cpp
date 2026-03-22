@@ -80,8 +80,11 @@
     //Good
     void ExprPass ::visitStmt(const std::shared_ptr<Stmt> stmt){
 
+
         switch(stmt->stmt_kind)
         {
+
+            
             case StmtKind::LetDecl:
                 visitLetStmt(std::static_pointer_cast<LetStmt>(stmt));
                 break;
@@ -90,8 +93,8 @@
                 visitAsgStmt(std::static_pointer_cast<AssignStmt>(stmt));
                 break;
 
-            case StmtKind::Expr:
-                visitExprStmt(std::static_pointer_cast<ExprStmt>(stmt));
+            case StmtKind::Return_Expr:
+                visitReturnExprStmt(std::static_pointer_cast<ExprStmt>(stmt));
                 break;
 
             case StmtKind::While:
@@ -106,8 +109,8 @@
                 visitIfStmt(std::static_pointer_cast<IfStmt>(stmt));
                 break;
 
-            case StmtKind::Return:
-                visitReturnStmt(std::static_pointer_cast<ReturnStmt>(stmt));
+            case StmtKind::Return_Normal:
+                visitReturnNormalStmt(std::static_pointer_cast<ReturnStmt>(stmt));
                 break;
             
 
@@ -289,6 +292,7 @@
 
     std::shared_ptr<Type> ExprPass::visitId(const std::shared_ptr<IdExpr> id){
 
+
     if(!id->resolved){
             auto value = current_scope->resolve(id->name);
 
@@ -409,8 +413,11 @@
         return iexp->type;
 
     }
-    void ExprPass::visitReturnStmt(const std::shared_ptr<ReturnStmt> rs){
+    void ExprPass::visitReturnNormalStmt(const std::shared_ptr<ReturnStmt> rs){
         rs->value->type = visitExpr(rs->value);
+    }
+    void ExprPass::visitReturnExprStmt(const std::shared_ptr<ExprStmt> es){
+        es->value->type = visitExpr(es->value);
     }
 
     void ExprPass::visitAsgStmt(const std::shared_ptr<AssignStmt> as){
@@ -497,11 +504,6 @@
 
         return pexp->type;
 
-    }
-    std::shared_ptr<Type> ExprPass::resolveExp(const std::shared_ptr<Expr> type){}
-    void ExprPass::visitExprStmt(const std::shared_ptr<ExprStmt> es){
-        std::cout << "hello world" << std::endl;
-        exit(1);
     }
     
   }

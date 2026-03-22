@@ -70,11 +70,12 @@ returnType
 statement
     : letStmt
     | assignStmt
-    | returnStmt
     | ifStmt          
     | loopStmt
     | exprStmt
     | typeDef
+    | returnStmt
+    | exprStmt
     ;
 
 letStmt
@@ -125,9 +126,8 @@ loopStmt
 // -------------------------------------------------
 
 block
-    : '{' statement* expr? '}'
+    : '{' statement*'}'
     ;
-
 // -------------------------------------------------
 // Expressions
 // -------------------------------------------------

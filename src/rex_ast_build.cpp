@@ -194,12 +194,13 @@ antlrcpp::Any rex_ast_build::visitReturnType(RexParser::ReturnTypeContext* ctx) 
 
 antlrcpp::Any rex_ast_build::visitStatement(RexParser::StatementContext* ctx) {
     if (ctx->letStmt()) return visit(ctx->letStmt());
-    if (ctx->returnStmt()) return visit(ctx->returnStmt());
     if (ctx->exprStmt()) return visit(ctx->exprStmt());
     if (ctx->loopStmt()) return visit(ctx->loopStmt());
     if (ctx->ifStmt()) return visit(ctx->ifStmt());
     if (ctx->assignStmt()) return visit(ctx->assignStmt());
-    if(ctx->typeDef()) return visit(ctx->typeDef());
+    if (ctx->typeDef()) return visit(ctx->typeDef());
+    if (ctx->returnStmt()) return visit(ctx->returnStmt());
+    if (ctx->exprStmt()) return visit(ctx->exprStmt());
     throw std::runtime_error("Unknown statement type");
 }
 
@@ -246,8 +247,8 @@ antlrcpp::Any rex_ast_build::visitReturnStmt(RexParser::ReturnStmtContext* ctx) 
 antlrcpp::Any rex_ast_build::visitExprStmt(RexParser::ExprStmtContext* ctx) {
     auto es = std::make_shared<ExprStmt>();
     es->loc = loc(ctx);
-    es->value = as_expr<Expr>(visit(ctx->expr()));
-    return es;
+    if(ctx->expr()) es->value = as_expr<Expr>(visit(ctx->expr()));
+    return std::static_pointer_cast<Stmt>(es);
 }
 
 antlrcpp::Any rex_ast_build::visitAssignStmt(RexParser::AssignStmtContext *ctx) {
@@ -319,9 +320,6 @@ antlrcpp::Any rex_ast_build::visitBlock(RexParser::BlockContext* ctx) {
 
     for(auto stmt : ctx->statement())
         block->statements.push_back(as_stmt<Stmt>(visit(stmt)));
-
-    if(ctx->expr())
-        block->result = as_expr<Expr>(visit(ctx->expr()));
 
     return block;
 }
