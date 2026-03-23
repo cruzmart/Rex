@@ -79,7 +79,7 @@ struct Type  {
 // Primitive type
 // -------------------------------------------------
 struct PrimType : Type {
-    enum class Prims { Int, Bool, Char, Real, String, Null } prim;
+    enum class Prims { Int, Bool, Char, Real, String, Null, Void} prim;
 
     explicit PrimType(Prims p) : Type(TypeKind::Primitive), prim(p) {}
     
@@ -91,6 +91,7 @@ struct PrimType : Type {
             case Prims::Real:   return "Real";
             case Prims::String: return "String";
             case Prims::Null:   return "Null";
+            case Prims::Void:   return "Void";
         }
         return "<?>";
     }

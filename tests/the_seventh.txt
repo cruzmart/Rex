@@ -20,7 +20,7 @@ let (x, y, z) : (integer, float, cap) = (1, 1.1, true);
 // ------------------------------------------------
 function add(a: integer, b: integer) -> integer {
     let result : integer = a + b;
-    result
+    result;
 }
 
 // ------------------------------------------------
@@ -28,7 +28,7 @@ function add(a: integer, b: integer) -> integer {
 // ------------------------------------------------
 function average(a: decimal, b: decimal) -> decimal {
     let sum : decimal = a + b;
-    sum / 2.0
+    sum / 2.0;
 }
 
 // ------------------------------------------------
@@ -36,14 +36,14 @@ function average(a: decimal, b: decimal) -> decimal {
 // ------------------------------------------------
 function make_triple(a: integer, b: float, c: cap) -> triple {
     let t : triple = (a, b, c);
-    t
+    t;
 }
 
 // ------------------------------------------------
 // function 4 (array alias)
 // ------------------------------------------------
 function first_value(arr: int_array) -> integer {
-    arr[0]
+    arr[0];
 }
 
 // ------------------------------------------------
@@ -62,7 +62,9 @@ function test_scope(a: integer) -> integer {
         let c : deeper_int = b + 2;
 
         b = c;
+
+        break;
     }
 
-    b
+    return b;
 }

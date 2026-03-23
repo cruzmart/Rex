@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <memory>
+#include <ostream>
 #include <vector>
 #include <string>
 #include "rex_ast.h"
@@ -29,6 +30,7 @@ enum class StmtKind {
     If,
     Return_Normal,
     Return_Expr,
+    Break
 };
 
 enum class PatternType {
@@ -66,6 +68,8 @@ struct Stmt : AstNode {
                 return "Return_Normal";
             case StmtKind::Return_Expr:
                 return "Return_Expr";
+            case StmtKind::Break:
+                return "Break";
             default:
                     return "<?>";
         }
@@ -175,6 +179,11 @@ struct IfStmt : Stmt {
     std::vector<std::pair<std::shared_ptr<Expr>, std::shared_ptr<BlockExpr>>> elifx_blocks;
     std::shared_ptr<BlockExpr> else_block;
     IfStmt() : Stmt(StmtKind::If) {}
+    void dump(std::ostream& os, int i) const override;
+};
+
+struct BreakStmt : Stmt {
+    BreakStmt() : Stmt(StmtKind::Break) {}
     void dump(std::ostream& os, int i) const override;
 };
 

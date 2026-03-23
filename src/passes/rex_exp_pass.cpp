@@ -241,8 +241,6 @@
 
 
     void ExprPass::visitForStmt(const std::shared_ptr<ForStmt> fs){
-        // got to check if the 
-        std:: cout << "inside for loop" << std::endl;
 
         print("Entering Scope Depth: " + std::to_string(scope_depth) + "\n");
         auto prev = current_scope;
