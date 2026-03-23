@@ -70,11 +70,13 @@ returnType
 statement
     : letStmt
     | assignStmt
-    | returnStmt
     | ifStmt          
     | loopStmt
     | exprStmt
     | typeDef
+    | returnStmt
+    | exprStmt
+    | breakStmt
     ;
 
 letStmt
@@ -109,6 +111,7 @@ pattern
     | '(' ID (',' ID)+ ')'
     ;
 
+breakStmt : BREAK ';';
 
 // -------------------------------------------------
 // Loops
@@ -125,9 +128,8 @@ loopStmt
 // -------------------------------------------------
 
 block
-    : '{' statement* expr? '}'
+    : '{' statement*'}'
     ;
-
 // -------------------------------------------------
 // Expressions
 // -------------------------------------------------
@@ -138,13 +140,13 @@ expr
     |'(' expr (',' expr)+ ')'              #TupleExpr
     |'[' (expr (',' expr)*)? ']'            #ArrayExpr
     | expr '[' expr ']'                    #IndexExpr
-    | expr RANGE expr                       #RangeExpr
     | expr op=(STAR | DIV | MOD) expr       #MulExpr
     | expr op=(PLUS | MINUS) expr             #AddExpr
     | expr op=(LT | GT | LTE | GTE) expr #CompareExpr
     | expr op=(EQ | NEQ) expr            #EqualityExpr
     | expr op=AND expr                     #AndExpr
     | expr op=OR expr                      #OrExpr
+    | expr RANGE expr                       #RangeExpr
     | expr PIPE expr                       #PipeExpr
     | ID '(' argList? ')'                  #CallExpr
     | literal                              #LiteralExpr
@@ -232,6 +234,7 @@ RBRACK  : ']';
 COMMA   : ',';
 SEMI    : ';';
 COLON   : ':';
+BREAK   : 'break';
 
 // -------------------------------------------------
 // Identifiers & literals

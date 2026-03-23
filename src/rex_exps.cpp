@@ -2,18 +2,26 @@
 #include "rex_stmts.h"
 #include "rex_ast_nodes.h"
 #include "rex_types.h"
+#include "rex_symbol.h"
 #include <memory>
 
 namespace rex {
 
 void BlockExpr::dump(std::ostream& os, int i) const {
     indent(os, i); os << "block\n";
-    for (auto& s : statements) s->dump(os, i + 1);
-    if (result) { indent(os, i + 1); os << "result\n"; result->dump(os, i + 2); }
+    for (auto& s : statements){
+
+        s->dump(os, i + 1);
+    } 
 }
 
 // IdExpr
-void IdExpr::dump(std::ostream& os, int i) const { indent(os, i); os << "id " << name << "\n"; }
+void IdExpr::dump(std::ostream& os, int i) const { 
+
+    std::string type_name = (resolved ? resolved->type->to_fundamental_string() : "<?>");
+    indent(os, i); os << "id " << name << " -> " << type_name <<"\n"; 
+
+}
 
 // LiteralExpr
 void LiteralExpr::dump(std::ostream& os, int i) const {

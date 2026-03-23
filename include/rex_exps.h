@@ -76,8 +76,8 @@ struct Expr : AstNode {
 };
 
 struct BlockExpr : Expr {
+    // made change in result
     std::vector<std::shared_ptr<Stmt>> statements;
-    std::shared_ptr<Expr> result;
     BlockExpr() : Expr(ExprKind::Block) {}
     void dump(std::ostream& os, int i) const override;
 };
@@ -86,6 +86,7 @@ struct BlockExpr : Expr {
 struct IdExpr : Expr { 
     std::string name; std::shared_ptr<Symbol> resolved; 
     IdExpr() : Expr(ExprKind::Id) {}
+    IdExpr(std::string name) : Expr(ExprKind::Id), name(name) {}
     void dump(std::ostream& os, int i) const override; 
 };
 struct LiteralExpr : Expr {

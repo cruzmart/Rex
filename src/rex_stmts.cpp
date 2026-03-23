@@ -47,7 +47,7 @@ void ReturnStmt::dump(std::ostream& os, int i) const {
 }
 
 void ExprStmt::dump(std::ostream& os, int i) const {
-    indent(os, i); os << "expr_stmt\n";
+    indent(os, i); os << "return_expr\n";
     value->dump(os, i + 1);
 }
 
@@ -58,7 +58,8 @@ void WhileStmt::dump(std::ostream& os, int i) const {
 }
 
 void ForStmt::dump(std::ostream& os, int i) const {
-    indent(os, i); os << "for " << iter_var << " in\n";
+    indent(os, i); os << " for \n"; iter_var->dump(os,i + 1);
+    os << "   in\n";
     iterable->dump(os, i + 1);
     body->dump(os, i + 1);
 }
@@ -78,6 +79,10 @@ void IfStmt::dump(std::ostream& os, int i) const {
         indent(os, i + 2); os << "then\n"; elifBlock->dump(os, i + 3);
     }
     if (else_block) { indent(os, i + 1); os << "else\n"; else_block->dump(os, i + 2); }
+}
+
+void BreakStmt::dump(std::ostream& os, int i) const {
+    indent(os, i); os << "break\n";
 }
 
 } // namespace rex
