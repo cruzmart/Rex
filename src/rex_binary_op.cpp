@@ -269,7 +269,6 @@ type_ptr BinaryOpSystem::check_binary(BinaryOp op, type_ptr L, type_ptr R){
 
     if(is_arth(op)) {return promote(L,R,binop_name(op));}
     if(is_comp(op)){
-        std::cout << "hello world" << std::endl;
         auto re = promote(L,R,binop_name(op));
         if(is_array(L) || is_array(R))
             std::static_pointer_cast<ArrayType>(re)->elem = std::make_shared<PrimType>(PrimKind::Bool);

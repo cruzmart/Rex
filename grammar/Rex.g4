@@ -76,6 +76,7 @@ statement
     | typeDef
     | returnStmt
     | exprStmt
+    | breakStmt
     ;
 
 letStmt
@@ -110,6 +111,7 @@ pattern
     | '(' ID (',' ID)+ ')'
     ;
 
+breakStmt : BREAK ';';
 
 // -------------------------------------------------
 // Loops
@@ -232,6 +234,7 @@ RBRACK  : ']';
 COMMA   : ',';
 SEMI    : ';';
 COLON   : ':';
+BREAK   : 'break';
 
 // -------------------------------------------------
 // Identifiers & literals

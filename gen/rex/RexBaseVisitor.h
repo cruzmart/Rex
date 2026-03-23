@@ -105,6 +105,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual std::any visitBreakStmt(RexParser::BreakStmtContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual std::any visitLoopStmt(RexParser::LoopStmtContext *ctx) override {
     return visitChildren(ctx);
   }

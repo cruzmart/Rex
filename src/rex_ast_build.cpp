@@ -169,6 +169,8 @@ antlrcpp::Any rex_ast_build::visitFunctionDef(RexParser::FunctionDefContext* ctx
 
     if(ctx->returnType())
         fn_type->ret = as_type<Type>(visit(ctx->returnType()));
+    else
+        fn_type->ret = std::make_shared<PrimType>(PrimType::Prims::Void);
 
     fn->body = std::any_cast<std::shared_ptr<BlockExpr>>(visit(ctx->block()));
     return fn;
@@ -201,6 +203,7 @@ antlrcpp::Any rex_ast_build::visitStatement(RexParser::StatementContext* ctx) {
     if (ctx->typeDef()) return visit(ctx->typeDef());
     if (ctx->returnStmt()) return visit(ctx->returnStmt());
     if (ctx->exprStmt()) return visit(ctx->exprStmt());
+    if (ctx->breakStmt()) return visit(ctx->breakStmt());
     throw std::runtime_error("Unknown statement type");
 }
 
@@ -307,6 +310,15 @@ antlrcpp::Any rex_ast_build::visitIfStmt(RexParser::IfStmtContext *ctx){
     }
 
     return std::static_pointer_cast<Stmt>(if_);
+}
+
+
+antlrcpp::Any rex_ast_build::visitBreakStmt(RexParser::BreakStmtContext * ctx) {
+
+    auto brs = std::make_shared<BreakStmt>();
+    brs->loc = loc(ctx);
+
+    return std::static_pointer_cast<Stmt>(brs);
 }
 
 // ==================================================

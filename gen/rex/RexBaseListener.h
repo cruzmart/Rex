@@ -84,6 +84,9 @@ public:
   virtual void enterPattern(RexParser::PatternContext * /*ctx*/) override { }
   virtual void exitPattern(RexParser::PatternContext * /*ctx*/) override { }
 
+  virtual void enterBreakStmt(RexParser::BreakStmtContext * /*ctx*/) override { }
+  virtual void exitBreakStmt(RexParser::BreakStmtContext * /*ctx*/) override { }
+
   virtual void enterLoopStmt(RexParser::LoopStmtContext * /*ctx*/) override { }
   virtual void exitLoopStmt(RexParser::LoopStmtContext * /*ctx*/) override { }
 

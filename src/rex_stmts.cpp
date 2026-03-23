@@ -81,4 +81,8 @@ void IfStmt::dump(std::ostream& os, int i) const {
     if (else_block) { indent(os, i + 1); os << "else\n"; else_block->dump(os, i + 2); }
 }
 
+void BreakStmt::dump(std::ostream& os, int i) const {
+    indent(os, i); os << "break\n";
+}
+
 } // namespace rex

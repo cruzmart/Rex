@@ -26,11 +26,6 @@ function add(a: integer, b: integer) -> integer {
 */
 
 // ---------- Function definitions ----------
-function inc(x: Int) -> Int {
-    x;
-}
-
-// ---------- Function definitions ----------
 function inc1(x: Int) -> Int {
     return x;
 }
