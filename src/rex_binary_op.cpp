@@ -115,10 +115,6 @@ int BinaryOpSystem::prim_rank(PrimKind k){
 }
 
 type_ptr BinaryOpSystem::promote_primitive(std::shared_ptr<PrimType> A, std::shared_ptr<PrimType> B){
-
-    // check super edge case were prim type is not string because later we could do string + string (ONLY)
-    if(!(A->prim == PrimKind::String && B->prim == PrimKind::String))
-    
     return std::make_shared<PrimType>(prim_rank(A->prim) >= prim_rank(B->prim) ? A->prim : B->prim);
 }
 
@@ -127,7 +123,7 @@ type_ptr BinaryOpSystem::promote_primitive(std::shared_ptr<PrimType> A, std::sha
 // -------------------------------------------------
 type_ptr BinaryOpSystem::promote(type_ptr L, type_ptr R, const std::string& op){
 
-    
+
     // same type
     if(L->equals(R)) {
         if((is_prim(L, PrimKind::String) && op != "+"))
@@ -205,9 +201,9 @@ type_ptr BinaryOpSystem::promote(type_ptr L, type_ptr R, const std::string& op){
 
     // func + primitive/array
     if(is_func(L) && (is_primitive(R) || is_array(R)))
-        return promote(std::static_pointer_cast<FunctionType>(L)->ret, R, op);
+        return promote(as<FunctionType>(L)->ret, R, op);
     if(is_func(R) && (is_primitive(L) || is_array(L)))
-        return promote(std::static_pointer_cast<FunctionType>(R)->ret, L, op);
+        return promote(as<FunctionType>(R)->ret, L, op);
 
     throw std::runtime_error("Cannot apply operator '" + op + "' to " + L->to_string() + " and " + R->to_string());
 }
@@ -271,12 +267,12 @@ type_ptr BinaryOpSystem::check_binary(BinaryOp op, type_ptr L, type_ptr R){
     if(debug)
         std::cout << "L=" << L->to_fundamental_string() << " R=" << R->to_fundamental_string() << "\n";
 
-    if(is_arth(op)) return promote(L,R,binop_name(op));
+    if(is_arth(op)) {return promote(L,R,binop_name(op));}
     if(is_comp(op)){
         auto re = promote(L,R,binop_name(op));
         if(is_array(L) || is_array(R))
             std::static_pointer_cast<ArrayType>(re)->elem = std::make_shared<PrimType>(PrimKind::Bool);
-        return re;
+        return std::make_shared<PrimType>(PrimKind::Bool);
     }
     if(is_logic(op)){
         if(!is_bool(L) || !is_bool(R))

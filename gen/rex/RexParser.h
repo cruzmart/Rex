@@ -19,9 +19,9 @@ public:
     PIPE = 23, ASSIGN = 24, EQ = 25, NEQ = 26, LT = 27, GT = 28, LTE = 29, 
     GTE = 30, PLUS = 31, MINUS = 32, STAR = 33, DIV = 34, MOD = 35, RANGE = 36, 
     LPAREN = 37, RPAREN = 38, LBRACE = 39, RBRACE = 40, LBRACK = 41, RBRACK = 42, 
-    COMMA = 43, SEMI = 44, COLON = 45, ID = 46, INT_LITERAL = 47, REAL_LITERAL = 48, 
-    STRING_LITERAL = 49, CHAR_LITERAL = 50, WS = 51, LINE_COMMENT = 52, 
-    BLOCK_COMMENT = 53
+    COMMA = 43, SEMI = 44, COLON = 45, BREAK = 46, ID = 47, INT_LITERAL = 48, 
+    REAL_LITERAL = 49, STRING_LITERAL = 50, CHAR_LITERAL = 51, WS = 52, 
+    LINE_COMMENT = 53, BLOCK_COMMENT = 54
   };
 
   enum {
@@ -29,8 +29,8 @@ public:
     RuleFunctionDef = 5, RuleParamList = 6, RuleParam = 7, RuleReturnType = 8, 
     RuleStatement = 9, RuleLetStmt = 10, RuleAssignStmt = 11, RuleReturnStmt = 12, 
     RuleExprStmt = 13, RuleIfStmt = 14, RuleElifxChain = 15, RuleElseBlock = 16, 
-    RulePattern = 17, RuleLoopStmt = 18, RuleBlock = 19, RuleExpr = 20, 
-    RuleArgList = 21, RuleLiteral = 22
+    RulePattern = 17, RuleBreakStmt = 18, RuleLoopStmt = 19, RuleBlock = 20, 
+    RuleExpr = 21, RuleArgList = 22, RuleLiteral = 23
   };
 
   explicit RexParser(antlr4::TokenStream *input);
@@ -68,6 +68,7 @@ public:
   class ElifxChainContext;
   class ElseBlockContext;
   class PatternContext;
+  class BreakStmtContext;
   class LoopStmtContext;
   class BlockContext;
   class ExprContext;
@@ -304,11 +305,12 @@ public:
     virtual size_t getRuleIndex() const override;
     LetStmtContext *letStmt();
     AssignStmtContext *assignStmt();
-    ReturnStmtContext *returnStmt();
     IfStmtContext *ifStmt();
     LoopStmtContext *loopStmt();
     ExprStmtContext *exprStmt();
     TypeDefContext *typeDef();
+    ReturnStmtContext *returnStmt();
+    BreakStmtContext *breakStmt();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -466,6 +468,22 @@ public:
 
   PatternContext* pattern();
 
+  class  BreakStmtContext : public antlr4::ParserRuleContext {
+  public:
+    BreakStmtContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *BREAK();
+    antlr4::tree::TerminalNode *SEMI();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  BreakStmtContext* breakStmt();
+
   class  LoopStmtContext : public antlr4::ParserRuleContext {
   public:
     LoopStmtContext(antlr4::ParserRuleContext *parent, size_t invokingState);
@@ -495,7 +513,6 @@ public:
     antlr4::tree::TerminalNode *RBRACE();
     std::vector<StatementContext *> statement();
     StatementContext* statement(size_t i);
-    ExprContext *expr();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;

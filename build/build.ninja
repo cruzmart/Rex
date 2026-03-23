@@ -229,8 +229,22 @@ build src/CMakeFiles/rex.dir/passes/rex_exp_pass.cpp.o: CXX_COMPILER__rex_unscan
   OBJECT_DIR = src/CMakeFiles/rex.dir
   OBJECT_FILE_DIR = src/CMakeFiles/rex.dir/passes
 
+build src/CMakeFiles/rex.dir/passes/rex_return_pass.cpp.o: CXX_COMPILER__rex_unscanned_Debug /home/unknown/projects/Rex/src/passes/rex_return_pass.cpp || cmake_object_order_depends_target_rex
+  DEP_FILE = src/CMakeFiles/rex.dir/passes/rex_return_pass.cpp.o.d
+  FLAGS = -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual
+  INCLUDES = -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support
+  OBJECT_DIR = src/CMakeFiles/rex.dir
+  OBJECT_FILE_DIR = src/CMakeFiles/rex.dir/passes
+
 build src/CMakeFiles/rex.dir/rex_binary_op.cpp.o: CXX_COMPILER__rex_unscanned_Debug /home/unknown/projects/Rex/src/rex_binary_op.cpp || cmake_object_order_depends_target_rex
   DEP_FILE = src/CMakeFiles/rex.dir/rex_binary_op.cpp.o.d
+  FLAGS = -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual
+  INCLUDES = -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support
+  OBJECT_DIR = src/CMakeFiles/rex.dir
+  OBJECT_FILE_DIR = src/CMakeFiles/rex.dir
+
+build src/CMakeFiles/rex.dir/rex_errors.cpp.o: CXX_COMPILER__rex_unscanned_Debug /home/unknown/projects/Rex/src/rex_errors.cpp || cmake_object_order_depends_target_rex
+  DEP_FILE = src/CMakeFiles/rex.dir/rex_errors.cpp.o.d
   FLAGS = -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual
   INCLUDES = -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support
   OBJECT_DIR = src/CMakeFiles/rex.dir
@@ -244,7 +258,7 @@ build src/CMakeFiles/rex.dir/rex_binary_op.cpp.o: CXX_COMPILER__rex_unscanned_De
 #############################################
 # Link the executable src/rex
 
-build src/rex: CXX_EXECUTABLE_LINKER__rex_Debug src/CMakeFiles/rex.dir/main.cpp.o src/CMakeFiles/rex.dir/rex_ast.cpp.o src/CMakeFiles/rex.dir/rex_exps.cpp.o src/CMakeFiles/rex.dir/rex_funcs.cpp.o src/CMakeFiles/rex.dir/rex_stmts.cpp.o src/CMakeFiles/rex.dir/rex_ast_nodes.cpp.o src/CMakeFiles/rex.dir/rex_ast_build.cpp.o src/CMakeFiles/rex.dir/rex_scope.cpp.o src/CMakeFiles/rex.dir/passes/rex_alias_pass.cpp.o src/CMakeFiles/rex.dir/passes/rex_exp_pass.cpp.o src/CMakeFiles/rex.dir/rex_binary_op.cpp.o | libparser.a /home/unknown/antlr/antlr4-install/lib/libantlr4-runtime.a || libparser.a
+build src/rex: CXX_EXECUTABLE_LINKER__rex_Debug src/CMakeFiles/rex.dir/main.cpp.o src/CMakeFiles/rex.dir/rex_ast.cpp.o src/CMakeFiles/rex.dir/rex_exps.cpp.o src/CMakeFiles/rex.dir/rex_funcs.cpp.o src/CMakeFiles/rex.dir/rex_stmts.cpp.o src/CMakeFiles/rex.dir/rex_ast_nodes.cpp.o src/CMakeFiles/rex.dir/rex_ast_build.cpp.o src/CMakeFiles/rex.dir/rex_scope.cpp.o src/CMakeFiles/rex.dir/passes/rex_alias_pass.cpp.o src/CMakeFiles/rex.dir/passes/rex_exp_pass.cpp.o src/CMakeFiles/rex.dir/passes/rex_return_pass.cpp.o src/CMakeFiles/rex.dir/rex_binary_op.cpp.o src/CMakeFiles/rex.dir/rex_errors.cpp.o | libparser.a /home/unknown/antlr/antlr4-install/lib/libantlr4-runtime.a || libparser.a
   FLAGS = -Wall -g
   LINK_LIBRARIES = libparser.a  /home/unknown/antlr/antlr4-install/lib/libantlr4-runtime.a
   OBJECT_DIR = src/CMakeFiles/rex.dir

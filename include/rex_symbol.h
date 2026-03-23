@@ -29,6 +29,19 @@ struct Symbol {
 
     Symbol(SymbolType k, std::string n)
         : kind(k), name(std::move(n)) {}
+
+    std::string sym_type(){
+        switch(kind){
+            case rex::SymbolType::Function:
+                return "function";
+            case rex::SymbolType::Variable:
+                return "variable";
+            case rex::SymbolType::Typealias:
+                return "typealias";
+            default:
+                return "<?>";
+        }
+    }
 };
 
 } // namespace rex

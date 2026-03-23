@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <memory>
+#include <ostream>
 #include <vector>
 #include <string>
 #include "rex_ast.h"
@@ -27,7 +28,9 @@ enum class StmtKind {
     For,
     Loop,
     If,
-    Return
+    Return_Normal,
+    Return_Expr,
+    Break
 };
 
 enum class PatternType {
@@ -61,8 +64,12 @@ struct Stmt : AstNode {
                 return "Loop";
             case StmtKind::If:
                 return "If";
-            case StmtKind::Return:
-                return "Return";
+            case StmtKind::Return_Normal:
+                return "Return_Normal";
+            case StmtKind::Return_Expr:
+                return "Return_Expr";
+            case StmtKind::Break:
+                return "Break";
             default:
                     return "<?>";
         }
@@ -134,13 +141,13 @@ struct AssignStmt : Stmt {
 
 struct ReturnStmt : Stmt {
     std::shared_ptr<Expr> value;
-    ReturnStmt() : Stmt(StmtKind::Return) {}
+    ReturnStmt() : Stmt(StmtKind::Return_Normal) {}
     void dump(std::ostream& os, int i) const override;
 };
 
 struct ExprStmt : Stmt {
     std::shared_ptr<Expr> value;
-    ExprStmt() : Stmt(StmtKind::Expr) {}
+    ExprStmt() : Stmt(StmtKind::Return_Expr) {}
     void dump(std::ostream& os, int i) const override;
 };
 
@@ -152,7 +159,7 @@ struct WhileStmt : Stmt {
 };
 
 struct ForStmt : Stmt {
-    std::string iter_var;
+    std::shared_ptr<Expr> iter_var;
     std::shared_ptr<Expr> iterable;
     std::shared_ptr<BlockExpr> body;
     std::shared_ptr<Symbol> resolved;
@@ -172,6 +179,11 @@ struct IfStmt : Stmt {
     std::vector<std::pair<std::shared_ptr<Expr>, std::shared_ptr<BlockExpr>>> elifx_blocks;
     std::shared_ptr<BlockExpr> else_block;
     IfStmt() : Stmt(StmtKind::If) {}
+    void dump(std::ostream& os, int i) const override;
+};
+
+struct BreakStmt : Stmt {
+    BreakStmt() : Stmt(StmtKind::Break) {}
     void dump(std::ostream& os, int i) const override;
 };
 

@@ -1,4 +1,5 @@
 #pragma once
+#include "rex_ast.h"
 #include "rex_funcs.h"
 #include <iostream>
 #include <memory>
@@ -39,9 +40,10 @@ enum class TypeKind {
 // -------------------------------------------------
 // Base type
 // -------------------------------------------------
-struct Type {
+struct Type  {
     TypeKind kind;
-
+    SourceLocation loc;
+    
     Type() : kind(TypeKind::Error) {}
     explicit Type(TypeKind k) : kind(k) {}
     virtual ~Type() = default;
@@ -77,7 +79,7 @@ struct Type {
 // Primitive type
 // -------------------------------------------------
 struct PrimType : Type {
-    enum class Prims { Int, Bool, Char, Real, String, Null } prim;
+    enum class Prims { Int, Bool, Char, Real, String, Null, Void} prim;
 
     explicit PrimType(Prims p) : Type(TypeKind::Primitive), prim(p) {}
     
@@ -89,6 +91,7 @@ struct PrimType : Type {
             case Prims::Real:   return "Real";
             case Prims::String: return "String";
             case Prims::Null:   return "Null";
+            case Prims::Void:   return "Void";
         }
         return "<?>";
     }

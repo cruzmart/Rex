@@ -64,6 +64,8 @@ public:
 
     virtual std::any visitPattern(RexParser::PatternContext *context) = 0;
 
+    virtual std::any visitBreakStmt(RexParser::BreakStmtContext *context) = 0;
+
     virtual std::any visitLoopStmt(RexParser::LoopStmtContext *context) = 0;
 
     virtual std::any visitBlock(RexParser::BlockContext *context) = 0;

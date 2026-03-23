@@ -82,6 +82,9 @@ public:
   virtual void enterPattern(RexParser::PatternContext *ctx) = 0;
   virtual void exitPattern(RexParser::PatternContext *ctx) = 0;
 
+  virtual void enterBreakStmt(RexParser::BreakStmtContext *ctx) = 0;
+  virtual void exitBreakStmt(RexParser::BreakStmtContext *ctx) = 0;
+
   virtual void enterLoopStmt(RexParser::LoopStmtContext *ctx) = 0;
   virtual void exitLoopStmt(RexParser::LoopStmtContext *ctx) = 0;
 
