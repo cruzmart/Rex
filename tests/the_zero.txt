@@ -1,0 +1,11 @@
+
+type decimal = Real;
+
+/*
+
+function average(a: decimal, b: decimal) -> Real[3] {
+    let sum : decimal = a + b;
+    [1,2,3];
+}
+
+*/

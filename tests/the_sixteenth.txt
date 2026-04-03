@@ -1,0 +1,118 @@
+type integer = Int;
+type float = Real;
+type cap = Bool;
+
+// ------------------------------------------------
+// function 1 (simple for loop)
+// ------------------------------------------------
+function sum_to_n(n: integer) -> integer {
+    let total : integer = 0;
+
+    for i in 0..n {
+        total = total + i;
+    }
+
+    total;
+}
+
+// ------------------------------------------------
+// function 2 (break inside for loop)
+// ------------------------------------------------
+function first_even(arr: integer[5]) -> integer {
+    let result : integer = -1;
+
+    for i in arr {
+        if i % 2 == 0 {
+            result = i;
+            if i == 4 {
+                break;
+                return 9;
+            }
+            
+        }
+        break;
+        return 2;
+    }
+
+    result;
+}
+
+// ------------------------------------------------
+// function 3 (nested for + break)
+// ------------------------------------------------
+function find_pair(x: integer) -> integer {
+    let found : integer = -1;
+
+    for i in 0..x {
+        for j in 0..x {
+
+            if i + j == x {
+                found = i;
+                break;
+            }
+
+        }
+    }
+
+    found;
+}
+
+// ------------------------------------------------
+// function 4 (break + nested scope + types)
+// ------------------------------------------------
+function scoped_loop(n: integer) -> integer {
+
+    type local_int = integer;
+
+    let acc : local_int = 0;
+
+    for i in 0..n {
+
+        type deeper_int = local_int;
+
+        let temp : deeper_int = i * 2;
+
+        if temp > 10 {
+            acc = temp;
+            break;
+        }
+
+        acc = acc + temp;
+    }
+
+    return acc;
+}
+
+// ------------------------------------------------
+// function 5 (implicit return + break interaction)
+// ------------------------------------------------
+function stop_early(n: integer) -> integer {
+    let value : integer = 0;
+
+    for i in 0..n {
+        if i == 3 {
+            value = i;
+            break;
+        }
+
+        value = value + 1;
+    }
+
+    value;
+}
+
+
+// ---------- Function definitions ----------
+function breaky(x: Int) -> deeper_int {
+
+    while x < 10 {
+
+        x = x + 1;
+
+        break;
+         return 2;
+    }
+
+   2;
+
+}

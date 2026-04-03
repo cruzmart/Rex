@@ -58,18 +58,21 @@ bool ReturnCheckPass::visitBlock(const std::shared_ptr<BlockExpr>& block) {
 
         // 🔥 implicit return (ONLY last statement)
         if (!stmt_returns && i == block->statements.size() - 1) {
-            if (stmt->stmt_kind == StmtKind::Return_Expr) {
-                auto es = std::static_pointer_cast<ExprStmt>(stmt);
 
-                if (isVoid(current_return_type)) {
-                    err.error(es, "Void function cannot return a value");
-                } else {
+            if (stmt->stmt_kind == StmtKind::Return_Expr) {
+
+                // ✅ ONLY treat as return if function is NOT void
+                if (!isVoid(current_return_type)) {
+                    auto es = std::static_pointer_cast<ExprStmt>(stmt);
+
                     if (!es->value->type->equals(current_return_type)) {
                         err.error(es, "Return type mismatch (implicit return)");
                     }
+
+                    stmt_returns = true;
                 }
 
-                stmt_returns = true;
+                // ❌ if void → do NOTHING (just a normal statement)
             }
         }
 

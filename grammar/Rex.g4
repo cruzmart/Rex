@@ -247,7 +247,7 @@ INT_LITERAL
     ;
 
 REAL_LITERAL
-    : [0-9]+ '.' [0-9]*
+    : [0-9]+ '.' [0-9]+
     ;
 
 STRING_LITERAL
