@@ -18,6 +18,7 @@ void ReturnCheckPass::visit(const std::shared_ptr<FileAst>& file) {
 // FUNCTION
 // ============================================
 
+
 void ReturnCheckPass::visitFunction(const std::shared_ptr<FunctionDecl>& fn) {
     current_return_type = fn->func_type->ret;
 
@@ -35,6 +36,7 @@ void ReturnCheckPass::visitFunction(const std::shared_ptr<FunctionDecl>& fn) {
 // ============================================
 
 bool ReturnCheckPass::isVoid(const std::shared_ptr<Type>& t) {
+    if (!t) return true; // treat null as void
     return t->kind == TypeKind::Primitive &&
            std::static_pointer_cast<PrimType>(t)->prim == PrimType::Prims::Void;
 }

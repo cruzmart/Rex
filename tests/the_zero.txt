@@ -1,6 +1,9 @@
 
 type decimal = Real;
 
+// let a : Int[2] = [2,2.0];
+
+
 /*
 
 function average(a: decimal, b: decimal) -> Real[3] {
@@ -9,3 +12,24 @@ function average(a: decimal, b: decimal) -> Real[3] {
 }
 
 */
+
+/*
+let result : Int = 2;
+let arr : Int[3] = [1,3,4];
+
+ for i in arr {
+        if i % 2 == 0 {
+        result = i;
+            
+    }
+}
+*/
+
+let result : Int = 2;
+let arr : Int[2][2] = [[1,2],[3,4]];
+
+for i in arr {
+    for s in i {
+        i[0] = 0;
+    }
+}
