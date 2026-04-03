@@ -237,6 +237,16 @@ public interface RexListener extends ParseTreeListener {
 	 */
 	void exitPattern(RexParser.PatternContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link RexParser#breakStmt}.
+	 * @param ctx the parse tree
+	 */
+	void enterBreakStmt(RexParser.BreakStmtContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RexParser#breakStmt}.
+	 * @param ctx the parse tree
+	 */
+	void exitBreakStmt(RexParser.BreakStmtContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link RexParser#loopStmt}.
 	 * @param ctx the parse tree
 	 */
