@@ -1,3 +1,143 @@
-function inc(x: Int) -> Int {
-    return x + 1;
+type integer = Int;
+
+// ------------------------------------------------
+// VALID CASES
+// ------------------------------------------------
+
+function valid_simple() -> integer {
+    while true {
+        break;
+    }
+    1;
 }
+
+function valid_nested() -> integer {
+    for i in 0..10 {
+
+        while i < 5 {
+
+            if i == 3 {
+                break;
+            } elifx i == 4 {
+                break;
+            } else {
+                // still inside loop
+                break;
+            }
+
+        }
+
+        break;
+    }
+
+    0;
+}
+
+function valid_deep_nesting() -> integer {
+    loop {
+        if true {
+            for j in 0..5 {
+                if j == 2 {
+                    break;
+                }
+            }
+        }
+        break;
+    }
+    1;
+}
+
+/*
+// ------------------------------------------------
+// INVALID CASES
+// ------------------------------------------------
+
+function invalid_top_level() -> integer {
+    break;   // ❌ ERROR: not inside loop
+    0;
+}
+
+function invalid_if_only() -> integer {
+    if true {
+        break;   // ❌ ERROR: still not inside loop
+    }
+    0;
+}
+
+function invalid_nested_if() -> integer {
+    if true {
+        if false {
+            break;   // ❌ ERROR
+        }
+    }
+    0;
+}
+
+function invalid_after_loop() -> integer {
+    while true {
+        break;
+    }
+
+    break;   // ❌ ERROR: outside loop
+    0;
+}
+
+function invalid_mixed() -> integer {
+
+    for i in 0..10 {
+
+        if i == 5 {
+            break;   // ✅ valid
+        }
+
+    }
+
+    if true {
+        break;   // ❌ ERROR
+    }
+
+    0;
+}
+
+// ------------------------------------------------
+// TRICKY EDGE CASES
+// ------------------------------------------------
+
+function tricky_shadow() -> integer {
+
+    while true {
+
+        if true {
+            // valid (still inside while)
+            break;
+        }
+
+        // unreachable but still valid context
+        break;
+    }
+
+    // outside loop now
+    break;   // ❌ ERROR
+
+    0;
+}
+
+function tricky_deep_invalid() -> integer {
+
+    if true {
+        for i in 0..5 {
+            if i == 3 {
+                break;  // ✅ valid
+            }
+        }
+    }
+
+    if true {
+        if true {
+            break;  // ❌ ERROR (no loop in THIS path)
+        }
+    }
+
+    0;
+}
+*/
