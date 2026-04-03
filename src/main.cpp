@@ -5,6 +5,7 @@
 #include "RexParser.h"
 
 #include "passes/rex_alias_pass.h"
+#include "passes/rex_assignment_pass.h"
 #include "passes/rex_break_pass.h"
 #include "passes/rex_exp_pass.h"
 #include "passes/rex_return_pass.h"
@@ -15,7 +16,7 @@ using namespace antlr4;
 using namespace rex;
 
 int main() {
-    std::ifstream file("tests/the_seventh.txt");
+    std::ifstream file("tests/the_zero.txt");
     if (!file) {
         std::cerr << "Failed to open .txt file\n";
         return 1;
@@ -51,6 +52,11 @@ int main() {
     ExprPass pass_expr(global_scope_2);
     pass_expr.visit(ast);
     std::cout << "Expression Check (Passed)" << std::endl;
+
+    ///// Assign Pass /////
+    AssignmentCheckPass pass_assign;
+    pass_assign.visit(ast);
+    std::cout << "Assignment Check (Passed)" << std::endl;
 
     //// Return Pass /////
     ReturnCheckPass pass_return;

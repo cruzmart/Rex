@@ -101,18 +101,3 @@ function stop_early(n: integer) -> integer {
     value;
 }
 
-
-// ---------- Function definitions ----------
-function breaky(x: Int) -> deeper_int {
-
-    while x < 10 {
-
-        x = x + 1;
-
-        break;
-         return 2;
-    }
-
-   2;
-
-}

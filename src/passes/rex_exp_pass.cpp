@@ -137,56 +137,111 @@
 
     }
     // Good?
-    void ExprPass ::visitLetStmt(const std::shared_ptr<LetStmt> ls){
-        switch(ls->id_pattern->pat_type) {
-            case PatternType::Single: {
+void ExprPass::visitLetStmt(const std::shared_ptr<LetStmt> ls) {
+    switch (ls->id_pattern->pat_type) {
 
-                auto pid = std::static_pointer_cast<PatternId>(ls->id_pattern);
-                 if (current_scope->symbols.contains(pid->id))
-                    err.error(ls,"Variable/Function '" + pid->id + "' is already defined");
-                auto sym = std::make_shared<Symbol>(SymbolType::Variable, pid->id);
+        // ============================================
+        // SINGLE VARIABLE
+        // ============================================
+        case PatternType::Single: {
 
-                auto expr_t = visitExpr(ls->exp);
+            auto pid = std::static_pointer_cast<PatternId>(ls->id_pattern);
 
-                sym->type = ls->type ? ls->type : expr_t;
-                ls->type = sym->type;
-                sym->expr = ls->exp;
-                current_scope->define(sym);
-                break;
-            }
-            case PatternType::Multiple: {
-                auto pids = std::static_pointer_cast<PatternIds>(ls->id_pattern);
-                auto texp = std::static_pointer_cast<TupleExpr>(ls->exp);
-                auto ttype = std::static_pointer_cast<TupleType>(ls->type);
+            if (current_scope->symbols.contains(pid->id))
+                err.error(ls, "Variable/Function '" + pid->id + "' is already defined");
 
-                bool no_init_type = ttype->elements.empty() ? true : false;
+            auto sym = std::make_shared<Symbol>(SymbolType::Variable, pid->id);
 
-                for(size_t i = 0; i < pids->ids.size(); ++i) {
-                    if (current_scope->symbols.contains(pids->ids[i]))
-                        err.error(ls,"Variable/Function '" + pids->ids[i]+ "' is already defined");
-                    auto sym = std::make_shared<Symbol>(SymbolType::Variable, pids->ids[i]);
+            auto expr_t = visitExpr(ls->exp);
 
-                    if(no_init_type){
-                        sym->expr = texp->elements[i];
-                        sym->type = visitExpr(sym->expr);
-                        ttype->elements.push_back(sym->type);
-                        current_scope->define(sym);
-                    } else {
-
-                        sym->type = ttype->elements[i];
-                        sym->expr = texp->elements[i];
-                        visitExpr(sym->expr);
-                        current_scope->define(sym);
-                    }
+            // ✅ Type check the initialized value if any 
+            if (ls->type) {
+                if (!expr_t->equals(ls->type)) {
+                    err.error(ls,
+                        "Type mismatch in let declaration: expected '" +
+                        ls->type->to_string() +
+                        "' but got '" +
+                        expr_t->to_string() + "'"
+                    );
                 }
-                break;
-             }
-             default:
-                err.error(ls,"Pattern for Let Decleration does not exist");
+            }
 
+            sym->type = ls->type ? ls->type : expr_t;
+            ls->type = sym->type;
+            sym->expr = ls->exp;
+
+            current_scope->define(sym);
+            break;
         }
 
+        // ============================================
+        // MULTIPLE (TUPLE DESTRUCTURING)
+        // ============================================
+        case PatternType::Multiple: {
+
+            auto pids = std::static_pointer_cast<PatternIds>(ls->id_pattern);
+            auto texp = std::static_pointer_cast<TupleExpr>(ls->exp);
+
+            // ✅ SAFE handling of optional type
+            std::shared_ptr<TupleType> ttype = nullptr;
+            if (ls->type) {
+                ttype = std::static_pointer_cast<TupleType>(ls->type);
+            }
+
+            bool no_init_type = !ttype || ttype->elements.empty();
+
+            // Optional: size check (VERY good to have)
+            if (pids->ids.size() != texp->elements.size()) {
+                err.error(ls, "Tuple destructuring size mismatch");
+            }
+
+            for (size_t i = 0; i < pids->ids.size(); ++i) {
+
+                if (current_scope->symbols.contains(pids->ids[i]))
+                    err.error(ls, "Variable/Function '" + pids->ids[i] + "' is already defined");
+
+                auto sym = std::make_shared<Symbol>(SymbolType::Variable, pids->ids[i]);
+
+                auto elem_expr = texp->elements[i];
+                auto actual_type = visitExpr(elem_expr);
+
+                if (no_init_type) {
+                    // infer type
+                    sym->type = actual_type;
+                    sym->expr = elem_expr;
+
+                    if (ttype) {
+                        ttype->elements.push_back(actual_type);
+                    }
+
+                } else {
+                    auto expected_type = ttype->elements[i];
+
+                    // ✅ Type check the initialized value if any
+                    if (!actual_type->equals(expected_type)) {
+                        err.error(ls,
+                            "Tuple element type mismatch at index " +
+                            std::to_string(i) +
+                            ": expected '" + expected_type->to_string() +
+                            "' but got '" + actual_type->to_string() + "'"
+                        );
+                    }
+
+                    sym->type = expected_type;
+                    sym->expr = elem_expr;
+                }
+
+                current_scope->define(sym);
+            }
+
+            break;
+        }
+
+        // ============================================
+        default:
+            err.error(ls, "Pattern for Let Declaration does not exist");
     }
+}
 
    void ExprPass::visitFunctionDecl(const std::shared_ptr<FunctionDecl> f){
 
@@ -253,15 +308,14 @@
         // check what type is the iterable (it can only be range type or array type)
         auto itera_type = visitExpr(fs->iterable); 
 
-        switch(fs->iterable->exp_kind){
-            case ExprKind::Array:
-                itr_var->type = std::static_pointer_cast<ArrayType>(itera_type)->elem;
+        switch(itera_type->kind){
+            case rex::TypeKind::Array:{
+                auto arr = std::static_pointer_cast<ArrayType>(itera_type);
+                itr_var->type = arr->elem;
                 break;
-            case ExprKind::Range:
+            }
+            case rex::TypeKind::Range:
                 itr_var->type = std::make_shared<PrimType>(PrimType::Prims::Int);
-                break;
-            case ExprKind::Id:
-                itr_var->type = itera_type;
                 break;
             default:
                 err.error(fs->iterable,"Iterable value MUST be either of type 'Array' or 'Range'");
