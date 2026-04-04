@@ -12,6 +12,11 @@
 #include "rex_ast_build.h"
 #include "rex_ast_nodes.h"
 
+
+#include "backend/rex_backend.h"
+
+
+
 using namespace antlr4;
 using namespace rex;
 
@@ -72,6 +77,9 @@ int main() {
     ast->dump(std::cout, 0);
 
 
+    // BackEnd backend;
+    // backend.emitMain();
+    // backend.dumpLLVM(std::cout, true);
 
     return 0;
 }

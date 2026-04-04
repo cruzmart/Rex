@@ -50,6 +50,8 @@ public:
 
     virtual std::any visitLetStmt(RexParser::LetStmtContext *context) = 0;
 
+    virtual std::any visitPrintStmt(RexParser::PrintStmtContext *context) = 0;
+
     virtual std::any visitAssignStmt(RexParser::AssignStmtContext *context) = 0;
 
     virtual std::any visitReturnStmt(RexParser::ReturnStmtContext *context) = 0;

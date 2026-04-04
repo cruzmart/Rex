@@ -1,3 +1,11 @@
+/home/unknown/projects/Rex/build/CMakeFiles/intrinsics_gen.dir
+/home/unknown/projects/Rex/build/CMakeFiles/omp_gen.dir
+/home/unknown/projects/Rex/build/CMakeFiles/acc_gen.dir
+/home/unknown/projects/Rex/build/CMakeFiles/RISCVTargetParserTableGen.dir
+/home/unknown/projects/Rex/build/CMakeFiles/mlir-tablegen-targets.dir
+/home/unknown/projects/Rex/build/CMakeFiles/mlir-headers.dir
+/home/unknown/projects/Rex/build/CMakeFiles/mlir-generic-headers.dir
+/home/unknown/projects/Rex/build/CMakeFiles/mlir-doc.dir
 /home/unknown/projects/Rex/build/CMakeFiles/antlr.dir
 /home/unknown/projects/Rex/build/CMakeFiles/parser.dir
 /home/unknown/projects/Rex/build/CMakeFiles/edit_cache.dir

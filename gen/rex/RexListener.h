@@ -61,6 +61,9 @@ public:
   virtual void enterLetStmt(RexParser::LetStmtContext *ctx) = 0;
   virtual void exitLetStmt(RexParser::LetStmtContext *ctx) = 0;
 
+  virtual void enterPrintStmt(RexParser::PrintStmtContext *ctx) = 0;
+  virtual void exitPrintStmt(RexParser::PrintStmtContext *ctx) = 0;
+
   virtual void enterAssignStmt(RexParser::AssignStmtContext *ctx) = 0;
   virtual void exitAssignStmt(RexParser::AssignStmtContext *ctx) = 0;
 

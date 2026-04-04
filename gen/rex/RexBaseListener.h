@@ -63,6 +63,9 @@ public:
   virtual void enterLetStmt(RexParser::LetStmtContext * /*ctx*/) override { }
   virtual void exitLetStmt(RexParser::LetStmtContext * /*ctx*/) override { }
 
+  virtual void enterPrintStmt(RexParser::PrintStmtContext * /*ctx*/) override { }
+  virtual void exitPrintStmt(RexParser::PrintStmtContext * /*ctx*/) override { }
+
   virtual void enterAssignStmt(RexParser::AssignStmtContext * /*ctx*/) override { }
   virtual void exitAssignStmt(RexParser::AssignStmtContext * /*ctx*/) override { }
 

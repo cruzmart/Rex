@@ -253,6 +253,15 @@ Rex_IS_TOP_LEVEL:STATIC=ON
 //Value Computed by CMake
 Rex_SOURCE_DIR:STATIC=/home/unknown/projects/Rex
 
+//Path to a file.
+ZLIB_INCLUDE_DIR:PATH=/usr/include
+
+//Path to a library.
+ZLIB_LIBRARY_DEBUG:FILEPATH=ZLIB_LIBRARY_DEBUG-NOTFOUND
+
+//Path to a library.
+ZLIB_LIBRARY_RELEASE:FILEPATH=/usr/lib/x86_64-linux-gnu/libz.so
+
 
 ########################
 # INTERNAL cache entries
@@ -409,6 +418,8 @@ FIND_PACKAGE_MESSAGE_DETAILS_Git:INTERNAL=[/usr/bin/git][v2.43.0()]
 FIND_PACKAGE_MESSAGE_DETAILS_Java:INTERNAL=[/usr/bin/java][cfound components: Runtime ][v17.0.18()]
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
+//Details about finding ZLIB
+FIND_PACKAGE_MESSAGE_DETAILS_ZLIB:INTERNAL=[/usr/lib/x86_64-linux-gnu/libz.so][/usr/include][c ][v1.3()]
 //ADVANCED property for variable: GIT_EXECUTABLE
 GIT_EXECUTABLE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: Java_IDLJ_EXECUTABLE
@@ -425,6 +436,12 @@ Java_JAVADOC_EXECUTABLE-ADVANCED:INTERNAL=1
 Java_JAVAH_EXECUTABLE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: Java_JAVA_EXECUTABLE
 Java_JAVA_EXECUTABLE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: ZLIB_INCLUDE_DIR
+ZLIB_INCLUDE_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: ZLIB_LIBRARY_DEBUG
+ZLIB_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: ZLIB_LIBRARY_RELEASE
+ZLIB_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
 //linker supports push/pop state
 _CMAKE_LINKER_PUSHPOP_STATE_SUPPORTED:INTERNAL=TRUE
 

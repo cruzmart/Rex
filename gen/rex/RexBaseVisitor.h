@@ -77,6 +77,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual std::any visitPrintStmt(RexParser::PrintStmtContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual std::any visitAssignStmt(RexParser::AssignStmtContext *ctx) override {
     return visitChildren(ctx);
   }
