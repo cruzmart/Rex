@@ -42,6 +42,7 @@ private:
     virtual antlrcpp::Any visitIfStmt(RexParser::IfStmtContext *ctx) override;
     virtual antlrcpp::Any visitLoopStmt(RexParser::LoopStmtContext *ctx) override;
     virtual antlrcpp::Any visitBreakStmt(RexParser::BreakStmtContext * ctx) override;
+    virtual antlrcpp::Any visitPrintStmt(RexParser::PrintStmtContext * ctx) override;
 
     // ------------------------ BLOCKS -----------------------
     virtual antlrcpp::Any visitBlock(RexParser::BlockContext *ctx) override;

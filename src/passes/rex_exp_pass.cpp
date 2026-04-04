@@ -113,7 +113,8 @@
                 visitReturnNormalStmt(std::static_pointer_cast<ReturnStmt>(stmt));
                 break;
             
-
+            case StmtKind::Print:
+                visitPrintStmt(std::static_pointer_cast<PrintStmt>(stmt));
 
             default:
                 break;
@@ -557,5 +558,13 @@ void ExprPass::visitLetStmt(const std::shared_ptr<LetStmt> ls) {
         return pexp->type;
 
     }
+
+
     
+
+
+  void ExprPass::visitPrintStmt(const std::shared_ptr<PrintStmt> ps){
+    visitExpr(ps->argument);
   }
+
+}
