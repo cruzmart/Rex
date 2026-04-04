@@ -85,4 +85,9 @@ void BreakStmt::dump(std::ostream& os, int i) const {
     indent(os, i); os << "break\n";
 }
 
+void PrintStmt::dump(std::ostream& os, int i) const {
+    indent(os, i); os << "print\n";
+    argument->dump(os, i + 2);
+}
+
 } // namespace rex

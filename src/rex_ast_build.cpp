@@ -204,6 +204,7 @@ antlrcpp::Any rex_ast_build::visitStatement(RexParser::StatementContext* ctx) {
     if (ctx->returnStmt()) return visit(ctx->returnStmt());
     if (ctx->exprStmt()) return visit(ctx->exprStmt());
     if (ctx->breakStmt()) return visit(ctx->breakStmt());
+    if(ctx->printStmt()) return visit(ctx->printStmt());
     throw std::runtime_error("Unknown statement type");
 }
 
@@ -215,9 +216,13 @@ antlrcpp::Any rex_ast_build::visitLetStmt(RexParser::LetStmtContext* ctx) {
     l->loc = loc(ctx);
     return std::static_pointer_cast<Stmt>(l);
 }
-
-// ... Keep all other statements, expressions, blocks identical, 
-// replacing all dynamic_pointer_cast with static_pointer_cast or as_type/as_expr helpers.
+antlrcpp::Any rex_ast_build::visitPrintStmt(RexParser::PrintStmtContext * ctx){
+    auto p = std::make_shared<PrintStmt>();
+    if(ctx->expr())
+        p->argument = as_expr<Expr>(visit(ctx->expr()));
+    p->loc = loc(ctx);
+    return std::static_pointer_cast<Stmt>(p);
+}
 
 // ==================================================
 // -------------------- PATTERNS -------------------

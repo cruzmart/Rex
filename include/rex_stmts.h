@@ -28,6 +28,7 @@ enum class StmtKind {
     For,
     Loop,
     If,
+    Print,
     Return_Normal,
     Return_Expr,
     Break
@@ -179,6 +180,12 @@ struct IfStmt : Stmt {
     std::vector<std::pair<std::shared_ptr<Expr>, std::shared_ptr<BlockExpr>>> elifx_blocks;
     std::shared_ptr<BlockExpr> else_block;
     IfStmt() : Stmt(StmtKind::If) {}
+    void dump(std::ostream& os, int i) const override;
+};
+
+struct PrintStmt : Stmt {
+    std::shared_ptr<Expr> argument;
+    PrintStmt() : Stmt(StmtKind::Print) {}
     void dump(std::ostream& os, int i) const override;
 };
 

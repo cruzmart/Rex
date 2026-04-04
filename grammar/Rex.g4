@@ -74,6 +74,7 @@ statement
     | loopStmt
     | exprStmt
     | typeDef
+    | printStmt
     | returnStmt
     | exprStmt
     | breakStmt
@@ -81,6 +82,9 @@ statement
 
 letStmt
     : LET pattern  (':' type)? '=' expr ';'
+    ;
+printStmt 
+    : PRINT '(' expr ')' ';'
     ;
 
 assignStmt
@@ -188,6 +192,7 @@ IN      : 'in';
 RETURN  : 'return';
 TYPE    : 'type';
 
+PRINT   : 'print';
 INT     : 'Int';
 BOOL    : 'Bool';
 CHAR    : 'Char';
