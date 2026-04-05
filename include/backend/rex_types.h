@@ -1,8 +1,9 @@
+#pragma once
 #include "mlir/IR/Types.h"
 
 namespace rex {
 
-struct BackendType {
+struct TypesHelper {
 
     public:
         mlir::Type i32;

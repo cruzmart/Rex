@@ -3,7 +3,6 @@
 // Pass manager
 #include <string_view>
 
-#include "backend/rex_print.h"
 #include "mlir/Conversion/ArithToLLVM/ArithToLLVM.h"
 #include "mlir/Conversion/ControlFlowToLLVM/ControlFlowToLLVM.h"
 #include "mlir/Conversion/FuncToLLVM/ConvertFuncToLLVM.h"
@@ -49,40 +48,25 @@
 
 
 
-#include "rex_types.h"
-#include "rex_print.h"
+struct PrintHelper {
 
-using namespace rex;
-
-class BackEnd {
- public:
-    BackEnd();
-
-    int emitMain();
-    void dumpLLVM(std::ostream &os, bool);
-    void example();
-    void createGlobalString(const char *str, const char *name);
-
- protected:
-    void setupPrintf();
-    void printNewline();
-    int lowerDialects();
-    void setupPrintFormats();
-    void loadPrints();
-
- private:
-
-    mlir::MLIRContext context;
-    mlir::ModuleOp module;
-    std::shared_ptr<mlir::OpBuilder> builder;
-    mlir::Location loc;
-    TypesHelper types;
-    std::shared_ptr<PrintHelper> printer;
+    mlir::LLVM::LLVMFuncOp printf_func;
+    mlir::LLVM::GlobalOp fmt_int;
+    mlir::LLVM::GlobalOp fmt_float;
+    mlir::LLVM::GlobalOp fmt_char;
+    mlir::LLVM::GlobalOp fmt_string;
 
 
-     // LLVM
-    llvm::LLVMContext llvm_context;
-    std::unique_ptr<llvm::Module> llvm_module;
+    PrintHelper(mlir::MLIRContext &ctx,
+                         mlir::OpBuilder &b,
+                         mlir::Location &l);
 
-    
+    mlir::MLIRContext &context;
+    mlir::OpBuilder &builder;
+    mlir::Location &loc;
+
+
+    mlir::LLVM::AddressOfOp getFmtAddress(mlir::LLVM::GlobalOp fmt);
+    void print(mlir::Value value);
+
 };
