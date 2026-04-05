@@ -3,6 +3,7 @@
 // Pass manager
 #include <string_view>
 
+#include "backend/rex_print.h"
 #include "mlir/Conversion/ArithToLLVM/ArithToLLVM.h"
 #include "mlir/Conversion/ControlFlowToLLVM/ControlFlowToLLVM.h"
 #include "mlir/Conversion/FuncToLLVM/ConvertFuncToLLVM.h"
@@ -39,13 +40,17 @@
 #include "mlir/Dialect/SCF/IR/SCF.h"
 
 
-#include "rex_backend_types.h"
 
-#pragma once
+
 
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/IR/BuiltinOps.h"
+
+
+
+#include "rex_types.h"
+#include "rex_print.h"
 
 using namespace rex;
 
@@ -55,17 +60,29 @@ class BackEnd {
 
     int emitMain();
     void dumpLLVM(std::ostream &os, bool);
+    void example();
+    void createGlobalString(const char *str, const char *name);
 
  protected:
     void setupPrintf();
     void printNewline();
-   
     int lowerDialects();
+    void setupPrintFormats();
+    void loadPrints();
 
  private:
+
     mlir::MLIRContext context;
     mlir::ModuleOp module;
     std::shared_ptr<mlir::OpBuilder> builder;
     mlir::Location loc;
-    BackendType types;
+    TypesHelper types;
+    std::shared_ptr<PrintHelper> printer;
+
+
+     // LLVM
+    llvm::LLVMContext llvm_context;
+    std::unique_ptr<llvm::Module> llvm_module;
+
+    
 };

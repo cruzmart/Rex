@@ -1,0 +1,140 @@
+[
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o CMakeFiles/parser.dir/gen/rex/RexBaseListener.cpp.o -c /home/unknown/projects/Rex/gen/rex/RexBaseListener.cpp",
+  "file": "/home/unknown/projects/Rex/gen/rex/RexBaseListener.cpp",
+  "output": "CMakeFiles/parser.dir/gen/rex/RexBaseListener.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o CMakeFiles/parser.dir/gen/rex/RexBaseVisitor.cpp.o -c /home/unknown/projects/Rex/gen/rex/RexBaseVisitor.cpp",
+  "file": "/home/unknown/projects/Rex/gen/rex/RexBaseVisitor.cpp",
+  "output": "CMakeFiles/parser.dir/gen/rex/RexBaseVisitor.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o CMakeFiles/parser.dir/gen/rex/RexLexer.cpp.o -c /home/unknown/projects/Rex/gen/rex/RexLexer.cpp",
+  "file": "/home/unknown/projects/Rex/gen/rex/RexLexer.cpp",
+  "output": "CMakeFiles/parser.dir/gen/rex/RexLexer.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o CMakeFiles/parser.dir/gen/rex/RexListener.cpp.o -c /home/unknown/projects/Rex/gen/rex/RexListener.cpp",
+  "file": "/home/unknown/projects/Rex/gen/rex/RexListener.cpp",
+  "output": "CMakeFiles/parser.dir/gen/rex/RexListener.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o CMakeFiles/parser.dir/gen/rex/RexParser.cpp.o -c /home/unknown/projects/Rex/gen/rex/RexParser.cpp",
+  "file": "/home/unknown/projects/Rex/gen/rex/RexParser.cpp",
+  "output": "CMakeFiles/parser.dir/gen/rex/RexParser.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o CMakeFiles/parser.dir/gen/rex/RexVisitor.cpp.o -c /home/unknown/projects/Rex/gen/rex/RexVisitor.cpp",
+  "file": "/home/unknown/projects/Rex/gen/rex/RexVisitor.cpp",
+  "output": "CMakeFiles/parser.dir/gen/rex/RexVisitor.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/main.cpp.o -c /home/unknown/projects/Rex/src/main.cpp",
+  "file": "/home/unknown/projects/Rex/src/main.cpp",
+  "output": "src/CMakeFiles/rex.dir/main.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/rex_ast.cpp.o -c /home/unknown/projects/Rex/src/rex_ast.cpp",
+  "file": "/home/unknown/projects/Rex/src/rex_ast.cpp",
+  "output": "src/CMakeFiles/rex.dir/rex_ast.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/rex_exps.cpp.o -c /home/unknown/projects/Rex/src/rex_exps.cpp",
+  "file": "/home/unknown/projects/Rex/src/rex_exps.cpp",
+  "output": "src/CMakeFiles/rex.dir/rex_exps.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/rex_funcs.cpp.o -c /home/unknown/projects/Rex/src/rex_funcs.cpp",
+  "file": "/home/unknown/projects/Rex/src/rex_funcs.cpp",
+  "output": "src/CMakeFiles/rex.dir/rex_funcs.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/rex_stmts.cpp.o -c /home/unknown/projects/Rex/src/rex_stmts.cpp",
+  "file": "/home/unknown/projects/Rex/src/rex_stmts.cpp",
+  "output": "src/CMakeFiles/rex.dir/rex_stmts.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/rex_ast_nodes.cpp.o -c /home/unknown/projects/Rex/src/rex_ast_nodes.cpp",
+  "file": "/home/unknown/projects/Rex/src/rex_ast_nodes.cpp",
+  "output": "src/CMakeFiles/rex.dir/rex_ast_nodes.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/rex_ast_build.cpp.o -c /home/unknown/projects/Rex/src/rex_ast_build.cpp",
+  "file": "/home/unknown/projects/Rex/src/rex_ast_build.cpp",
+  "output": "src/CMakeFiles/rex.dir/rex_ast_build.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/rex_scope.cpp.o -c /home/unknown/projects/Rex/src/rex_scope.cpp",
+  "file": "/home/unknown/projects/Rex/src/rex_scope.cpp",
+  "output": "src/CMakeFiles/rex.dir/rex_scope.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/passes/rex_alias_pass.cpp.o -c /home/unknown/projects/Rex/src/passes/rex_alias_pass.cpp",
+  "file": "/home/unknown/projects/Rex/src/passes/rex_alias_pass.cpp",
+  "output": "src/CMakeFiles/rex.dir/passes/rex_alias_pass.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/passes/rex_exp_pass.cpp.o -c /home/unknown/projects/Rex/src/passes/rex_exp_pass.cpp",
+  "file": "/home/unknown/projects/Rex/src/passes/rex_exp_pass.cpp",
+  "output": "src/CMakeFiles/rex.dir/passes/rex_exp_pass.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/passes/rex_return_pass.cpp.o -c /home/unknown/projects/Rex/src/passes/rex_return_pass.cpp",
+  "file": "/home/unknown/projects/Rex/src/passes/rex_return_pass.cpp",
+  "output": "src/CMakeFiles/rex.dir/passes/rex_return_pass.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/passes/rex_break_pass.cpp.o -c /home/unknown/projects/Rex/src/passes/rex_break_pass.cpp",
+  "file": "/home/unknown/projects/Rex/src/passes/rex_break_pass.cpp",
+  "output": "src/CMakeFiles/rex.dir/passes/rex_break_pass.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/passes/rex_assignment_pass.cpp.o -c /home/unknown/projects/Rex/src/passes/rex_assignment_pass.cpp",
+  "file": "/home/unknown/projects/Rex/src/passes/rex_assignment_pass.cpp",
+  "output": "src/CMakeFiles/rex.dir/passes/rex_assignment_pass.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/rex_binary_op.cpp.o -c /home/unknown/projects/Rex/src/rex_binary_op.cpp",
+  "file": "/home/unknown/projects/Rex/src/rex_binary_op.cpp",
+  "output": "src/CMakeFiles/rex.dir/rex_binary_op.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/rex_errors.cpp.o -c /home/unknown/projects/Rex/src/rex_errors.cpp",
+  "file": "/home/unknown/projects/Rex/src/rex_errors.cpp",
+  "output": "src/CMakeFiles/rex.dir/rex_errors.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/backend/rex_backend.cpp.o -c /home/unknown/projects/Rex/src/backend/rex_backend.cpp",
+  "file": "/home/unknown/projects/Rex/src/backend/rex_backend.cpp",
+  "output": "src/CMakeFiles/rex.dir/backend/rex_backend.cpp.o"
+},
+{
+  "directory": "/home/unknown/projects/Rex/build",
+  "command": "/usr/bin/g++ -I/home/unknown/projects/Rex/include -I/home/unknown/projects/Rex/gen/rex -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/misc -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/atn -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/dfa -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/tree -I/home/unknown/antlr/antlr4-install/include/antlr4-runtime/support -isystem /home/unknown/llvm-project/mlir/include -isystem /home/unknown/llvm-project/build/tools/mlir/include -isystem /home/unknown/llvm-project/llvm/include -isystem /home/unknown/llvm-project/build/include  -Wall -g -std=gnu++20 -Wall -Wno-overloaded-virtual -o src/CMakeFiles/rex.dir/backend/rex_print.cpp.o -c /home/unknown/projects/Rex/src/backend/rex_print.cpp",
+  "file": "/home/unknown/projects/Rex/src/backend/rex_print.cpp",
+  "output": "src/CMakeFiles/rex.dir/backend/rex_print.cpp.o"
+}
+]

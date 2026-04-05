@@ -17,6 +17,7 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/rex_errors.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/backend/rex_backend.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/backend/rex_print.cpp"
 
 )
 

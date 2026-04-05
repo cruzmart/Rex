@@ -54,7 +54,7 @@ void ExprStmt::dump(std::ostream& os, int i) const {
 void WhileStmt::dump(std::ostream& os, int i) const {
     indent(os, i); os << "while\n";
     cond->dump(os, i + 1);
-    body->dump(os, i + 1);
+    body->dump(os, i + 2);
 }
 
 void ForStmt::dump(std::ostream& os, int i) const {
