@@ -17,7 +17,9 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/rex_errors.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/backend/rex_backend.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/backend/rex_print.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/backend/rex_backend_prints.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/backend/rex_backend_types.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/backend/rex_backend_exps.cpp"
 
 )
 

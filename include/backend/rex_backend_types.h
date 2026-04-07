@@ -1,7 +1,10 @@
 #pragma once
+#pragma once
 
 // Pass manager
+#include <memory>
 #include <string_view>
+
 
 #include "mlir/Conversion/ArithToLLVM/ArithToLLVM.h"
 #include "mlir/Conversion/ControlFlowToLLVM/ControlFlowToLLVM.h"
@@ -39,51 +42,33 @@
 #include "mlir/Dialect/SCF/IR/SCF.h"
 
 
-
+// Errors
+#include "llvm/Support/Error.h"
 
 
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/IR/BuiltinOps.h"
 
-
-
+#include "rex_exps.h"
 #include "rex_types.h"
-#include "rex_backend_prints.h"
-#include "rex_backend_exps.h"
-
-using namespace rex;
-
-class BackEnd {
- public:
-    BackEnd();
-
-    int emitMain();
-    void dumpLLVM(std::ostream &os, bool);
-    void example();
-    void createGlobalString(const char *str, const char *name);
-
- protected:
-    void setupPrintf();
-    void printNewline();
-    int lowerDialects();
-    void setupPrintFormats();
-    void loadPrints();
-
- private:
-
-    mlir::MLIRContext context;
-    mlir::ModuleOp module;
-    std::shared_ptr<mlir::OpBuilder> builder;
-    mlir::Location loc;
-    std::shared_ptr<TypesHelper> types;
-    std::shared_ptr<PrintHelper> prints;
-    std::shared_ptr<ExpressionsHelper> exps;
 
 
-     // LLVM
-    llvm::LLVMContext llvm_context;
-    std::unique_ptr<llvm::Module> llvm_module;
+namespace rex {
 
+struct TypesHelper {
+
+    private:
+        mlir::OpBuilder *builder;
+        mlir::Location loc;
+    public:
+        mlir::Type i32;
+        mlir::Type c8;
+        mlir::Type f32;
+        mlir::Type b1;
+        mlir::Type ptr;
     
+        TypesHelper( mlir::OpBuilder &b, mlir::Location l);
 };
+
+} // namespace rex

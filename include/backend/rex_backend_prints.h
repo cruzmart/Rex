@@ -57,16 +57,23 @@ struct PrintHelper {
     mlir::LLVM::GlobalOp fmt_string;
 
 
-    PrintHelper(mlir::MLIRContext &ctx,
-                         mlir::OpBuilder &b,
-                         mlir::Location &l);
+    
+    mlir::OpBuilder *builder;
+    mlir::Location loc;
 
-    mlir::MLIRContext &context;
-    mlir::OpBuilder &builder;
-    mlir::Location &loc;
+    
 
 
-    mlir::LLVM::AddressOfOp getFmtAddress(mlir::LLVM::GlobalOp fmt);
-    void print(mlir::Value value);
+    public:
+        PrintHelper(        
+                            mlir::OpBuilder &b,
+                            mlir::Location l);
+
+      
+
+
+        mlir::LLVM::AddressOfOp getFmtAddress(mlir::LLVM::GlobalOp fmt);
+        void printPrimtive(mlir::Value value);
+        void printString(mlir::LLVM::GlobalOp val);
 
 };
