@@ -74,7 +74,7 @@ int main() {
     // std::cout << "Break Check (Passed)" << std::endl;
 
 
-    //ast->dump(std::cout, 0);
+    ast->dump(std::cout, 0);
 
 
     BackEnd backend;

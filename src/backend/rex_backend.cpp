@@ -1,5 +1,6 @@
 #include "backend/rex_backend.h"
-#include "backend/rex_print.h"
+#include "backend/rex_backend_exps.h"
+#include "backend/rex_backend_prints.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/LLVMIR/LLVMTypes.h"
 #include <memory>
@@ -20,22 +21,16 @@ BackEnd::BackEnd() : loc(mlir::UnknownLoc::get(&context)) {
     module = mlir::ModuleOp::create(builder->getUnknownLoc());
     builder->setInsertionPointToStart(module.getBody());
 
-
-    printer = std::make_shared<PrintHelper>(context, *builder, loc);
-
-
-    // initialize the types
-    types.i32 = builder->getI32Type();
-    types.b1 = builder->getI1Type();
-    types.f32 = builder->getF32Type();  // For 32-bit float
-    types.c8 = builder->getI8Type();
-    types.ptr = mlir::LLVM::LLVMPointerType::get(&context);
-
+    
+    types = std::make_shared<TypesHelper>(*builder, loc);
+    prints = std::make_shared<PrintHelper>(*builder, loc);
+    exps = std::make_shared<ExpressionsHelper>(*builder, module, loc, types, prints);
+  
+    
     setupPrintf();
     setupPrintFormats();
     loadPrints();
 
-    
 }
 
 int BackEnd::lowerDialects() {
@@ -94,14 +89,17 @@ void BackEnd::dumpLLVM(std::ostream &os, bool debug) {
 
 
 int BackEnd::emitMain(){
-    auto funcType = builder->getFunctionType({}, {types.i32});
+    auto funcType = builder->getFunctionType({}, {types->i32});
 
     auto func = builder->create<mlir::func::FuncOp>(loc, "main", funcType);
+
 
     auto &entryBlock = *func.addEntryBlock();
     builder->setInsertionPointToStart(&entryBlock);
 
+
     example();
+    
 
     auto zero = builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32);
 
@@ -128,18 +126,18 @@ void BackEnd::createGlobalString(const char *str, const char *name) {
 }
 
 void BackEnd::setupPrintFormats() {
-    createGlobalString("%d\n", "fmt_int");
-    createGlobalString("%f\n", "fmt_float");
-    createGlobalString("%c\n", "fmt_char");
-    createGlobalString("%s\n", "fmt_string");
+    createGlobalString("%d", "fmt_int");
+    createGlobalString("%f", "fmt_float");
+    createGlobalString("%c", "fmt_char");
+    createGlobalString("%s", "fmt_string");
 }
 
 void BackEnd::loadPrints(){
-    printer->printf_func = module.lookupSymbol<mlir::LLVM::LLVMFuncOp>("printf");
-    printer->fmt_int = module.lookupSymbol<mlir::LLVM::GlobalOp>("fmt_int");
-    printer->fmt_float = module.lookupSymbol<mlir::LLVM::GlobalOp>("fmt_float");
-    printer->fmt_char = module.lookupSymbol<mlir::LLVM::GlobalOp>("fmt_char");
-    printer->fmt_string = module.lookupSymbol<mlir::LLVM::GlobalOp>("fmt_string");
+    prints->printf_func = module.lookupSymbol<mlir::LLVM::LLVMFuncOp>("printf");
+    prints->fmt_int = module.lookupSymbol<mlir::LLVM::GlobalOp>("fmt_int");
+    prints->fmt_float = module.lookupSymbol<mlir::LLVM::GlobalOp>("fmt_float");
+    prints->fmt_char = module.lookupSymbol<mlir::LLVM::GlobalOp>("fmt_char");
+    prints->fmt_string = module.lookupSymbol<mlir::LLVM::GlobalOp>("fmt_string");
 }
 
 void BackEnd::setupPrintf() {
@@ -155,19 +153,24 @@ void BackEnd::setupPrintf() {
 }
 
 void BackEnd::example() {
-    // Example constants
-    auto intVal   = builder->create<mlir::arith::ConstantIntOp>(loc, 42, 32);
-    auto floatVal = builder->create<mlir::arith::ConstantFloatOp>(loc, llvm::APFloat(3.14f), types.f32.cast<mlir::FloatType>());
-    auto charVal  = builder->create<mlir::arith::ConstantIntOp>(loc, 'A', 8);
-    auto boolVal  = builder->create<mlir::arith::ConstantIntOp>(loc, 1, 1); // true
+
+
+    auto int_1 = exps->createInt("234");
+    auto float_1 = exps->createFloat("3.4551");
+    auto bool_1 = exps->createBool("true");
+    auto char_1 = exps->createChar("'\n'");
+    auto string_1 = exps->createString("The Blight");
+
 
     // Print them
-    printer->print(intVal);
-    printer->print(floatVal);
-    printer->print(charVal);
-    printer->print(boolVal);
+
+    prints->printPrimtive(int_1);
+    prints->printPrimtive(float_1);
+    prints->printPrimtive(char_1);
+    prints->printPrimtive(bool_1);
+    prints->printString(string_1);
+    
+
+
     //printer->printValue(strVal);
-
-
-    printer->print(intVal);
 }
