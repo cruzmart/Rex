@@ -1,10 +1,7 @@
 #pragma once
-#pragma once
 
 // Pass manager
-#include <memory>
 #include <string_view>
-
 
 #include "mlir/Conversion/ArithToLLVM/ArithToLLVM.h"
 #include "mlir/Conversion/ControlFlowToLLVM/ControlFlowToLLVM.h"
@@ -42,33 +39,35 @@
 #include "mlir/Dialect/SCF/IR/SCF.h"
 
 
-// Errors
-#include "llvm/Support/Error.h"
+
 
 
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/IR/BuiltinOps.h"
 
-#include "rex_exps.h"
-#include "rex_types.h"
 
 
-namespace rex {
+struct PrintHelper {
 
-struct TypesHelper {
+    mlir::LLVM::LLVMFuncOp printf_func;
+    mlir::LLVM::GlobalOp fmt_int;
+    mlir::LLVM::GlobalOp fmt_float;
+    mlir::LLVM::GlobalOp fmt_char;
+    mlir::LLVM::GlobalOp fmt_string;
 
-    private:
-        std::shared_ptr<mlir::OpBuilder> builder;
-        mlir::Location loc;
-    public:
-        mlir::Type i32;
-        mlir::Type c8;
-        mlir::Type f32;
-        mlir::Type b1;
-        mlir::Type ptr;
     
-        TypesHelper( std::shared_ptr<mlir::OpBuilder> b, mlir::Location l);
-};
+    std::shared_ptr<mlir::OpBuilder> builder;
+    mlir::Location loc;
 
-} // namespace rex
+    public:
+        PrintHelper (        
+                        std::shared_ptr<mlir::OpBuilder> b,
+                        mlir::Location l
+                    );
+
+        mlir::LLVM::AddressOfOp getFmtAddress(mlir::LLVM::GlobalOp fmt);
+        void printPrimtive(mlir::Value value);
+        void printString(mlir::LLVM::GlobalOp val);
+
+};

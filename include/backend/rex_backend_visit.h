@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 
 // Pass manager
 #include <memory>
@@ -50,25 +49,36 @@
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/IR/BuiltinOps.h"
 
-#include "rex_exps.h"
-#include "rex_types.h"
 
+#include "backend/rex_backend_prints.h"
+#include "rex_backend_exps.h"
+#include "rex_backend_types.h"
+#include "rex_stmts.h"
+#include "rex_types.h"
+#include "rex_exps.h"
 
 namespace rex {
 
-struct TypesHelper {
+class CodegenVisitor {
+public:
+    std::shared_ptr<mlir::OpBuilder> builder;
+    mlir::ModuleOp module;
+    mlir::Location loc;
+    std::unordered_map<std::string, mlir::Value> symbolTable;
 
-    private:
-        std::shared_ptr<mlir::OpBuilder> builder;
-        mlir::Location loc;
-    public:
-        mlir::Type i32;
-        mlir::Type c8;
-        mlir::Type f32;
-        mlir::Type b1;
-        mlir::Type ptr;
-    
-        TypesHelper( std::shared_ptr<mlir::OpBuilder> b, mlir::Location l);
+
+    std::shared_ptr<ExpressionsHelper> exps;
+    std::shared_ptr<PrintHelper> prints;
+
+    CodegenVisitor( std::shared_ptr<mlir::OpBuilder> b,
+                    mlir::ModuleOp m,
+                    mlir::Location l
+                  );
+
+    mlir::Value visitExpr(std::shared_ptr<Expr> expr);
+    mlir::Value visitLiteral(std::shared_ptr<LiteralExpr> l);
+    void visitPrint(std::shared_ptr<PrintStmt> p);
+
+    void visitStmt(std::shared_ptr<Stmt> stmt);
 };
-
-} // namespace rex
+}

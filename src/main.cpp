@@ -42,7 +42,7 @@ int main() {
     auto ast = std::any_cast<std::shared_ptr<FileAst>>(ast_any);
 
 
-    ast->dump(std::cout, 0);
+    //ast->dump(std::cout, 0);
 
     bool debug = false;
 
@@ -50,36 +50,39 @@ int main() {
     auto global_scope = std::make_shared<Scope>();
     AliasPass pass_alias(global_scope, debug);
     pass_alias.visit(ast);
-    std::cout << "Alias Check (Passed)" << std::endl;
+    // std::cout << "Alias Check (Passed)" << std::endl;
 
     ////// Expr Pass //////
     auto global_scope_2 = std::make_shared<Scope>();
     ExprPass pass_expr(global_scope_2);
     pass_expr.visit(ast);
-    std::cout << "Expression Check (Passed)" << std::endl;
+    // std::cout << "Expression Check (Passed)" << std::endl;
 
     ///// Assign Pass /////
     AssignmentCheckPass pass_assign;
     pass_assign.visit(ast);
-    std::cout << "Assignment Check (Passed)" << std::endl;
+    // std::cout << "Assignment Check (Passed)" << std::endl;
 
     //// Return Pass /////
     ReturnCheckPass pass_return;
     pass_return.visit(ast);
-    std::cout << "Return Check (Passed)" << std::endl;
+    // std::cout << "Return Check (Passed)" << std::endl;
 
     //// Break Pass /////
     BreakCheckPass pass_break;
     pass_break.visit(ast);
-    std::cout << "Break Check (Passed)" << std::endl;
+    // std::cout << "Break Check (Passed)" << std::endl;
 
 
     ast->dump(std::cout, 0);
 
 
-    // BackEnd backend;
-    // backend.emitMain();
-    // backend.dumpLLVM(std::cout, true);
+    BackEnd backend;
+    backend.emitMain();
+    std::ofstream ofs("output.ll");
+    backend.dumpLLVM(ofs, true);
+
+
 
     return 0;
 }
