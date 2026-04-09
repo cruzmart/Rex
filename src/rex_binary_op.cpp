@@ -148,7 +148,7 @@ type_ptr BinaryOpSystem::promote(type_ptr L, type_ptr R, const std::string& op){
             if (op != "+" || !((is_string(L) || is_char(L)) &&
                             (is_string(R) || is_char(R))))
                 throw std::runtime_error(
-                    "Cannot apply dasd '" + op + "' to " +
+                    "Cannot apply '" + op + "' to " +
                     L->to_string() + " and " + R->to_string()
                 );
             return std::make_shared<PrimType>(PrimKind::String);

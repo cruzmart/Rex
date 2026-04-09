@@ -59,7 +59,7 @@ namespace rex {
 struct TypesHelper {
 
     private:
-        mlir::OpBuilder *builder;
+        std::shared_ptr<mlir::OpBuilder> builder;
         mlir::Location loc;
     public:
         mlir::Type i32;
@@ -68,7 +68,7 @@ struct TypesHelper {
         mlir::Type b1;
         mlir::Type ptr;
     
-        TypesHelper( mlir::OpBuilder &b, mlir::Location l);
+        TypesHelper( std::shared_ptr<mlir::OpBuilder> b, mlir::Location l);
 };
 
 } // namespace rex

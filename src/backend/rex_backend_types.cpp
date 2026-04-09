@@ -3,10 +3,10 @@
 
 namespace rex {
  TypesHelper::TypesHelper(
-                         mlir::OpBuilder &b,
+                         std::shared_ptr<mlir::OpBuilder> b,
                          mlir::Location l)
             
-    : builder(&b), loc(l) {
+    : builder(b), loc(l) {
           // initialize the types
         i32 = builder->getI32Type();
         b1 = builder->getI1Type();
