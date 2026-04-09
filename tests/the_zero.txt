@@ -36,4 +36,4 @@ for i in arr {
 }
 */
 
-print('\n');
+let i : Int = 'c' + 1;

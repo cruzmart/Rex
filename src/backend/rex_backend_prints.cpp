@@ -3,9 +3,9 @@
 #include <mlir/Dialect/LLVMIR/LLVMDialect.h>
 
 PrintHelper::PrintHelper(
-                         mlir::OpBuilder &b,
+                         std::shared_ptr<mlir::OpBuilder> b,
                          mlir::Location l)
-    :  builder(&b), loc(l) {
+    :  builder(b), loc(l) {
     }
 
  mlir::LLVM::AddressOfOp PrintHelper::getFmtAddress(mlir::LLVM::GlobalOp fmt){

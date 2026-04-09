@@ -3,6 +3,7 @@
 // Pass manager
 #include <string_view>
 
+#include "backend/rex_backend_visit.h"
 #include "mlir/Conversion/ArithToLLVM/ArithToLLVM.h"
 #include "mlir/Conversion/ControlFlowToLLVM/ControlFlowToLLVM.h"
 #include "mlir/Conversion/FuncToLLVM/ConvertFuncToLLVM.h"
@@ -51,6 +52,7 @@
 #include "rex_types.h"
 #include "rex_backend_prints.h"
 #include "rex_backend_exps.h"
+#include "rex_backend_visit.h"
 
 using namespace rex;
 
@@ -79,6 +81,7 @@ class BackEnd {
     std::shared_ptr<TypesHelper> types;
     std::shared_ptr<PrintHelper> prints;
     std::shared_ptr<ExpressionsHelper> exps;
+    std::shared_ptr<CodegenVisitor> visitor;
 
 
      // LLVM

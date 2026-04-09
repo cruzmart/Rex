@@ -1,6 +1,7 @@
 #include "backend/rex_backend.h"
 #include "backend/rex_backend_exps.h"
 #include "backend/rex_backend_prints.h"
+#include "backend/rex_backend_visit.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/LLVMIR/LLVMTypes.h"
 #include <memory>
@@ -22,9 +23,10 @@ BackEnd::BackEnd() : loc(mlir::UnknownLoc::get(&context)) {
     builder->setInsertionPointToStart(module.getBody());
 
     
-    types = std::make_shared<TypesHelper>(*builder, loc);
-    prints = std::make_shared<PrintHelper>(*builder, loc);
-    exps = std::make_shared<ExpressionsHelper>(*builder, module, loc, types, prints);
+    types = std::make_shared<TypesHelper>(builder, loc);
+    visitor = std::make_shared<CodegenVisitor>(builder, module, loc);
+    visitor->exps = std::make_shared<ExpressionsHelper>(builder, module, loc, types);
+    visitor->prints = std::make_shared<PrintHelper>(builder, loc);
   
     
     setupPrintf();
@@ -98,7 +100,7 @@ int BackEnd::emitMain(){
     builder->setInsertionPointToStart(&entryBlock);
 
 
-    example();
+    //example();
     
 
     auto zero = builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32);
@@ -133,11 +135,11 @@ void BackEnd::setupPrintFormats() {
 }
 
 void BackEnd::loadPrints(){
-    prints->printf_func = module.lookupSymbol<mlir::LLVM::LLVMFuncOp>("printf");
-    prints->fmt_int = module.lookupSymbol<mlir::LLVM::GlobalOp>("fmt_int");
-    prints->fmt_float = module.lookupSymbol<mlir::LLVM::GlobalOp>("fmt_float");
-    prints->fmt_char = module.lookupSymbol<mlir::LLVM::GlobalOp>("fmt_char");
-    prints->fmt_string = module.lookupSymbol<mlir::LLVM::GlobalOp>("fmt_string");
+    visitor->prints->printf_func = module.lookupSymbol<mlir::LLVM::LLVMFuncOp>("printf");
+    visitor->prints->fmt_int = module.lookupSymbol<mlir::LLVM::GlobalOp>("fmt_int");
+    visitor->prints->fmt_float = module.lookupSymbol<mlir::LLVM::GlobalOp>("fmt_float");
+    visitor->prints->fmt_char = module.lookupSymbol<mlir::LLVM::GlobalOp>("fmt_char");
+    visitor->prints->fmt_string = module.lookupSymbol<mlir::LLVM::GlobalOp>("fmt_string");
 }
 
 void BackEnd::setupPrintf() {
@@ -164,11 +166,11 @@ void BackEnd::example() {
 
     // Print them
 
-    prints->printPrimtive(int_1);
-    prints->printPrimtive(float_1);
-    prints->printPrimtive(char_1);
-    prints->printPrimtive(bool_1);
-    prints->printString(string_1);
+    visitor->prints->printPrimtive(int_1);
+    visitor->prints->printPrimtive(float_1);
+    visitor->prints->printPrimtive(char_1);
+    visitor->prints->printPrimtive(bool_1);
+    visitor->prints->printString(string_1);
     
 
 

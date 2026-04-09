@@ -53,6 +53,8 @@
 #include "backend/rex_backend_prints.h"
 #include "rex_backend_exps.h"
 #include "rex_backend_types.h"
+#include "rex_types.h"
+#include "rex_exps.h"
 
 namespace rex {
 
@@ -66,11 +68,10 @@ class ExpressionsHelper {
 
     private:
         
-        mlir::OpBuilder *builder;
-        mlir::ModuleOp *module;
+        std::shared_ptr<mlir::OpBuilder> builder;
+        mlir::ModuleOp &module;
         mlir::Location loc;
         std::shared_ptr<TypesHelper> types;
-        std::shared_ptr<PrintHelper> prints;
 
         int globalCounter = 0; // start at 0
 
@@ -82,11 +83,10 @@ class ExpressionsHelper {
 
     public:
 
-    ExpressionsHelper(  mlir::OpBuilder &b,
-                        mlir::ModuleOp &m,
+    ExpressionsHelper(  std::shared_ptr<mlir::OpBuilder> b,
+                        mlir::ModuleOp m,
                         mlir::Location l,
-                        std::shared_ptr<TypesHelper> t,
-                        std::shared_ptr<PrintHelper> p);
+                        std::shared_ptr<TypesHelper> t);
 
     // Literal Creation 
     mlir::Value createPrimitiveLiteral(std::shared_ptr<LiteralExpr> literal_ptr);
@@ -101,8 +101,25 @@ class ExpressionsHelper {
 
     // we got to impliment these, I wonder what I should pass..
 
-    mlir::Value add(), sub(), div(), mod(), multi();
+    // visit helper
+    mlir::Value visitExpr(std::shared_ptr<Expr> exp);
+
+
+    // Expressions
+    mlir::Value binaryExp(std::shared_ptr<BinaryExpr> bi);
+
+    mlir::Value opExp(mlir::Value lhs, mlir::Value rhs, PrimType::Prims prim_t, BinaryOp op);
+
+    mlir::Value add(mlir::Value lhs, mlir::Value rhs, mlir::Type typ);
+    mlir::Value sub(), div(), mod(), multi();
     mlir::Value lt(), gt(), lte(), gte();
+
+    mlir::Value castTo(mlir::Value val, mlir::Type targetType);
+    mlir::Type  getComputeType(mlir::Type lhs, mlir::Type rhs);  
+
+
+    mlir::Value concatString(mlir::Value str_lhs, mlir::Value str_rhs);
+
 
 };
 }
