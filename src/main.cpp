@@ -78,7 +78,7 @@ int main() {
 
 
     BackEnd backend;
-    backend.emitMain();
+    backend.emitMain(ast);
     std::ofstream ofs("output.ll");
     backend.dumpLLVM(ofs, true);
 

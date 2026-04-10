@@ -36,4 +36,8 @@ for i in arr {
 }
 */
 
-let i : Int = 'c' + 1;
+print(2);
+print(2.36612);
+print(false);
+print('f');
+print("I Am The Blight");

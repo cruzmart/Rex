@@ -56,13 +56,14 @@
 #include "rex_stmts.h"
 #include "rex_types.h"
 #include "rex_exps.h"
+#include "rex_ast_nodes.h"
 
 namespace rex {
 
 class CodegenVisitor {
 public:
     std::shared_ptr<mlir::OpBuilder> builder;
-    mlir::ModuleOp module;
+    mlir::ModuleOp &module;
     mlir::Location loc;
     std::unordered_map<std::string, mlir::Value> symbolTable;
 
@@ -71,7 +72,7 @@ public:
     std::shared_ptr<PrintHelper> prints;
 
     CodegenVisitor( std::shared_ptr<mlir::OpBuilder> b,
-                    mlir::ModuleOp m,
+                    mlir::ModuleOp & m,
                     mlir::Location l
                   );
 
@@ -80,5 +81,6 @@ public:
     void visitPrint(std::shared_ptr<PrintStmt> p);
 
     void visitStmt(std::shared_ptr<Stmt> stmt);
+    void visit(std::shared_ptr<FileAst> file);
 };
 }

@@ -1,7 +1,10 @@
 #include "backend/rex_backend_prints.h"
 #include <llvm/Support/Error.h>
 #include <mlir/Dialect/LLVMIR/LLVMDialect.h>
+#include <mlir/Dialect/LLVMIR/LLVMTypes.h>
 
+
+#include<iostream>
 PrintHelper::PrintHelper(
                          std::shared_ptr<mlir::OpBuilder> b,
                          mlir::Location l)
@@ -15,6 +18,7 @@ PrintHelper::PrintHelper(
  void PrintHelper::printPrimtive(mlir::Value val) {
     mlir::Type type = val.getType();
     mlir::Value fmt;
+
 
     auto fmtChar = getFmtAddress(fmt_char);
     auto nl = builder->create<mlir::arith::ConstantIntOp>(loc, '\n', 8);
@@ -31,8 +35,9 @@ PrintHelper::PrintHelper(
         // extend float to double
         val = builder->create<mlir::arith::ExtFOp>(loc, builder->getF64Type(), val);
         fmt = getFmtAddress(fmt_float);
-
-    }  else {
+    } else if (type.isa<mlir::LLVM::LLVMPointerType>()){
+        fmt = getFmtAddress(fmt_string);
+    } else {
         llvm::errs() << "Unsupported type for printValue\n";
         return;
     }

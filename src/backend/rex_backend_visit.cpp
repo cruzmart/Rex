@@ -1,19 +1,24 @@
 
 #include "backend/rex_backend_visit.h"
+#include "rex_ast_nodes.h"
 #include "rex_exps.h"
 #include "rex_stmts.h"
 #include <memory>
 
 namespace rex {
   CodegenVisitor::CodegenVisitor( std::shared_ptr<mlir::OpBuilder> b,
-                    mlir::ModuleOp m,
+                    mlir::ModuleOp & m,
                     mlir::Location l
                   ) : builder(b), module(m), loc(l) {}
+
+      
     mlir::Value CodegenVisitor::visitExpr(std::shared_ptr<Expr> expr){
       auto expr_t = expr->exp_kind;
       if(expr_t == ExprKind::Literal)
-        visitLiteral(std::static_pointer_cast<LiteralExpr>(expr));
+        return visitLiteral(std::static_pointer_cast<LiteralExpr>(expr));
+      return mlir::Value();
     }
+
     mlir::Value CodegenVisitor::visitLiteral(std::shared_ptr<LiteralExpr> l){
       return exps->createPrimitiveLiteral(l);
     }
@@ -29,6 +34,14 @@ namespace rex {
       if(stmt_t == StmtKind::Print)
         visitPrint(std::static_pointer_cast<PrintStmt>(stmt));
       return;
+    }
+    void CodegenVisitor::visit(std::shared_ptr<FileAst> file){
+       for(auto item : file->items){
+            if(item->ast_kind == AstNodeKind::Stmt){
+               auto stmt = std::static_pointer_cast<Stmt>(item);
+                visitStmt(stmt);
+            }
+        } 
     }
 
 }

@@ -90,7 +90,7 @@ void BackEnd::dumpLLVM(std::ostream &os, bool debug) {
 }
 
 
-int BackEnd::emitMain(){
+int BackEnd::emitMain(std::shared_ptr<FileAst> file){
     auto funcType = builder->getFunctionType({}, {types->i32});
 
     auto func = builder->create<mlir::func::FuncOp>(loc, "main", funcType);
@@ -101,7 +101,8 @@ int BackEnd::emitMain(){
 
 
     //example();
-    
+
+    visitor->visit(file);
 
     auto zero = builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32);
 
@@ -170,7 +171,7 @@ void BackEnd::example() {
     visitor->prints->printPrimtive(float_1);
     visitor->prints->printPrimtive(char_1);
     visitor->prints->printPrimtive(bool_1);
-    visitor->prints->printString(string_1);
+    visitor->prints->printPrimtive(string_1);
     
 
 
