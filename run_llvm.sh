@@ -1,18 +1,21 @@
 #!/bin/bash
 set -e
 
-MLIR_FILE="output.ll"
-OBJ_FILE="output.o"
-EXE_FILE="output"
+ROOT=$(cd "$(dirname "$0")" && pwd)
+BUILD_DIR="$ROOT/build"
+LLVM_DIR="$BUILD_DIR/llvm"
 
-# Lower MLIR -> LLVM IR (optional, if dumpLLVM already gives LLVM IR)
-# mlir-translate --mlir-to-llvmir "$MLIR_FILE" > "${MLIR_FILE%.ll}.llvm.ll"
+mkdir -p "$LLVM_DIR"
 
-# Compile LLVM IR -> object file (PIC)
+MLIR_FILE="$ROOT/output.ll"
+OBJ_FILE="$LLVM_DIR/output.o"
+EXE_FILE="$LLVM_DIR/output"
+
+# Compile LLVM IR -> object file
 llc -filetype=obj -relocation-model=pic "$MLIR_FILE" -o "$OBJ_FILE"
 
 # Link object -> executable
-clang "$OBJ_FILE" -o "$EXE_FILE"  # no need for -no-pie if you used PIC
+clang "$OBJ_FILE" -o "$EXE_FILE"
 
-# Run executable
-./"$EXE_FILE"
+# Run
+"$EXE_FILE"

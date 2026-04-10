@@ -1,11 +1,13 @@
 #!/bin/bash
 set -e
 
-ROOT=$(dirname "$0")
+ROOT=$(cd "$(dirname "$0")" && pwd)
 BUILD_DIR="$ROOT/build"
 
-# Configure into build directory
-cmake -S "$ROOT" -B "$BUILD_DIR" -G Ninja
+# Configure (only if needed)
+if [ ! -f "$BUILD_DIR/build.ninja" ]; then
+  cmake -S "$ROOT" -B "$BUILD_DIR" -G Ninja
+fi
 
 # Build
 cmake --build "$BUILD_DIR"
