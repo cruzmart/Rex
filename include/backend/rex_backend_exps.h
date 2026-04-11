@@ -69,7 +69,7 @@ class ExpressionsHelper {
     private:
         
         std::shared_ptr<mlir::OpBuilder> builder;
-        mlir::ModuleOp &module;
+        mlir::ModuleOp & module;
         mlir::Location loc;
         std::shared_ptr<TypesHelper> types;
 
@@ -84,7 +84,7 @@ class ExpressionsHelper {
     public:
 
     ExpressionsHelper(  std::shared_ptr<mlir::OpBuilder> b,
-                        mlir::ModuleOp m,
+                        mlir::ModuleOp  & m,
                         mlir::Location l,
                         std::shared_ptr<TypesHelper> t);
 
@@ -96,7 +96,7 @@ class ExpressionsHelper {
     mlir::Value createChar(const std::string &text);
 
     // String Creation
-    mlir::LLVM::GlobalOp createString(const std::string &text);
+    mlir::Value createString(const std::string &text);
 
 
     // we got to impliment these, I wonder what I should pass..

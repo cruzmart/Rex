@@ -60,7 +60,7 @@ class BackEnd {
  public:
     BackEnd();
 
-    int emitMain();
+    int emitMain(std::shared_ptr<FileAst> file);
     void dumpLLVM(std::ostream &os, bool);
     void example();
     void createGlobalString(const char *str, const char *name);

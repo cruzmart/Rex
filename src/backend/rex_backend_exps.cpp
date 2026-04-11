@@ -17,7 +17,7 @@
 
     ExpressionsHelper::ExpressionsHelper(
                          std::shared_ptr<mlir::OpBuilder> b,
-                         mlir::ModuleOp m,
+                         mlir::ModuleOp & m,
                          mlir::Location l,
                          std::shared_ptr<TypesHelper> t)
             
@@ -35,6 +35,7 @@
             case rex::PrimType::Prims::Bool:   return createBool(value);
             case rex::PrimType::Prims::Char:   return createChar(value);
             case rex::PrimType::Prims::Real:   return createFloat(value);
+            case rex::PrimType::Prims::String: return createString(value);
             default:
                 break;
         }
@@ -118,12 +119,14 @@
                 builder->getI8IntegerAttr(static_cast<int8_t>(value))
             );
     }    
-    mlir::LLVM::GlobalOp ExpressionsHelper::createString(const std::string &text) {
+    mlir::Value ExpressionsHelper::createString(const std::string &text) {
         // Save current insertion point
         auto oldInsertionPoint = builder->saveInsertionPoint();
 
+
         // Switch to module level to create global
         builder->setInsertionPointToStart(module.getBody());
+
 
         // Include null-terminator in the string
         std::string strWithNull = text + '\0';
@@ -148,7 +151,8 @@
         // Restore previous insertion point
         builder->restoreInsertionPoint(oldInsertionPoint);
 
-        return global;
+
+        return builder->create<mlir::LLVM::AddressOfOp>(loc, global);
     }
 
 
