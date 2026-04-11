@@ -42,12 +42,10 @@
 
         llvm_unreachable("Unhandled literal type");
     }
-
     mlir::Value ExpressionsHelper::createInt(const std::string &text){
         llvm::APInt value(32, text, 10); // avoids std::stoi overflow
         return builder->create<mlir::arith::ConstantOp>(loc, builder->getIntegerAttr(types->i32, value));
     }
-
     mlir::Value ExpressionsHelper::createFloat(const std::string &text){
         llvm::APFloat value(0.0f);
 
@@ -65,7 +63,6 @@
             builder->getFloatAttr(types->f32, value)
         );
     }
-
     mlir::Value ExpressionsHelper::createBool(const std::string &text){
         if (text == "true") {
         return builder->create<mlir::arith::ConstantOp>(
@@ -81,7 +78,6 @@
 
         throw std::runtime_error("Invalid boolean literal: " + text);
     }
-
     mlir::Value ExpressionsHelper::createChar(const std::string &text) {
             // Must be at least: 'x'
             if (text.size() < 3 || text.front() != '\'' || text.back() != '\'') {
@@ -156,103 +152,34 @@
     }
 
 
-
-
-
-
-
-    mlir::Value ExpressionsHelper::binaryExp(std::shared_ptr<BinaryExpr> bi){
-
-        // Note:
-        //  if it is two none strings, than we do regular op
-        //  if the result is a string, concatString
-      
-        TypeKind exp_t = bi->type->kind;
-        BinaryOp op = bi->operation;
-        mlir::Value lhs = visitExpr(bi->lhs);
-        mlir::Value rhs = visitExpr(bi->rhs);
-
-        switch(exp_t){
-
-            case TypeKind::Primitive:{
-                auto primt_t = std::static_pointer_cast<PrimType>(bi->type);
-                switch(primt_t->prim){
-                    case PrimType::Prims::String:{
-                        // do basic string concat here
-                        return concatString(lhs, rhs);
-                    }
-                    default:{
-                        // do basic op of the values ( uh shit)
-                        return opExp(lhs, rhs, primt_t->prim, op);
-                        
-                    }
-
-                }
-            }
-
-            case TypeKind::Array:{
-                auto array_t = std::static_pointer_cast<ArrayType>(bi->type);
-                switch(array_t->elem->kind){
-                    case TypeKind::Primitive:{
-                        auto elem_t = std::static_pointer_cast<PrimType>(bi->type);
-                        switch(elem_t->prim){
-                            case PrimType::Prims::String:{
-                                // we will combine two arrays of strings together
-                            }
-                            default:{
-                                // we will add another prim type to a array of the same prim type
-                            }
-                        }
-                    }
-                    case TypeKind::Array: {
-                        // double array case we will handle that in a seperate function
-                        // THIS will def be done last
-                    }
-                    default:{}
-
-                }
-
-            }
-            default:{}
-        }
-    }
-
-
-
-    mlir::Value ExpressionsHelper::visitExpr(const std::shared_ptr<Expr> exp){
-        
-        switch(exp->exp_kind)
-        {
-            case ExprKind::Literal:
-                return createPrimitiveLiteral(std::static_pointer_cast<LiteralExpr>(exp));
-            default:
-                break;
-
-        }
-
-        return mlir::Value();
-    }
-
-
-    mlir::Value ExpressionsHelper::opExp(mlir::Value lhs, mlir::Value rhs, PrimType::Prims prim_t, BinaryOp op){
+    mlir::Value ExpressionsHelper::createBinaryExp(mlir::Value lhs, mlir::Value rhs, PrimType::Prims prim_t, BinaryOp op){
 
          mlir::Type res_t;
 
+
         switch(prim_t){
-            case PrimType::Prims::Int:
+            case PrimType::Prims::Int:{
                 res_t = types->i32;
                 break;
-            case PrimType::Prims::Real:
+            }
+            case PrimType::Prims::Real:{
                 res_t = types->f32;
                 break;
-            case rex::PrimType::Prims::Bool:
+            }
+            case rex::PrimType::Prims::Bool:{
                 res_t = types->b1;
-            case PrimType::Prims::Char:
+                break;
+            }
+            case PrimType::Prims::Char:{
                 res_t = types->c8;
-            default:
+                break;
+            }
+            default: {
                 res_t = mlir::Type();
                 break;
+            }
         }
+        
         
 
         // arth op
@@ -280,7 +207,7 @@
         }
 
 
-        // bitwise op
+        // bitwise op (check if the lhs and rhs values are bool, both must be)
         switch(op){
             case BinaryOp::AND:{}
             case BinaryOp::OR:{}
@@ -297,6 +224,7 @@
         mlir::Value rhs,
         mlir::Type resultType
     ) {
+
         // 🔥 STEP 1: choose computation type
         mlir::Type computeType = getComputeType(lhs.getType(), rhs.getType());
 
@@ -313,6 +241,7 @@
             result = builder->create<mlir::arith::AddIOp>(loc, lhs, rhs);
         }
 
+    
         // 🔥 STEP 4: cast to final result type
         return castTo(result, resultType);
     }
@@ -351,6 +280,13 @@
         if (srcType.isInteger(1) && targetType.isF32()) {
             auto i32 = builder->create<mlir::arith::ExtUIOp>(loc, types->i32, val);
             return builder->create<mlir::arith::SIToFPOp>(loc, targetType, i32);
+        }
+
+        // =========================
+        // BOOL → CHAR
+        // =========================
+        if (srcType.isInteger(1) && targetType.isInteger(8)) {
+            return builder->create<mlir::arith::ExtUIOp>(loc, targetType, val);
         }
 
         // =========================
@@ -400,8 +336,6 @@
         // otherwise use i32 as canonical integer compute type
         return types->i32;
     }
-
-
     mlir::Value ExpressionsHelper::concatString(mlir::Value str_lhs, mlir::Value str_rhs){return mlir::Value();}
 
  }

@@ -36,8 +36,31 @@ for i in arr {
 }
 */
 
+/*
 print(2);
 print(2.36612);
 print(false);
 print('f');
 print("I Am The Blight");
+*/
+
+/*
+print(2 + 'c');
+print(2.0 + 'c');
+print(true + 'a');
+
+
+print(2 + 2);
+print(2.0 + 2);
+print(true + 2);
+
+print(true + 2);
+print(true + 2.7);
+print(true + true);
+*/
+
+/*
+print(true + 7 + 3.7 + 'a');
+*/
+
+

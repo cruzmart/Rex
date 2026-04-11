@@ -101,14 +101,8 @@ class ExpressionsHelper {
 
     // we got to impliment these, I wonder what I should pass..
 
-    // visit helper
-    mlir::Value visitExpr(std::shared_ptr<Expr> exp);
-
-
     // Expressions
-    mlir::Value binaryExp(std::shared_ptr<BinaryExpr> bi);
-
-    mlir::Value opExp(mlir::Value lhs, mlir::Value rhs, PrimType::Prims prim_t, BinaryOp op);
+    mlir::Value createBinaryExp(mlir::Value lhs, mlir::Value rhs, PrimType::Prims prim_t, BinaryOp op);
 
     mlir::Value add(mlir::Value lhs, mlir::Value rhs, mlir::Type typ);
     mlir::Value sub(), div(), mod(), multi();

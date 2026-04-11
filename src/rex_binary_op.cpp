@@ -267,6 +267,12 @@ type_ptr BinaryOpSystem::check_binary(BinaryOp op, type_ptr L, type_ptr R){
     if(debug)
         std::cout << "L=" << L->to_fundamental_string() << " R=" << R->to_fundamental_string() << "\n";
 
+       // here check if L and R are both bools and op is a arthmatic, than it this special case it would be integer type
+    
+    // special case, Bool + Bool = Int.
+    if(is_prim(L, PrimKind::Bool) && is_prim(R, PrimKind::Bool) && is_arth(op)){
+        return std::make_shared<PrimType>(PrimKind::Int);
+    }
     if(is_arth(op)) {return promote(L,R,binop_name(op));}
     if(is_comp(op)){
         auto re = promote(L,R,binop_name(op));

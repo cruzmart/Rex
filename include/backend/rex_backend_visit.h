@@ -76,8 +76,9 @@ public:
                     mlir::Location l
                   );
 
-    mlir::Value visitExpr(std::shared_ptr<Expr> expr);
+    mlir::Value visitExp(std::shared_ptr<Expr> expr);
     mlir::Value visitLiteral(std::shared_ptr<LiteralExpr> l);
+    mlir::Value visitBinary(std::shared_ptr<BinaryExpr> bi);
     void visitPrint(std::shared_ptr<PrintStmt> p);
 
     void visitStmt(std::shared_ptr<Stmt> stmt);
