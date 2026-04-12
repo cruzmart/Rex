@@ -55,6 +55,7 @@
 #include "rex_backend_types.h"
 #include "rex_types.h"
 #include "rex_exps.h"
+#include "rex_errors.h"
 
 namespace rex {
 
@@ -72,6 +73,7 @@ class ExpressionsHelper {
         mlir::ModuleOp & module;
         mlir::Location loc;
         std::shared_ptr<TypesHelper> types;
+        Errors errors;
 
         int globalCounter = 0; // start at 0
 
@@ -105,7 +107,10 @@ class ExpressionsHelper {
     mlir::Value createBinaryExp(mlir::Value lhs, mlir::Value rhs, PrimType::Prims prim_t, BinaryOp op);
 
     mlir::Value add(mlir::Value lhs, mlir::Value rhs, mlir::Type typ);
-    mlir::Value sub(), div(), mod(), multi();
+    mlir::Value sub(mlir::Value lhs, mlir::Value rhs, mlir::Type typ);
+    mlir::Value div(mlir::Value lhs, mlir::Value rhs, mlir::Type typ);
+    mlir::Value mod(mlir::Value lhs, mlir::Value rhs, mlir::Type typ);
+    mlir::Value mul(mlir::Value lhs, mlir::Value rhs, mlir::Type typ);
     mlir::Value lt(), gt(), lte(), gte();
 
     mlir::Value castTo(mlir::Value val, mlir::Type targetType);

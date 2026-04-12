@@ -53,7 +53,6 @@ print(true + 'a');
 print(2 + 2);
 print(2.0 + 2);
 print(true + 2);
-
 print(true + 2);
 print(true + 2.7);
 print(true + true);
@@ -62,5 +61,15 @@ print(true + true);
 /*
 print(true + 7 + 3.7 + 'a');
 */
+
+/*
+print(2 == 'c');
+print('d' == 'c');
+print(2.5 == 3);
+print(true == 'c');
+*/
+
+
+print(true / 2);
 
 

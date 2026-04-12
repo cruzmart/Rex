@@ -184,11 +184,11 @@
 
         // arth op
         switch(op){
-            case BinaryOp::ADD:{return add(lhs, rhs, res_t);}
-            case BinaryOp::SUB:{}
-            case BinaryOp::MUL:{}
-            case BinaryOp::DIV:{}
-            case BinaryOp::MOD:{}
+            case BinaryOp::ADD: return add(lhs, rhs, res_t);
+            case BinaryOp::SUB: return sub(lhs, rhs, res_t);
+            case BinaryOp::MUL: return mul(lhs, rhs, res_t);
+            case BinaryOp::DIV: return div(lhs, rhs, res_t);
+            case BinaryOp::MOD: return mod(lhs, rhs, res_t);
             default:
                 break;
         }
@@ -219,11 +219,7 @@
 
     }
    
-    mlir::Value ExpressionsHelper::add(
-        mlir::Value lhs,
-        mlir::Value rhs,
-        mlir::Type resultType
-    ) {
+    mlir::Value ExpressionsHelper::add( mlir::Value lhs, mlir::Value rhs,  mlir::Type resultType) {
 
         // 🔥 STEP 1: choose computation type
         mlir::Type computeType = getComputeType(lhs.getType(), rhs.getType());
@@ -245,6 +241,94 @@
         // 🔥 STEP 4: cast to final result type
         return castTo(result, resultType);
     }
+    mlir::Value ExpressionsHelper::sub(mlir::Value lhs, mlir::Value rhs, mlir::Type resultType) {
+        mlir::Type computeType = getComputeType(lhs.getType(), rhs.getType());
+
+        lhs = castTo(lhs, computeType);
+        rhs = castTo(rhs, computeType);
+
+        mlir::Value result;
+
+        if (computeType.isF32()) {
+            result = builder->create<mlir::arith::SubFOp>(loc, lhs, rhs);
+        } else {
+            result = builder->create<mlir::arith::SubIOp>(loc, lhs, rhs);
+        }
+
+        return castTo(result, resultType);
+    }
+    mlir::Value ExpressionsHelper::mul( mlir::Value lhs, mlir::Value rhs, mlir::Type resultType) {
+        mlir::Type computeType = getComputeType(lhs.getType(), rhs.getType());
+
+        lhs = castTo(lhs, computeType);
+        rhs = castTo(rhs, computeType);
+
+        mlir::Value result;
+
+        if (computeType.isF32()) {
+            result = builder->create<mlir::arith::MulFOp>(loc, lhs, rhs);
+        } else {
+            result = builder->create<mlir::arith::MulIOp>(loc, lhs, rhs);
+        }
+
+        return castTo(result, resultType);
+    }
+    mlir::Value ExpressionsHelper::div( mlir::Value lhs, mlir::Value rhs, mlir::Type resultType) {
+        mlir::Type computeType = getComputeType(lhs.getType(), rhs.getType());
+
+        lhs = castTo(lhs, computeType);
+        rhs = castTo(rhs, computeType);
+
+        // 🔥 Constant zero check (compile-time only)
+        if (auto cst = rhs.getDefiningOp<mlir::arith::ConstantOp>()) {
+            if (auto intAttr = cst.getValue().dyn_cast<mlir::IntegerAttr>()) {
+                if (intAttr.getValue().isZero()) {
+                    llvm::report_fatal_error("Division by zero (constant)");
+                }
+            }
+            if (auto floatAttr = cst.getValue().dyn_cast<mlir::FloatAttr>()) {
+                if (floatAttr.getValue().isZero()) {
+                    llvm::report_fatal_error("Division by zero (constant)");
+                }
+            }
+        }
+
+        mlir::Value result;
+
+        if (computeType.isF32()) {
+            result = builder->create<mlir::arith::DivFOp>(loc, lhs, rhs);
+        } else {
+            // signed division
+            result = builder->create<mlir::arith::DivSIOp>(loc, lhs, rhs);
+        }
+
+        return castTo(result, resultType);
+    }
+    mlir::Value ExpressionsHelper::mod( mlir::Value lhs, mlir::Value rhs, mlir::Type resultType) {
+        mlir::Type computeType = getComputeType(lhs.getType(), rhs.getType());
+
+        lhs = castTo(lhs, computeType);
+        rhs = castTo(rhs, computeType);
+
+        if (computeType.isF32()) {
+            llvm::report_fatal_error("Modulo not supported for float");
+        }
+
+        // Optional: same zero check as div
+        if (auto cst = rhs.getDefiningOp<mlir::arith::ConstantOp>()) {
+            if (auto intAttr = cst.getValue().dyn_cast<mlir::IntegerAttr>()) {
+                if (intAttr.getValue().isZero()) {
+                    llvm::report_fatal_error("Modulo by zero");
+                }
+            }
+        }
+
+        auto result = builder->create<mlir::arith::RemSIOp>(loc, lhs, rhs);
+
+        return castTo(result, resultType);
+    }
+
+
 
     mlir::Value ExpressionsHelper::castTo(mlir::Value val, mlir::Type targetType) {
         mlir::Type srcType = val.getType();

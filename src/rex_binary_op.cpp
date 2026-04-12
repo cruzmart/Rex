@@ -1,4 +1,6 @@
 #include "rex_binary_op.h"
+#include "rex_ast_nodes.h"
+#include "rex_ops.h"
 #include "rex_types.h"
 #include <iostream>
 #include <algorithm>
@@ -51,8 +53,7 @@ bool BinaryOpSystem::is_numeric(type_ptr T) {
     auto p = as<PrimType>(T);
 
     return p->prim == PrimKind::Int ||
-           p->prim == PrimKind::Real ||
-           p->prim == PrimKind::Char;
+           p->prim == PrimKind::Real;
 }
 
 bool BinaryOpSystem::is_bool(type_ptr T) {
@@ -125,17 +126,7 @@ type_ptr BinaryOpSystem::promote(type_ptr L, type_ptr R, const std::string& op){
 
 
     // same type
-    if(L->equals(R)) {
-        if((is_prim(L, PrimKind::String) && op != "+"))
-            throw std::runtime_error("Cannot apply operator '" + op + "' to String and String");
-        
-        if(is_prim(L, PrimKind::Char) && op != "+") 
-            throw std::runtime_error("Cannot apply operator '" + op + "' to Char and Char");
-        
-        if(is_prim(L, PrimKind::Char) && op == "+"){
-            return std::make_shared<PrimType>(PrimKind::String);
-        }
-                    
+    if(L->equals(R)) {                    
         return L;
     }
 
@@ -160,12 +151,12 @@ type_ptr BinaryOpSystem::promote(type_ptr L, type_ptr R, const std::string& op){
         
 
     // array + primitive
-    if(is_array(L) && is_numeric(R)){
+    if(is_array(L) && (is_numeric(R) || is_char(R))){
         auto arr = std::static_pointer_cast<ArrayType>(L);
         auto elem = promote(arr->elem, R, op);
         return std::make_shared<ArrayType>(elem, arr->size);
     }
-    if(is_array(R) && is_numeric(L)){
+    if(is_array(R) && (is_numeric(L) || is_char(L))){
         auto arr = std::static_pointer_cast<ArrayType>(R);
         auto elem = promote(arr->elem, L, op);
         return std::make_shared<ArrayType>(elem, arr->size);
@@ -263,7 +254,7 @@ type_ptr BinaryOpSystem::check_index(type_ptr base, type_ptr index){
 // -------------------------------------------------
 // Binary operators
 // -------------------------------------------------
-type_ptr BinaryOpSystem::check_binary(BinaryOp op, type_ptr L, type_ptr R){
+type_ptr BinaryOpSystem::check_binary(std::shared_ptr<BinaryExpr> exp, BinaryOp op, type_ptr L, type_ptr R){
     if(debug)
         std::cout << "L=" << L->to_fundamental_string() << " R=" << R->to_fundamental_string() << "\n";
 
@@ -273,6 +264,30 @@ type_ptr BinaryOpSystem::check_binary(BinaryOp op, type_ptr L, type_ptr R){
     if(is_prim(L, PrimKind::Bool) && is_prim(R, PrimKind::Bool) && is_arth(op)){
         return std::make_shared<PrimType>(PrimKind::Int);
     }
+
+    /////// Edge cases //////////////////
+    // if we try to do a operation on two strings, but it is not ADD (we cannot do string concat) it is a error
+    if((is_prim(L, PrimKind::String) && is_prim(R, PrimKind::String) &&  op != BinaryOp::ADD))
+        errors.error(exp, std::string("Cannot apply operator '") + binop_name(op) + "' to String and String");
+
+    // if we have two characters, the op is a arth but it is not add (based on hwo I design, I keep it this strict it can only makes strings)
+    if(is_prim(L, PrimKind::Char) && is_prim(R, PrimKind::Char) && is_arth(op) && op != BinaryOp::ADD) 
+        errors.error(exp, std::string("Cannot apply operator '") + binop_name(op) + "' to Char and Char");
+    
+    // if it is characters and it is add it is a string type result
+    if(is_prim(L, PrimKind::Char) && is_prim(R, PrimKind::Char) && op == BinaryOp::ADD){
+        return std::make_shared<PrimType>(PrimKind::String);
+    }
+    
+    if((is_prim(R, PrimKind::Char) || is_prim(L, PrimKind::Char)) && op == BinaryOp::DIV){
+        errors.error(exp, "Denominator/Numerator value for this 'MOD/DIV' exp is of type 'Char'");
+    }
+
+    if(op == BinaryOp::MOD && !is_prim(L, PrimKind::Int) && !is_prim(R, PrimKind::Int)){
+         errors.error(exp, "Modulo operation requires that both values to be integers");
+    }
+    //////// General Cases //////////////////
+                
     if(is_arth(op)) {return promote(L,R,binop_name(op));}
     if(is_comp(op)){
         auto re = promote(L,R,binop_name(op));

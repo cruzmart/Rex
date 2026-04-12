@@ -394,7 +394,7 @@ void ExprPass::visitLetStmt(const std::shared_ptr<LetStmt> ls) {
     }
     std::shared_ptr<Type> ExprPass::visitBinary(const std::shared_ptr<BinaryExpr> bexp){
 
-        bexp->type = ots.check_binary(bexp->operation, visitExpr(bexp->lhs), visitExpr(bexp->rhs));
+        bexp->type = ots.check_binary(bexp, bexp->operation, visitExpr(bexp->lhs), visitExpr(bexp->rhs));
         return bexp->type;
     }    
         
