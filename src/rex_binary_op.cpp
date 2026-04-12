@@ -309,6 +309,10 @@ type_ptr BinaryOpSystem::check_binary(std::shared_ptr<BinaryExpr> exp, BinaryOp 
         }
     }
 
+    if ((is_string(L) && is_char(R)) || (is_char(L) && is_string(R))) {
+        errors.error(exp, "Cannot compare String and Char");
+    }
+
     if(is_comp(op)){
          // Have to make sure both lhs and rhs are of THE SAME type.
 
@@ -329,7 +333,7 @@ type_ptr BinaryOpSystem::check_binary(std::shared_ptr<BinaryExpr> exp, BinaryOp 
             throw std::runtime_error("and/or require Bool operands");
         return std::make_shared<PrimType>(PrimKind::Bool);
     }
-    
+
     switch(op){
         case BinaryOp::RANGE: return check_range(L,R);
         case BinaryOp::PIPE:  return check_pipe(L,R);

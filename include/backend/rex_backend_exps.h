@@ -138,6 +138,7 @@ class ExpressionsHelper {
     mlir::Value toStringValue(mlir::Value v);
     bool isConstStringExpr(std::shared_ptr<Expr> expr);
     std::string foldConstString(std::shared_ptr<Expr> expr);
-    
+    bool isStringValue(mlir::Value v);
+    std::string getStringFromValue(mlir::Value v);
 };
 }

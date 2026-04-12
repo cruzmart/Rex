@@ -364,14 +364,61 @@
     // =====================================
     // Comparisons
     // =====================================
-    mlir::Value ExpressionsHelper::eq(mlir::Value lhs, mlir::Value rhs){
+   mlir::Value ExpressionsHelper::eq(mlir::Value lhs, mlir::Value rhs){
+        // =========================
+        // STRING CASE (CONST ONLY)
+        // =========================
+        if (isStringValue(lhs) && isStringValue(rhs)) {
+
+            auto lAddr = lhs.getDefiningOp<mlir::LLVM::AddressOfOp>();
+            auto rAddr = rhs.getDefiningOp<mlir::LLVM::AddressOfOp>();
+
+            if (!lAddr || !rAddr) {
+                llvm::report_fatal_error("Runtime string comparison not supported yet");
+            }
+
+            std::string l = getStringFromValue(lhs);
+            std::string r = getStringFromValue(rhs);
+
+            bool result = (l == r);
+
+            return builder->create<mlir::arith::ConstantOp>(
+                loc,
+                builder->getIntegerAttr(types->b1, result ? 1 : 0)
+            );
+        }
+
+        // =========================
+        // NORMAL CASE
+        // =========================
         return cmp(lhs, rhs,
             mlir::arith::CmpIPredicate::eq,
             mlir::arith::CmpFPredicate::OEQ
         );
-    }
+        }
 
     mlir::Value ExpressionsHelper::neq(mlir::Value lhs, mlir::Value rhs){
+
+        if (isStringValue(lhs) && isStringValue(rhs)) {
+
+            auto lAddr = lhs.getDefiningOp<mlir::LLVM::AddressOfOp>();
+            auto rAddr = rhs.getDefiningOp<mlir::LLVM::AddressOfOp>();
+
+            if (!lAddr || !rAddr) {
+                llvm::report_fatal_error("Runtime string comparison not supported yet");
+            }
+
+            std::string l = getStringFromValue(lhs);
+            std::string r = getStringFromValue(rhs);
+
+            bool result = (l != r);
+
+            return builder->create<mlir::arith::ConstantOp>(
+                loc,
+                builder->getIntegerAttr(types->b1, result ? 1 : 0)
+            );
+        }
+
         return cmp(lhs, rhs,
             mlir::arith::CmpIPredicate::ne,
             mlir::arith::CmpFPredicate::ONE
@@ -424,6 +471,12 @@
 
     mlir::Value ExpressionsHelper::castTo(mlir::Value val, mlir::Type targetType) {
         mlir::Type srcType = val.getType();
+
+        // 🚨 GUARD: never cast pointers
+        if (srcType.isa<mlir::LLVM::LLVMPointerType>() ||
+            targetType.isa<mlir::LLVM::LLVMPointerType>()) {
+            llvm::report_fatal_error("Invalid cast involving pointer type");
+        }
 
         // SAME TYPE → no-op
         if (srcType == targetType)
@@ -711,6 +764,23 @@
             }
 
         */
+    }
+
+    bool ExpressionsHelper::isStringValue(mlir::Value v){
+        return v.getDefiningOp<mlir::LLVM::AddressOfOp>();
+    }
+
+    std::string ExpressionsHelper::getStringFromValue(mlir::Value v) {
+        auto addr = v.getDefiningOp<mlir::LLVM::AddressOfOp>();
+        if (!addr)
+            llvm::report_fatal_error("Expected string global");
+
+        auto global = module.lookupSymbol<mlir::LLVM::GlobalOp>(
+            addr.getGlobalName()
+        );
+
+        auto attr = global.getValue()->dyn_cast<mlir::StringAttr>();
+        return attr.getValue().str();
     }
 
  }

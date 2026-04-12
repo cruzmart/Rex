@@ -60,9 +60,8 @@ print(true + true);
 print(true + 7 + 3.7 + 'a');
 */
 
-
-print(1 < 4.9);
 /*
+print(1 < 4.9);
 print('d' == 'c');
 print(2.5 == 3);
 print(true == 'c');
@@ -75,8 +74,11 @@ print("hello");
 print("world");
 */
 
+/*
 print('c' == 'd');
 print(false or true);
+*/
 
+print("hello" != 'c');
 
 
