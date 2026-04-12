@@ -266,6 +266,12 @@ type_ptr BinaryOpSystem::check_binary(std::shared_ptr<BinaryExpr> exp, BinaryOp 
     }
 
     /////// Edge cases //////////////////
+    if((is_prim(L, PrimKind::String) && is_prim(R, PrimKind::String) &&  op == BinaryOp::EQ))
+        return std::make_shared<PrimType>(PrimKind::Bool);
+
+    if((is_prim(L, PrimKind::String) && is_prim(R, PrimKind::String) &&  op == BinaryOp::ADD))
+        return std::make_shared<PrimType>(PrimKind::String);
+
     // if we try to do a operation on two strings, but it is not ADD (we cannot do string concat) it is a error
     if((is_prim(L, PrimKind::String) && is_prim(R, PrimKind::String) &&  op != BinaryOp::ADD))
         errors.error(exp, std::string("Cannot apply operator '") + binop_name(op) + "' to String and String");

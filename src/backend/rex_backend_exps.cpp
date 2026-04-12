@@ -7,6 +7,7 @@
 #include <memory>
 #include <mlir/Conversion/ArithToLLVM/ArithToLLVM.h>
 #include <mlir/Dialect/Arith/IR/Arith.h>
+#include <mlir/Dialect/LLVMIR/LLVMTypes.h>
 #include <mlir/IR/BuiltinAttributes.h>
 #include <mlir/IR/ValueRange.h>
 
@@ -116,37 +117,39 @@
             );
     }    
     mlir::Value ExpressionsHelper::createString(const std::string &text) {
-        // Save current insertion point
-        auto oldInsertionPoint = builder->saveInsertionPoint();
 
+        // 🔥 1. check if already exists
+        auto it = stringPool.find(text);
+        if (it != stringPool.end()) {
+            return builder->create<mlir::LLVM::AddressOfOp>(loc, it->second);
+        }
 
-        // Switch to module level to create global
+        // Else if it is completely new string, do this.
+        // 🔥 2. create new global
+        auto oldIP = builder->saveInsertionPoint();
         builder->setInsertionPointToStart(module.getBody());
 
-
-        // Include null-terminator in the string
         std::string strWithNull = text + '\0';
+
+        // 👇 keep counter ONLY for uniqueness
         std::string name = "str_const_" + std::to_string(globalCounter++);
 
-        // i8 type for characters
         auto i8Ty = builder->getIntegerType(8);
-
-        // LLVM array type [N x i8]
         auto arrayTy = mlir::LLVM::LLVMArrayType::get(i8Ty, strWithNull.size());
 
-        // Create the global constant at module level
         auto global = builder->create<mlir::LLVM::GlobalOp>(
             loc,
-            arrayTy,                       // array type
-            /*isConstant=*/true,            // constant
-            mlir::LLVM::Linkage::Internal, // internal linkage
-            name,                           // global name
-            builder->getStringAttr(strWithNull) // initial value
+            arrayTy,
+            true,
+            mlir::LLVM::Linkage::Internal,
+            name,
+            builder->getStringAttr(strWithNull)
         );
 
-        // Restore previous insertion point
-        builder->restoreInsertionPoint(oldInsertionPoint);
+        builder->restoreInsertionPoint(oldIP);
 
+        // 🔥 4. store in pool
+        stringPool[text] = global;
 
         return builder->create<mlir::LLVM::AddressOfOp>(loc, global);
     }
@@ -155,6 +158,14 @@
     mlir::Value ExpressionsHelper::createBinaryExp(mlir::Value lhs, mlir::Value rhs, PrimType::Prims prim_t, BinaryOp op){
 
          mlir::Type res_t;
+
+         // we got to check if they are pointer types (it would be string)
+        //  if(lhs.isa<mlir::LLVM::LLVMPointerType>() )
+ 
+        // string concat 
+         if(lhs.getType().isa<mlir::LLVM::LLVMPointerType>() && rhs.getType().isa<mlir::LLVM::LLVMPointerType>() && op == BinaryOp::ADD)
+            return concatString(lhs, rhs);
+
 
 
         switch(prim_t){
@@ -420,6 +431,75 @@
         // otherwise use i32 as canonical integer compute type
         return types->i32;
     }
-    mlir::Value ExpressionsHelper::concatString(mlir::Value str_lhs, mlir::Value str_rhs){return mlir::Value();}
+    mlir::Value ExpressionsHelper::concatString(
+        mlir::Value lhs,
+        mlir::Value rhs
+    ) {
+        // Normalize both sides
+        lhs = toStringValue(lhs);
+        rhs = toStringValue(rhs);
 
+        // Extract globals
+        auto lhsAddr = lhs.getDefiningOp<mlir::LLVM::AddressOfOp>();
+        auto rhsAddr = rhs.getDefiningOp<mlir::LLVM::AddressOfOp>();
+
+        if (!lhsAddr || !rhsAddr) {
+            llvm::report_fatal_error("Only constant string concat supported");
+        }
+
+        auto lhsGlobal = module.lookupSymbol<mlir::LLVM::GlobalOp>(
+            lhsAddr.getGlobalName()
+        );
+
+        auto rhsGlobal = module.lookupSymbol<mlir::LLVM::GlobalOp>(
+            rhsAddr.getGlobalName()
+        );
+
+        auto lhsAttr = lhsGlobal.getValue()->dyn_cast<mlir::StringAttr>();
+        auto rhsAttr = rhsGlobal.getValue()->dyn_cast<mlir::StringAttr>();
+
+        std::string lhsStr = lhsAttr.getValue().str();
+        std::string rhsStr = rhsAttr.getValue().str();
+
+        // Remove duplicate null
+        if (!lhsStr.empty())
+            lhsStr.pop_back();
+
+        std::string combined = lhsStr + rhsStr;
+
+        return createString(combined);
+    }
+
+    mlir::Value ExpressionsHelper::toStringValue(mlir::Value v) {
+        auto type = v.getType();
+
+        // -------------------------
+        // CASE 1: already a string (global)
+        // -------------------------
+        if (v.getDefiningOp<mlir::LLVM::AddressOfOp>()) {
+            return v;
+        }
+
+        // -------------------------
+        // CASE 2: char → string
+        // -------------------------
+        if (type.isInteger(8)) {
+            // Try constant char first (best case)
+            if (auto cst = v.getDefiningOp<mlir::arith::ConstantOp>()) {
+                auto attr = cst.getValue().dyn_cast<mlir::IntegerAttr>();
+                char c = static_cast<char>(attr.getInt());
+
+                std::string s(1, c); // single char string
+                return createString(s);
+            }
+
+            // ❌ runtime char not supported yet
+            llvm::report_fatal_error("Runtime char→string not supported yet");
+        }
+
+        // -------------------------
+        // OTHERWISE
+        // -------------------------
+        llvm::report_fatal_error("Cannot convert value to string");
+    }
  }

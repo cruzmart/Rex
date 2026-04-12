@@ -74,6 +74,7 @@ class ExpressionsHelper {
         mlir::Location loc;
         std::shared_ptr<TypesHelper> types;
         Errors errors;
+        std::unordered_map<std::string, mlir::LLVM::GlobalOp> stringPool;
 
         int globalCounter = 0; // start at 0
 
@@ -118,6 +119,7 @@ class ExpressionsHelper {
 
 
     mlir::Value concatString(mlir::Value str_lhs, mlir::Value str_rhs);
+    mlir::Value toStringValue(mlir::Value v);
 
 
 };

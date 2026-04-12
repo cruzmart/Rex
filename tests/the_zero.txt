@@ -70,6 +70,8 @@ print(true == 'c');
 */
 
 
-print(true / 2);
+print("hello" + "world");
+print("hello");
+print("world");
 
 
