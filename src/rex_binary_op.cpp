@@ -266,23 +266,28 @@ type_ptr BinaryOpSystem::check_binary(std::shared_ptr<BinaryExpr> exp, BinaryOp 
     }
 
     /////// Edge cases //////////////////
-    if((is_prim(L, PrimKind::String) && is_prim(R, PrimKind::String) &&  op == BinaryOp::EQ))
-        return std::make_shared<PrimType>(PrimKind::Bool);
+    if(is_string(L) || is_string(R)){
+        if(op == BinaryOp::ADD &&
+        ((is_string(L) || is_char(L)) &&
+            (is_string(R) || is_char(R))))
+            return std::make_shared<PrimType>(PrimKind::String);
 
-    if((is_prim(L, PrimKind::String) && is_prim(R, PrimKind::String) &&  op == BinaryOp::ADD))
-        return std::make_shared<PrimType>(PrimKind::String);
+        if(op == BinaryOp::EQ || op == BinaryOp::NEQ)
+            return std::make_shared<PrimType>(PrimKind::Bool);
 
-    // if we try to do a operation on two strings, but it is not ADD (we cannot do string concat) it is a error
-    if((is_prim(L, PrimKind::String) && is_prim(R, PrimKind::String) &&  op != BinaryOp::ADD))
-        errors.error(exp, std::string("Cannot apply operator '") + binop_name(op) + "' to String and String");
+        errors.error(exp, "Invalid operation on string types");
+    }
 
     // if we have two characters, the op is a arth but it is not add (based on hwo I design, I keep it this strict it can only makes strings)
-    if(is_prim(L, PrimKind::Char) && is_prim(R, PrimKind::Char) && is_arth(op) && op != BinaryOp::ADD) 
-        errors.error(exp, std::string("Cannot apply operator '") + binop_name(op) + "' to Char and Char");
-    
-    // if it is characters and it is add it is a string type result
-    if(is_prim(L, PrimKind::Char) && is_prim(R, PrimKind::Char) && op == BinaryOp::ADD){
-        return std::make_shared<PrimType>(PrimKind::String);
+    if(is_char(L) && is_char(R)){
+        if(op == BinaryOp::ADD)
+            return std::make_shared<PrimType>(PrimKind::String);
+
+        if(is_arth(op))
+            return std::make_shared<PrimType>(PrimKind::Int); // promote
+
+        if(is_comp(op))
+            return std::make_shared<PrimType>(PrimKind::Bool);
     }
     
     if((is_prim(R, PrimKind::Char) || is_prim(L, PrimKind::Char)) && op == BinaryOp::DIV){
@@ -295,17 +300,36 @@ type_ptr BinaryOpSystem::check_binary(std::shared_ptr<BinaryExpr> exp, BinaryOp 
     //////// General Cases //////////////////
                 
     if(is_arth(op)) {return promote(L,R,binop_name(op));}
+
+
+   // Equality supports ANY primitive combination
+    if(op == BinaryOp::EQ || op == BinaryOp::NEQ){
+        if(is_primitive(L) && is_primitive(R)){
+            return std::make_shared<PrimType>(PrimKind::Bool);
+        }
+    }
+
     if(is_comp(op)){
+         // Have to make sure both lhs and rhs are of THE SAME type.
+
+         if(!(op == BinaryOp::EQ || op == BinaryOp::NEQ)){
+            if(!is_numeric(L) || !is_numeric(R))
+                throw std::runtime_error("Comparison requires numeric operands");
+        }
+      
         auto re = promote(L,R,binop_name(op));
         if(is_array(L) || is_array(R))
             std::static_pointer_cast<ArrayType>(re)->elem = std::make_shared<PrimType>(PrimKind::Bool);
         return std::make_shared<PrimType>(PrimKind::Bool);
     }
+
+    
     if(is_logic(op)){
         if(!is_bool(L) || !is_bool(R))
             throw std::runtime_error("and/or require Bool operands");
-        return promote(L,R,binop_name(op));
+        return std::make_shared<PrimType>(PrimKind::Bool);
     }
+    
     switch(op){
         case BinaryOp::RANGE: return check_range(L,R);
         case BinaryOp::PIPE:  return check_pipe(L,R);

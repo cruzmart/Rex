@@ -201,23 +201,26 @@
         }
 
         
-        // logic op
-         switch(op){
-            case BinaryOp::EQ:{}
-            case BinaryOp::NEQ:{}
-            case BinaryOp::LT:{}
-            case BinaryOp::GT:{}
-            case BinaryOp::LE:{}
-            case BinaryOp::GE:{}
+        // =========================
+        // comparisons
+        // =========================
+        switch(op){
+            case BinaryOp::EQ:  return eq(lhs, rhs);
+            case BinaryOp::NEQ: return neq(lhs, rhs);
+            case BinaryOp::LT:  return lt(lhs, rhs);
+            case BinaryOp::GT:  return gt(lhs, rhs);
+            case BinaryOp::LE:  return le(lhs, rhs);
+            case BinaryOp::GE:  return ge(lhs, rhs);
             default:
                 break;
         }
 
-
-        // bitwise op (check if the lhs and rhs values are bool, both must be)
+        // =========================
+        // logic ops
+        // =========================
         switch(op){
-            case BinaryOp::AND:{}
-            case BinaryOp::OR:{}
+            case BinaryOp::AND: return and_(lhs, rhs);
+            case BinaryOp::OR:  return or_(lhs, rhs);
             default:
                 break;
         }
@@ -226,6 +229,7 @@
 
     }
    
+
     mlir::Value ExpressionsHelper::add( mlir::Value lhs, mlir::Value rhs,  mlir::Type resultType) {
 
         // 🔥 STEP 1: choose computation type
@@ -333,6 +337,87 @@
         auto result = builder->create<mlir::arith::RemSIOp>(loc, lhs, rhs);
 
         return castTo(result, resultType);
+    }
+
+
+    // =====================================
+    // Comparison Helpers
+    // =====================================
+    mlir::Value ExpressionsHelper::cmp(
+        mlir::Value lhs,
+        mlir::Value rhs,
+        mlir::arith::CmpIPredicate iPred,
+        mlir::arith::CmpFPredicate fPred
+    ) {
+        auto computeType = getComputeType(lhs.getType(), rhs.getType());
+
+        lhs = castTo(lhs, computeType);
+        rhs = castTo(rhs, computeType);
+
+        if (computeType.isF32()) {
+            return builder->create<mlir::arith::CmpFOp>(loc, fPred, lhs, rhs);
+        } else {
+            return builder->create<mlir::arith::CmpIOp>(loc, iPred, lhs, rhs);
+        }
+    }
+
+    // =====================================
+    // Comparisons
+    // =====================================
+    mlir::Value ExpressionsHelper::eq(mlir::Value lhs, mlir::Value rhs){
+        return cmp(lhs, rhs,
+            mlir::arith::CmpIPredicate::eq,
+            mlir::arith::CmpFPredicate::OEQ
+        );
+    }
+
+    mlir::Value ExpressionsHelper::neq(mlir::Value lhs, mlir::Value rhs){
+        return cmp(lhs, rhs,
+            mlir::arith::CmpIPredicate::ne,
+            mlir::arith::CmpFPredicate::ONE
+        );
+    }
+
+    mlir::Value ExpressionsHelper::lt(mlir::Value lhs, mlir::Value rhs){
+        return cmp(lhs, rhs,
+            mlir::arith::CmpIPredicate::slt,
+            mlir::arith::CmpFPredicate::OLT
+        );
+    }
+
+    mlir::Value ExpressionsHelper::le(mlir::Value lhs, mlir::Value rhs){
+        return cmp(lhs, rhs,
+            mlir::arith::CmpIPredicate::sle,
+            mlir::arith::CmpFPredicate::OLE
+        );
+    }
+
+    mlir::Value ExpressionsHelper::gt(mlir::Value lhs, mlir::Value rhs){
+        return cmp(lhs, rhs,
+            mlir::arith::CmpIPredicate::sgt,
+            mlir::arith::CmpFPredicate::OGT
+        );
+    }
+
+    mlir::Value ExpressionsHelper::ge(mlir::Value lhs, mlir::Value rhs){
+        return cmp(lhs, rhs,
+            mlir::arith::CmpIPredicate::sge,
+            mlir::arith::CmpFPredicate::OGE
+        );
+    }
+
+    mlir::Value ExpressionsHelper::and_(mlir::Value lhs, mlir::Value rhs){
+        lhs = castTo(lhs, types->b1);
+        rhs = castTo(rhs, types->b1);
+
+        return builder->create<mlir::arith::AndIOp>(loc, lhs, rhs);
+    }
+
+    mlir::Value ExpressionsHelper::or_(mlir::Value lhs, mlir::Value rhs){
+        lhs = castTo(lhs, types->b1);
+        rhs = castTo(rhs, types->b1);
+
+        return builder->create<mlir::arith::OrIOp>(loc, lhs, rhs);
     }
 
 

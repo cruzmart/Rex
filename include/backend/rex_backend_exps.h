@@ -112,7 +112,23 @@ class ExpressionsHelper {
     mlir::Value div(mlir::Value lhs, mlir::Value rhs, mlir::Type typ);
     mlir::Value mod(mlir::Value lhs, mlir::Value rhs, mlir::Type typ);
     mlir::Value mul(mlir::Value lhs, mlir::Value rhs, mlir::Type typ);
-    mlir::Value lt(), gt(), lte(), gte();
+
+
+    mlir::Value cmp(
+        mlir::Value lhs,
+        mlir::Value rhs,
+        mlir::arith::CmpIPredicate iPred,
+        mlir::arith::CmpFPredicate fPred
+    );
+    mlir::Value eq(mlir::Value lhs, mlir::Value rhs);
+    mlir::Value neq(mlir::Value lhs, mlir::Value rhs); 
+    mlir::Value lt(mlir::Value lhs, mlir::Value rhs); 
+    mlir::Value le(mlir::Value lhs, mlir::Value rhs);
+    mlir::Value ge(mlir::Value lhs, mlir::Value rhs);
+    mlir::Value gt(mlir::Value lhs, mlir::Value rhs);
+
+    mlir::Value and_(mlir::Value lhs, mlir::Value rhs);
+    mlir::Value or_(mlir::Value lhs, mlir::Value rhs);
 
     mlir::Value castTo(mlir::Value val, mlir::Type targetType);
     mlir::Type  getComputeType(mlir::Type lhs, mlir::Type rhs);  
