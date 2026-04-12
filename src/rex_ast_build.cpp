@@ -362,7 +362,9 @@ antlrcpp::Any rex_ast_build::visitLiteral(RexParser::LiteralContext* ctx) {
     auto lit = std::make_shared<LiteralExpr>();
     lit->exp_kind = ExprKind::Literal;
     lit->value = ctx->getText();
-    lit->value  = lit->value.substr(1, lit->value .size() - 2);
+    // do this ONLY if the literal is char or string.
+    if(ctx->CHAR_LITERAL() || ctx->STRING_LITERAL())
+        lit->value  = lit->value.substr(1, lit->value .size() - 2);
     lit->loc = loc(ctx);
 
     if(ctx->INT_LITERAL()) lit->type = std::make_shared<PrimType>(PrimType::Prims::Int);

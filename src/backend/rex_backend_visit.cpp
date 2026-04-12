@@ -27,8 +27,16 @@ namespace rex {
     }
     mlir::Value CodegenVisitor::visitBinary(std::shared_ptr<BinaryExpr> bi){
 
-        TypeKind exp_t = bi->type->kind;
+  
         BinaryOp op = bi->operation;
+
+        if (op == BinaryOp::ADD && exps->isConstStringExpr(bi)) {
+            std::string folded = exps->foldConstString(bi);
+            return exps->createString(folded);
+        }
+
+
+        TypeKind exp_t = bi->type->kind;
         mlir::Value lhs = visitExp(bi->lhs);
         mlir::Value rhs = visitExp(bi->rhs);
 

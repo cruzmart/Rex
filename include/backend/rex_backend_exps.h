@@ -120,7 +120,8 @@ class ExpressionsHelper {
 
     mlir::Value concatString(mlir::Value str_lhs, mlir::Value str_rhs);
     mlir::Value toStringValue(mlir::Value v);
-
-
+    bool isConstStringExpr(std::shared_ptr<Expr> expr);
+    std::string foldConstString(std::shared_ptr<Expr> expr);
+    
 };
 }

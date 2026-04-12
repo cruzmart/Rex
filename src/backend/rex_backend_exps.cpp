@@ -80,42 +80,38 @@
         throw std::runtime_error("Invalid boolean literal: " + text);
     }
     mlir::Value ExpressionsHelper::createChar(const std::string &text) {
-            // Must be at least: 'x'
-            if (text.size() < 3 || text.front() != '\'' || text.back() != '\'') {
-                throw std::runtime_error("Invalid char literal: " + text);
+        if (text.empty())
+            throw std::runtime_error("Empty char literal");
+
+        char value;
+
+        if (text[0] == '\\') {
+            if (text.size() != 2)
+                throw std::runtime_error("Invalid escaped char");
+
+            switch (text[1]) {
+                case 'n':  value = '\n'; break;
+                case 't':  value = '\t'; break;
+                case 'r':  value = '\r'; break;
+                case '\\': value = '\\'; break;
+                case '\'': value = '\''; break;
+                case '0':  value = '\0'; break;
+                default:
+                    throw std::runtime_error("Unknown escape sequence");
             }
+        } else {
+            if (text.size() != 1)
+                throw std::runtime_error("Invalid char literal");
 
-            char value;
+            value = text[0];
+        }
 
-            // Handle escape sequences
-            if (text[1] == '\\') {
-                if (text.size() != 4) {
-                    throw std::runtime_error("Invalid escaped char literal: " + text);
-                }
+        return builder->create<mlir::arith::ConstantOp>(
+            loc,
+            builder->getI8IntegerAttr(static_cast<int8_t>(value))
+        );
+    } 
 
-                switch (text[2]) {
-                    case 'n':  value = '\n'; break;
-                    case 't':  value = '\t'; break;
-                    case 'r':  value = '\r'; break;
-                    case '\\': value = '\\'; break;
-                    case '\'': value = '\''; break;
-                    case '0':  value = '\0'; break;
-                    default:
-                        throw std::runtime_error("Unknown escape sequence: " + text);
-                }
-            } else {
-                // Normal case: 'c'
-                if (text.size() != 3) {
-                    throw std::runtime_error("Invalid char literal: " + text);
-                }
-                value = text[1];
-            }
-
-            return builder->create<mlir::arith::ConstantOp>(
-                loc,
-                builder->getI8IntegerAttr(static_cast<int8_t>(value))
-            );
-    }    
     mlir::Value ExpressionsHelper::createString(const std::string &text) {
 
         // 🔥 1. check if already exists
@@ -502,4 +498,134 @@
         // -------------------------
         llvm::report_fatal_error("Cannot convert value to string");
     }
+
+
+    bool ExpressionsHelper::isConstStringExpr(std::shared_ptr<Expr> expr) {
+        if(expr->exp_kind == ExprKind::Literal){
+            auto lit = std::static_pointer_cast<LiteralExpr>(expr);
+            auto prim = std::static_pointer_cast<PrimType>(lit->type);
+
+            return prim->prim == PrimType::Prims::String ||
+                prim->prim == PrimType::Prims::Char;
+        }
+
+        if(expr->exp_kind == ExprKind::Binary){
+            auto bin = std::static_pointer_cast<BinaryExpr>(expr);
+            if (bin->operation != BinaryOp::ADD)
+                return false;
+
+            return isConstStringExpr(bin->lhs) &&
+                isConstStringExpr(bin->rhs);
+        }
+
+        return false;   
+    }
+
+    std::string ExpressionsHelper::foldConstString(std::shared_ptr<Expr> expr) {
+    
+        // =========================
+        // CASE 1: Literal
+        // =========================
+        if(expr->exp_kind == ExprKind::Literal){
+            auto lit = std::static_pointer_cast<LiteralExpr>(expr);
+            auto prim = std::static_pointer_cast<PrimType>(lit->type);
+
+            switch (prim->prim) {
+
+                case PrimType::Prims::String: {
+                    // Already a full string
+                    return lit->value;
+                }
+
+                case PrimType::Prims::Char: {
+                    const std::string &text = lit->value;
+
+                    if (text.empty())
+                        llvm::report_fatal_error("Empty char in foldConstString");
+
+                    char value;
+
+                    if (text[0] == '\\') {
+                        if (text.size() != 2)
+                            llvm::report_fatal_error("Invalid escaped char");
+
+                        switch (text[1]) {
+                            case 'n':  value = '\n'; break;
+                            case 't':  value = '\t'; break;
+                            case 'r':  value = '\r'; break;
+                            case '\\': value = '\\'; break;
+                            case '\'': value = '\''; break;
+                            case '0':  value = '\0'; break;
+                            default:
+                                llvm::report_fatal_error("Unknown escape sequence");
+                        }
+                    } else {
+                        if (text.size() != 1)
+                            llvm::report_fatal_error("Invalid char");
+
+                        value = text[0];
+                    }
+
+                    return std::string(1, value);
+                }
+
+                default:
+                    llvm::report_fatal_error("Non-string literal in foldConstString");
+            }
+        }
+
+        // =========================
+        // CASE 2: BinaryExpr (+ only)
+        // =========================
+        if(expr->exp_kind == ExprKind::Binary){
+            auto bin = std::static_pointer_cast<BinaryExpr>(expr);
+
+            if (bin->operation != BinaryOp::ADD) {
+                llvm::report_fatal_error("Only + supported in foldConstString");
+            }
+
+            // Recursively fold both sides
+            std::string lhs = foldConstString(bin->lhs);
+            std::string rhs = foldConstString(bin->rhs);
+
+            return lhs + rhs;
+        }
+
+        // =========================
+        // OTHERWISE
+        // =========================
+        llvm::report_fatal_error("Expression is not a constant string expression");
+
+
+        /*
+
+            // In Case This is not good try this
+            // -------------------------
+            // BINARY CONCAT CASE
+            // -------------------------
+            if (expr->kind == ExprKind::Binary) {
+                auto bin = std::static_pointer_cast<BinaryExpr>(expr);
+
+                // Only care about +
+                if (bin->operation != BinaryOp::ADD)
+                    return std::nullopt;
+
+                // Must be string type
+                auto prim = std::static_pointer_cast<PrimType>(bin->type);
+                if (prim->prim != PrimType::Prims::String)
+                    return std::nullopt;
+
+                auto lhs = foldConstString(bin->lhs);
+                auto rhs = foldConstString(bin->rhs);
+
+                if (lhs && rhs) {
+                    return *lhs + *rhs;
+                }
+
+                return std::nullopt;
+            }
+
+        */
+    }
+
  }
