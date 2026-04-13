@@ -32,6 +32,7 @@ BackEnd::BackEnd() : loc(mlir::UnknownLoc::get(&context)) {
     setupPrintf();
     setupPrintFormats();
     loadPrints();
+    //loadRuntimeFuncs();
 
 }
 
@@ -154,6 +155,35 @@ void BackEnd::setupPrintf() {
     // Insert the printf function into the body of the parent module.
     builder->create<mlir::LLVM::LLVMFuncOp>(loc, "printf", llvmFnType);
 }
+
+void BackEnd::loadRuntimeFuncs() {
+
+    auto &ctx = context;
+
+    // ----------------------------
+    // char* type
+    // ----------------------------
+    auto i8 = mlir::IntegerType::get(&ctx, 8);
+    auto ptr = mlir::LLVM::LLVMPointerType::get(&ctx);
+
+    // ----------------------------
+    // rex_string_eq : i1 (i8*, i8*)
+    // ----------------------------
+    auto i1 = builder->getI1Type();
+
+    auto stringEqType = mlir::LLVM::LLVMFunctionType::get(
+        i1,
+        {ptr, ptr},
+        false
+    );
+
+    builder->create<mlir::LLVM::LLVMFuncOp>(
+        loc,
+        "rex_string_eq",
+        stringEqType
+    );
+}
+
 
 void BackEnd::example() {
 

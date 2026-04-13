@@ -79,6 +79,9 @@ print('c' == 'd');
 print(false or true);
 */
 
-print("hello" != 'c');
-
+print("hello" != "world");
+print("hello" + "hello");
+print("hello" + 'c');
+print("no" != "yes");
+print(("yes" == "yes") + 1);
 

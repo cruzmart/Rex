@@ -71,6 +71,7 @@ class BackEnd {
     int lowerDialects();
     void setupPrintFormats();
     void loadPrints();
+    void loadRuntimeFuncs();
 
  private:
 

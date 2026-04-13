@@ -47,7 +47,8 @@ namespace rex {
                 switch(primt_t->prim){
                     case PrimType::Prims::String:{
                         // do basic string concat here
-                        return exps->concatString(lhs, rhs);
+                        llvm::report_fatal_error("Runtime string concatenation not implemented yet");
+                        break;
                     }
                     default:{
                         // do basic op of the values ( uh shit)

@@ -114,20 +114,18 @@
 
     mlir::Value ExpressionsHelper::createString(const std::string &text) {
 
-        // 🔥 1. check if already exists
+        // 🔥 1. reuse existing string literal
         auto it = stringPool.find(text);
         if (it != stringPool.end()) {
             return builder->create<mlir::LLVM::AddressOfOp>(loc, it->second);
         }
 
-        // Else if it is completely new string, do this.
-        // 🔥 2. create new global
+        // 🔥 2. insert global at module start
         auto oldIP = builder->saveInsertionPoint();
         builder->setInsertionPointToStart(module.getBody());
 
         std::string strWithNull = text + '\0';
 
-        // 👇 keep counter ONLY for uniqueness
         std::string name = "str_const_" + std::to_string(globalCounter++);
 
         auto i8Ty = builder->getIntegerType(8);
@@ -144,10 +142,17 @@
 
         builder->restoreInsertionPoint(oldIP);
 
-        // 🔥 4. store in pool
         stringPool[text] = global;
 
-        return builder->create<mlir::LLVM::AddressOfOp>(loc, global);
+        // 🔥 3. return pointer to first element (IMPORTANT CHANGE)
+        auto addr = builder->create<mlir::LLVM::AddressOfOp>(loc, global);
+
+        // cast to i8*
+        return builder->create<mlir::LLVM::BitcastOp>(
+            loc,
+            mlir::LLVM::LLVMPointerType::get(builder->getContext()),
+            addr
+        );
     }
 
 
@@ -364,66 +369,116 @@
     // =====================================
     // Comparisons
     // =====================================
-   mlir::Value ExpressionsHelper::eq(mlir::Value lhs, mlir::Value rhs){
-        // =========================
-        // STRING CASE (CONST ONLY)
-        // =========================
-        if (isStringValue(lhs) && isStringValue(rhs)) {
+    mlir::Value ExpressionsHelper::eq(mlir::Value lhs, mlir::Value rhs) {
+        auto lhsTy = lhs.getType();
+        auto rhsTy = rhs.getType();
 
-            auto lAddr = lhs.getDefiningOp<mlir::LLVM::AddressOfOp>();
-            auto rAddr = rhs.getDefiningOp<mlir::LLVM::AddressOfOp>();
+        bool lhsIsStr = lhsTy.isa<mlir::LLVM::LLVMPointerType>();
+        bool rhsIsStr = rhsTy.isa<mlir::LLVM::LLVMPointerType>();
 
-            if (!lAddr || !rAddr) {
-                llvm::report_fatal_error("Runtime string comparison not supported yet");
-            }
+        // -------------------------
+        // STRING == STRING
+        // -------------------------
+        if (lhsIsStr && rhsIsStr) {
+            auto strcmpFunc = getOrInsertStrcmp();
 
-            std::string l = getStringFromValue(lhs);
-            std::string r = getStringFromValue(rhs);
-
-            bool result = (l == r);
-
-            return builder->create<mlir::arith::ConstantOp>(
+            auto call = builder->create<mlir::LLVM::CallOp>(
                 loc,
-                builder->getIntegerAttr(types->b1, result ? 1 : 0)
+                strcmpFunc,
+                mlir::ValueRange{lhs, rhs}
+            );
+
+            mlir::Value result = call.getResult();
+
+            auto zero = builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32);
+
+            return builder->create<mlir::arith::CmpIOp>(
+                loc,
+                mlir::arith::CmpIPredicate::eq,
+                result,
+                zero
             );
         }
 
-        // =========================
-        // NORMAL CASE
-        // =========================
-        return cmp(lhs, rhs,
+        // -------------------------
+        // NORMAL NUMERIC CASE
+        // -------------------------
+        auto computeType = getComputeType(lhsTy, rhsTy);
+        lhs = castTo(lhs, computeType);
+        rhs = castTo(rhs, computeType);
+
+        if (computeType.isF32()) {
+            return builder->create<mlir::arith::CmpFOp>(
+                loc,
+                mlir::arith::CmpFPredicate::OEQ,
+                lhs,
+                rhs
+            );
+        }
+
+        return builder->create<mlir::arith::CmpIOp>(
+            loc,
             mlir::arith::CmpIPredicate::eq,
-            mlir::arith::CmpFPredicate::OEQ
-        );
-        }
-
-    mlir::Value ExpressionsHelper::neq(mlir::Value lhs, mlir::Value rhs){
-
-        if (isStringValue(lhs) && isStringValue(rhs)) {
-
-            auto lAddr = lhs.getDefiningOp<mlir::LLVM::AddressOfOp>();
-            auto rAddr = rhs.getDefiningOp<mlir::LLVM::AddressOfOp>();
-
-            if (!lAddr || !rAddr) {
-                llvm::report_fatal_error("Runtime string comparison not supported yet");
-            }
-
-            std::string l = getStringFromValue(lhs);
-            std::string r = getStringFromValue(rhs);
-
-            bool result = (l != r);
-
-            return builder->create<mlir::arith::ConstantOp>(
-                loc,
-                builder->getIntegerAttr(types->b1, result ? 1 : 0)
-            );
-        }
-
-        return cmp(lhs, rhs,
-            mlir::arith::CmpIPredicate::ne,
-            mlir::arith::CmpFPredicate::ONE
+            lhs,
+            rhs
         );
     }
+
+   mlir::Value ExpressionsHelper::neq(mlir::Value lhs, mlir::Value rhs) {
+        auto lhsTy = lhs.getType();
+        auto rhsTy = rhs.getType();
+
+        bool lhsIsStr = lhsTy.isa<mlir::LLVM::LLVMPointerType>();
+        bool rhsIsStr = rhsTy.isa<mlir::LLVM::LLVMPointerType>();
+
+        // -------------------------
+        // STRING != STRING
+        // -------------------------
+        if (lhsIsStr && rhsIsStr) {
+            auto strcmpFunc = getOrInsertStrcmp();
+
+            auto call = builder->create<mlir::LLVM::CallOp>(
+                loc,
+                strcmpFunc,
+                mlir::ValueRange{lhs, rhs}
+            );
+
+            mlir::Value result = call.getResult();
+
+            auto zero = builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32);
+
+            return builder->create<mlir::arith::CmpIOp>(
+                loc,
+                mlir::arith::CmpIPredicate::ne,
+                result,
+                zero
+            );
+        }
+
+        // -------------------------
+        // NORMAL NUMERIC CASE
+        // -------------------------
+        auto computeType = getComputeType(lhsTy, rhsTy);
+        lhs = castTo(lhs, computeType);
+        rhs = castTo(rhs, computeType);
+
+        if (computeType.isF32()) {
+            return builder->create<mlir::arith::CmpFOp>(
+                loc,
+                mlir::arith::CmpFPredicate::ONE,
+                lhs,
+                rhs
+            );
+        }
+
+        return builder->create<mlir::arith::CmpIOp>(
+            loc,
+            mlir::arith::CmpIPredicate::ne,
+            lhs,
+            rhs
+        );
+    }
+
 
     mlir::Value ExpressionsHelper::lt(mlir::Value lhs, mlir::Value rhs){
         return cmp(lhs, rhs,
@@ -607,36 +662,25 @@
     mlir::Value ExpressionsHelper::toStringValue(mlir::Value v) {
         auto type = v.getType();
 
-        // -------------------------
-        // CASE 1: already a string (global)
-        // -------------------------
-        if (v.getDefiningOp<mlir::LLVM::AddressOfOp>()) {
+        // already string (i8*)
+        if (type.isa<mlir::LLVM::LLVMPointerType>()) {
             return v;
         }
 
-        // -------------------------
-        // CASE 2: char → string
-        // -------------------------
+        // char → string (constant only)
         if (type.isInteger(8)) {
-            // Try constant char first (best case)
             if (auto cst = v.getDefiningOp<mlir::arith::ConstantOp>()) {
                 auto attr = cst.getValue().dyn_cast<mlir::IntegerAttr>();
                 char c = static_cast<char>(attr.getInt());
 
-                std::string s(1, c); // single char string
-                return createString(s);
+                return createString(std::string(1, c));
             }
 
-            // ❌ runtime char not supported yet
             llvm::report_fatal_error("Runtime char→string not supported yet");
         }
 
-        // -------------------------
-        // OTHERWISE
-        // -------------------------
         llvm::report_fatal_error("Cannot convert value to string");
     }
-
 
     bool ExpressionsHelper::isConstStringExpr(std::shared_ptr<Expr> expr) {
         if(expr->exp_kind == ExprKind::Literal){
@@ -733,54 +777,52 @@
         // OTHERWISE
         // =========================
         llvm::report_fatal_error("Expression is not a constant string expression");
-
-
-        /*
-
-            // In Case This is not good try this
-            // -------------------------
-            // BINARY CONCAT CASE
-            // -------------------------
-            if (expr->kind == ExprKind::Binary) {
-                auto bin = std::static_pointer_cast<BinaryExpr>(expr);
-
-                // Only care about +
-                if (bin->operation != BinaryOp::ADD)
-                    return std::nullopt;
-
-                // Must be string type
-                auto prim = std::static_pointer_cast<PrimType>(bin->type);
-                if (prim->prim != PrimType::Prims::String)
-                    return std::nullopt;
-
-                auto lhs = foldConstString(bin->lhs);
-                auto rhs = foldConstString(bin->rhs);
-
-                if (lhs && rhs) {
-                    return *lhs + *rhs;
-                }
-
-                return std::nullopt;
-            }
-
-        */
     }
 
     bool ExpressionsHelper::isStringValue(mlir::Value v){
-        return v.getDefiningOp<mlir::LLVM::AddressOfOp>();
+        return v.getType().isa<mlir::LLVM::LLVMPointerType>();
     }
 
-    std::string ExpressionsHelper::getStringFromValue(mlir::Value v) {
-        auto addr = v.getDefiningOp<mlir::LLVM::AddressOfOp>();
-        if (!addr)
-            llvm::report_fatal_error("Expected string global");
+    mlir::Value ExpressionsHelper::eqStringsConst(std::shared_ptr<Expr> lhs, std::shared_ptr<Expr> rhs) {
+        std::string l = foldConstString(lhs);
+        std::string r = foldConstString(rhs);
 
-        auto global = module.lookupSymbol<mlir::LLVM::GlobalOp>(
-            addr.getGlobalName()
+        bool result = (l == r);
+
+        return builder->create<mlir::arith::ConstantOp>(
+            loc,
+            builder->getBoolAttr(result)
+        );
+    }
+
+    mlir::LLVM::LLVMFuncOp ExpressionsHelper::getOrInsertStrcmp() {
+        // Try to find existing declaration
+        if (auto func = module.lookupSymbol<mlir::LLVM::LLVMFuncOp>("strcmp")) {
+            return func;
+        }
+
+        // i8*
+        auto i8Ptr = mlir::LLVM::LLVMPointerType::get(builder->getContext());
+
+        // int strcmp(i8*, i8*)
+        auto fnType = mlir::LLVM::LLVMFunctionType::get(
+            builder->getI32Type(),
+            {i8Ptr, i8Ptr},
+            /*isVarArg=*/false
         );
 
-        auto attr = global.getValue()->dyn_cast<mlir::StringAttr>();
-        return attr.getValue().str();
-    }
+        // IMPORTANT: insert at module level (not inside a function)
+        auto oldIP = builder->saveInsertionPoint();
+        builder->setInsertionPointToStart(module.getBody());
 
+        auto func = builder->create<mlir::LLVM::LLVMFuncOp>(
+            loc,
+            "strcmp",
+            fnType
+        );
+
+        builder->restoreInsertionPoint(oldIP);
+
+        return func;
+    }
  }

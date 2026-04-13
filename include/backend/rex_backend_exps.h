@@ -81,6 +81,8 @@ class ExpressionsHelper {
         mlir::OpBuilder::InsertPoint old_insertion_point;
 
 
+
+
     // we are going to make literals and return it
     // than we do operations and return the result
 
@@ -139,6 +141,7 @@ class ExpressionsHelper {
     bool isConstStringExpr(std::shared_ptr<Expr> expr);
     std::string foldConstString(std::shared_ptr<Expr> expr);
     bool isStringValue(mlir::Value v);
-    std::string getStringFromValue(mlir::Value v);
+    mlir::Value eqStringsConst(std::shared_ptr<Expr> lhs, std::shared_ptr<Expr> rhs); 
+    mlir::LLVM::LLVMFuncOp getOrInsertStrcmp();
 };
 }
