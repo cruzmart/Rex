@@ -136,6 +136,7 @@ class ExpressionsHelper {
     mlir::Type  getComputeType(mlir::Type lhs, mlir::Type rhs);  
 
 
+    // String Helpers and Creation 
     mlir::Value concatString(mlir::Value str_lhs, mlir::Value str_rhs);
     mlir::Value toStringValue(mlir::Value v);
     bool isConstStringExpr(std::shared_ptr<Expr> expr);
@@ -143,5 +144,9 @@ class ExpressionsHelper {
     bool isStringValue(mlir::Value v);
     mlir::Value eqStringsConst(std::shared_ptr<Expr> lhs, std::shared_ptr<Expr> rhs); 
     mlir::LLVM::LLVMFuncOp getOrInsertStrcmp();
+
+
+    // Array Literal Creation
+    mlir::Value createArray( const std::vector<mlir::Value>& elements, std::shared_ptr<Type> type);
 };
 }

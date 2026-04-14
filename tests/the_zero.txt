@@ -79,9 +79,12 @@ print('c' == 'd');
 print(false or true);
 */
 
+/*
 print("hello" != "world");
 print("hello" + "hello");
 print("hello" + 'c');
 print("no" != "yes");
 print(("yes" == "yes") + 1);
+*/
 
+print([1,2,3]);

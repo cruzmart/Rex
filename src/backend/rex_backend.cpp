@@ -26,8 +26,9 @@ BackEnd::BackEnd() : loc(mlir::UnknownLoc::get(&context)) {
     types = std::make_shared<TypesHelper>(builder, loc);
     visitor = std::make_shared<CodegenVisitor>(builder, module, loc);
     visitor->exps = std::make_shared<ExpressionsHelper>(builder, module, loc, types);
-    visitor->prints = std::make_shared<PrintHelper>(builder, loc);
-  
+    visitor->prints = std::make_shared<PrintHelper>(builder, loc, types);
+    
+    
     
     setupPrintf();
     setupPrintFormats();

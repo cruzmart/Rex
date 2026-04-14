@@ -825,4 +825,76 @@
 
         return func;
     }
+ 
+    mlir::Value ExpressionsHelper::createArray( const std::vector<mlir::Value>& elements, std::shared_ptr<Type> type) {
+        auto arrType = std::static_pointer_cast<ArrayType>(type);
+        auto elemType = arrType->elem;
+        int size = elements.size();
+
+        // -----------------------------------
+        // Resolve MLIR element type
+        // -----------------------------------
+        mlir::Type mlirElemTy;
+
+        if (elemType->kind == TypeKind::Primitive) {
+            auto prim = std::static_pointer_cast<PrimType>(elemType);
+
+            switch (prim->prim) {
+                case PrimType::Prims::Int:    mlirElemTy = types->i32; break;
+                case PrimType::Prims::Real:   mlirElemTy = types->f32; break;
+                case PrimType::Prims::Bool:   mlirElemTy = types->b1;  break;
+                case PrimType::Prims::Char:   mlirElemTy = types->c8;  break;
+                case PrimType::Prims::String:
+                    mlirElemTy = mlir::LLVM::LLVMPointerType::get(builder->getContext());
+                    break;
+                default:
+                    llvm::report_fatal_error("Unsupported primitive in array");
+            }
+        } else {
+            llvm::report_fatal_error("Nested arrays not supported yet");
+        }
+
+        // -----------------------------------
+        // Create LLVM array type
+        // -----------------------------------
+        auto llvmArrayTy = mlir::LLVM::LLVMArrayType::get(mlirElemTy, size);
+
+        // -----------------------------------
+        // Allocate
+        // -----------------------------------
+        auto arrayPtr = builder->create<mlir::LLVM::AllocaOp>(
+            loc,
+            mlir::LLVM::LLVMPointerType::get(builder->getContext()),
+            llvmArrayTy,
+            builder->create<mlir::arith::ConstantIntOp>(loc, 1, 32)
+        );
+
+        // -----------------------------------
+        // Store elements
+        // -----------------------------------
+        for (int i = 0; i < size; i++) {
+
+            mlir::Value val = elements[i];
+
+            // ⚠️ only cast non-pointers
+            if (!val.getType().isa<mlir::LLVM::LLVMPointerType>()) {
+                val = castTo(val, mlirElemTy);
+            }
+
+            auto zero = builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32);
+            auto idx  = builder->create<mlir::arith::ConstantIntOp>(loc, i, 32);
+
+            auto elemPtr = builder->create<mlir::LLVM::GEPOp>(
+                loc,
+                mlir::LLVM::LLVMPointerType::get(builder->getContext()),
+                llvmArrayTy,
+                arrayPtr,
+                mlir::ValueRange{zero, idx}
+            );
+
+            builder->create<mlir::LLVM::StoreOp>(loc, val, elemPtr);
+        }
+
+        return arrayPtr;
+    }
  }

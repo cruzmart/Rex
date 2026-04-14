@@ -60,28 +60,31 @@
 
 namespace rex {
 
-class CodegenVisitor {
-public:
-    std::shared_ptr<mlir::OpBuilder> builder;
-    mlir::ModuleOp &module;
-    mlir::Location loc;
-    std::unordered_map<std::string, mlir::Value> symbolTable;
+    class CodegenVisitor {
+    public:
+        std::shared_ptr<mlir::OpBuilder> builder;
+        mlir::ModuleOp &module;
+        mlir::Location loc;
+        std::unordered_map<std::string, mlir::Value> symbolTable;
 
 
-    std::shared_ptr<ExpressionsHelper> exps;
-    std::shared_ptr<PrintHelper> prints;
+        std::shared_ptr<ExpressionsHelper> exps;
+        std::shared_ptr<PrintHelper> prints;
 
-    CodegenVisitor( std::shared_ptr<mlir::OpBuilder> b,
-                    mlir::ModuleOp & m,
-                    mlir::Location l
-                  );
+        CodegenVisitor( std::shared_ptr<mlir::OpBuilder> b,
+                        mlir::ModuleOp & m,
+                        mlir::Location l
+                    );
 
-    mlir::Value visitExp(std::shared_ptr<Expr> expr);
-    mlir::Value visitLiteral(std::shared_ptr<LiteralExpr> l);
-    mlir::Value visitBinary(std::shared_ptr<BinaryExpr> bi);
-    void visitPrint(std::shared_ptr<PrintStmt> p);
+        mlir::Value visitExp(std::shared_ptr<Expr> expr);
+        mlir::Value visitLiteral(std::shared_ptr<LiteralExpr> l);
+        mlir::Value visitBinary(std::shared_ptr<BinaryExpr> bi);
+        mlir::Value visitArray(std::shared_ptr<ArrayExpr> arr);
 
-    void visitStmt(std::shared_ptr<Stmt> stmt);
-    void visit(std::shared_ptr<FileAst> file);
-};
+
+        void visitPrint(std::shared_ptr<PrintStmt> p);
+
+        void visitStmt(std::shared_ptr<Stmt> stmt);
+        void visit(std::shared_ptr<FileAst> file);
+    };
 }
