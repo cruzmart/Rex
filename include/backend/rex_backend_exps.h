@@ -55,6 +55,7 @@
 #include "rex_backend_types.h"
 #include "rex_types.h"
 #include "rex_exps.h"
+#include "rex_errors.h"
 
 namespace rex {
 
@@ -72,10 +73,14 @@ class ExpressionsHelper {
         mlir::ModuleOp & module;
         mlir::Location loc;
         std::shared_ptr<TypesHelper> types;
+        Errors errors;
+        std::unordered_map<std::string, mlir::LLVM::GlobalOp> stringPool;
 
         int globalCounter = 0; // start at 0
 
         mlir::OpBuilder::InsertPoint old_insertion_point;
+
+
 
 
     // we are going to make literals and return it
@@ -101,25 +106,47 @@ class ExpressionsHelper {
 
     // we got to impliment these, I wonder what I should pass..
 
-    // visit helper
-    mlir::Value visitExpr(std::shared_ptr<Expr> exp);
-
-
     // Expressions
-    mlir::Value binaryExp(std::shared_ptr<BinaryExpr> bi);
-
-    mlir::Value opExp(mlir::Value lhs, mlir::Value rhs, PrimType::Prims prim_t, BinaryOp op);
+    mlir::Value createBinaryExp(mlir::Value lhs, mlir::Value rhs, PrimType::Prims prim_t, BinaryOp op);
 
     mlir::Value add(mlir::Value lhs, mlir::Value rhs, mlir::Type typ);
-    mlir::Value sub(), div(), mod(), multi();
-    mlir::Value lt(), gt(), lte(), gte();
+    mlir::Value sub(mlir::Value lhs, mlir::Value rhs, mlir::Type typ);
+    mlir::Value div(mlir::Value lhs, mlir::Value rhs, mlir::Type typ);
+    mlir::Value mod(mlir::Value lhs, mlir::Value rhs, mlir::Type typ);
+    mlir::Value mul(mlir::Value lhs, mlir::Value rhs, mlir::Type typ);
+
+
+    mlir::Value cmp(
+        mlir::Value lhs,
+        mlir::Value rhs,
+        mlir::arith::CmpIPredicate iPred,
+        mlir::arith::CmpFPredicate fPred
+    );
+    mlir::Value eq(mlir::Value lhs, mlir::Value rhs);
+    mlir::Value neq(mlir::Value lhs, mlir::Value rhs); 
+    mlir::Value lt(mlir::Value lhs, mlir::Value rhs); 
+    mlir::Value le(mlir::Value lhs, mlir::Value rhs);
+    mlir::Value ge(mlir::Value lhs, mlir::Value rhs);
+    mlir::Value gt(mlir::Value lhs, mlir::Value rhs);
+
+    mlir::Value and_(mlir::Value lhs, mlir::Value rhs);
+    mlir::Value or_(mlir::Value lhs, mlir::Value rhs);
 
     mlir::Value castTo(mlir::Value val, mlir::Type targetType);
     mlir::Type  getComputeType(mlir::Type lhs, mlir::Type rhs);  
 
 
+    // String Helpers and Creation 
     mlir::Value concatString(mlir::Value str_lhs, mlir::Value str_rhs);
+    mlir::Value toStringValue(mlir::Value v);
+    bool isConstStringExpr(std::shared_ptr<Expr> expr);
+    std::string foldConstString(std::shared_ptr<Expr> expr);
+    bool isStringValue(mlir::Value v);
+    mlir::Value eqStringsConst(std::shared_ptr<Expr> lhs, std::shared_ptr<Expr> rhs); 
+    mlir::LLVM::LLVMFuncOp getOrInsertStrcmp();
 
 
+    // Array Literal Creation
+    mlir::Value createArray( const std::vector<mlir::Value>& elements, std::shared_ptr<Type> type);
 };
 }

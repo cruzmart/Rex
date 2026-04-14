@@ -3,6 +3,7 @@
 // Pass manager
 #include <string_view>
 
+#include "backend/rex_backend_types.h"
 #include "mlir/Conversion/ArithToLLVM/ArithToLLVM.h"
 #include "mlir/Conversion/ControlFlowToLLVM/ControlFlowToLLVM.h"
 #include "mlir/Conversion/FuncToLLVM/ConvertFuncToLLVM.h"
@@ -47,6 +48,10 @@
 #include "mlir/IR/BuiltinOps.h"
 
 
+#include "rex_types.h"
+
+namespace rex {
+
 
 struct PrintHelper {
 
@@ -59,15 +64,29 @@ struct PrintHelper {
     
     std::shared_ptr<mlir::OpBuilder> builder;
     mlir::Location loc;
+    std::shared_ptr<TypesHelper> types;
 
     public:
+
+
         PrintHelper (        
                         std::shared_ptr<mlir::OpBuilder> b,
-                        mlir::Location l
+                        mlir::Location l,
+                        std::shared_ptr<TypesHelper> types
                     );
 
         mlir::LLVM::AddressOfOp getFmtAddress(mlir::LLVM::GlobalOp fmt);
+
         void printPrimtive(mlir::Value value);
+        void printInline(mlir::Value val);
+
+
+
+
         void printString(mlir::LLVM::GlobalOp val);
+        void printArray( mlir::Value arrayPtr, std::shared_ptr<ArrayType> arrType);
+
 
 };
+
+}

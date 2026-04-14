@@ -69,6 +69,37 @@ struct TypesHelper {
         mlir::Type ptr;
     
         TypesHelper( std::shared_ptr<mlir::OpBuilder> b, mlir::Location l);
+
+
+        mlir::Type getMLIRType(std::shared_ptr<Type> t) {
+            switch (t->kind) {
+                case TypeKind::Primitive: {
+                    auto prim = std::static_pointer_cast<PrimType>(t);
+
+                    switch (prim->prim) {
+                        case PrimType::Prims::Int:    return i32;
+                        case PrimType::Prims::Real:   return f32;
+                        case PrimType::Prims::Bool:   return b1;
+                        case PrimType::Prims::Char:   return c8;
+                        case PrimType::Prims::String:
+                            return mlir::LLVM::LLVMPointerType::get(builder->getContext());
+                        default:
+                            llvm_unreachable("Unsupported type");
+                    }
+                }
+
+                case TypeKind::Array: {
+                    auto arr = std::static_pointer_cast<ArrayType>(t);
+
+                    auto elemTy = getMLIRType(arr->elem);
+
+                    return mlir::LLVM::LLVMPointerType::get(builder->getContext());
+                }
+
+                default:
+                    llvm_unreachable("Unsupported type");
+            }
+        }
 };
 
 } // namespace rex

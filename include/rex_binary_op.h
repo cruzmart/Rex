@@ -6,15 +6,20 @@
 #include <string>
 #include <algorithm>
 
+#include "rex_errors.h"
+#include "rex_exps.h"
+
 namespace rex {
 
 struct BinaryOpSystem {
     // Debug toggle
     bool debug = false;
+    Errors errors;
+
 
     // ===== Main API =====
     type_ptr check_unary(UniOp op, type_ptr operand);
-    type_ptr check_binary(BinaryOp op, type_ptr L, type_ptr R);
+    type_ptr check_binary(std::shared_ptr<BinaryExpr> exp, BinaryOp op, type_ptr L, type_ptr R);
 
     type_ptr check_index(type_ptr base, type_ptr index);
     type_ptr check_pipe(type_ptr value, type_ptr fn);
