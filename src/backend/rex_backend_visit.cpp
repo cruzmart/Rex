@@ -90,23 +90,36 @@ namespace rex {
     }
 
 
-    mlir::Value CodegenVisitor::visitArray(std::shared_ptr<ArrayExpr> arr) {
+   mlir::Value CodegenVisitor::visitArray(std::shared_ptr<ArrayExpr> arr) {
+    auto arrTy = std::static_pointer_cast<ArrayType>(arr->type);
+    auto prim = std::static_pointer_cast<PrimType>(arrTy->elem);
 
-      // -----------------------------------
-      // 1. Evaluate all elements FIRST
-      // -----------------------------------
-      std::vector<mlir::Value> values;
-      values.reserve(arr->elements.size());
+    std::vector<mlir::Value> elements;
+    elements.reserve(arr->elements.size());
 
-      for (auto &el : arr->elements) {
-          values.push_back(visitExp(el));
-      }
+    bool allConst = true;
 
-      // -----------------------------------
-      // 2. Delegate creation to helper
-      // -----------------------------------
-      return exps->createArray(values, arr->type);
+    for (auto &e : arr->elements) {
+        mlir::Value v = visitExp(e);
+        elements.push_back(v);
+
+        if (!v.getDefiningOp<mlir::arith::ConstantOp>()) {
+            allConst = false;
+        }
     }
+
+    // -----------------------------------
+    // CASE 1: compile-time array
+    // -----------------------------------
+    if (allConst) {
+        return exps->createConstArray(elements, prim->prim);
+    }
+
+    // -----------------------------------
+    // CASE 2: runtime array
+    // -----------------------------------
+    return exps->createRuntimeArray(elements, prim->prim);
+}
     
     void CodegenVisitor::visitPrint(std::shared_ptr<PrintStmt> p) {
         mlir::Value val = visitExp(p->argument);
