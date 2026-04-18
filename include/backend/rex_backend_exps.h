@@ -154,7 +154,9 @@ class ExpressionsHelper {
     bool isConstArrayExpr(std::shared_ptr<ArrayExpr> arr);
     mlir::Attribute buildConstArrayAttr(std::shared_ptr<ArrayExpr> arr, mlir::Type elemTy);
     mlir::Value createConstArray(const std::vector<mlir::Value>& elements, PrimType::Prims kind);
-    mlir::Value createConstIntArray(const std::vector<mlir::Value> &elements);
     mlir::Value createRuntimeArray(const std::vector<mlir::Value>& elements, PrimType::Prims kind);
+    mlir::Value createConstStringArray(const std::vector<mlir::Value>& elements);
+
+
 };
 }

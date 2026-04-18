@@ -90,9 +90,6 @@ struct TypesHelper {
 
                 case TypeKind::Array: {
                     auto arr = std::static_pointer_cast<ArrayType>(t);
-
-                    auto elemTy = getMLIRType(arr->elem);
-
                     return mlir::LLVM::LLVMPointerType::get(builder->getContext());
                 }
 

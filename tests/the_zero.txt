@@ -87,6 +87,9 @@ print("no" != "yes");
 print(("yes" == "yes") + 1);
 */
 
+/*
 let a : Int[2] = [1,2];
 print([2 + 3,3]);
 print([3.231,9.4151]);
+*/
+print(["hello", "dying","world"]);

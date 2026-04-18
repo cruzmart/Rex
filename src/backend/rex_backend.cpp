@@ -164,7 +164,6 @@ void BackEnd::loadRuntimeFuncs() {
     // ----------------------------
     // char* type
     // ----------------------------
-    auto i8 = mlir::IntegerType::get(&ctx, 8);
     auto ptr = mlir::LLVM::LLVMPointerType::get(&ctx);
 
     // ----------------------------
