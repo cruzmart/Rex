@@ -7,7 +7,9 @@
 #include <memory>
 #include <mlir/Conversion/ArithToLLVM/ArithToLLVM.h>
 #include <mlir/Dialect/Arith/IR/Arith.h>
+#include <mlir/Dialect/LLVMIR/LLVMDialect.h>
 #include <mlir/Dialect/LLVMIR/LLVMTypes.h>
+#include <mlir/IR/Builders.h>
 #include <mlir/IR/BuiltinAttributes.h>
 #include <mlir/IR/ValueRange.h>
 
@@ -897,4 +899,276 @@
 
         return arrayPtr;
     }
+
+    bool ExpressionsHelper::isConstArrayExpr(std::shared_ptr<ArrayExpr> arr) {
+        for (auto &elem : arr->elements) {
+
+            // Literal → OK
+            if (elem->exp_kind == ExprKind::Literal)
+                continue;
+
+            // Nested array → recurse
+            if (elem->exp_kind == ExprKind::Array) {
+                if (!isConstArrayExpr(std::static_pointer_cast<ArrayExpr>(elem)))
+                    return false;
+                continue;
+            }
+
+            // Binary → only allow const string folding case
+            if (elem->exp_kind == ExprKind::Binary) {
+                if (!isConstStringExpr(elem))
+                    return false;
+                continue;
+            }
+
+            // ❌ anything else = runtime
+            return false;
+        }
+
+        return true;
+    }
+
+    mlir::Attribute ExpressionsHelper::buildConstArrayAttr(std::shared_ptr<ArrayExpr> arr, mlir::Type elemTy) {
+        std::vector<mlir::Attribute> attrs;
+
+        for (auto &elem : arr->elements) {
+
+            if (elem->exp_kind == ExprKind::Literal) {
+                auto lit = std::static_pointer_cast<LiteralExpr>(elem);
+
+                switch (std::static_pointer_cast<PrimType>(lit->type)->prim) {
+
+                    case PrimType::Prims::Int: {
+                        llvm::APInt v(32, lit->value, 10);
+                        attrs.push_back(builder->getIntegerAttr(elemTy, v));
+                        break;
+                    }
+
+                    case PrimType::Prims::Bool: {
+                        bool v = (lit->value == "true");
+                        attrs.push_back(builder->getBoolAttr(v));
+                        break;
+                    }
+
+                    case PrimType::Prims::Char: {
+                        char c = lit->value[0];
+                        attrs.push_back(builder->getI8IntegerAttr(c));
+                        break;
+                    }
+
+                    case PrimType::Prims::Real: {
+                        llvm::APFloat f(0.0f);
+                        f.convertFromString(lit->value, llvm::APFloat::rmNearestTiesToEven);
+                        attrs.push_back(builder->getFloatAttr(elemTy, f));
+                        break;
+                    }
+
+                    default:
+                        llvm::report_fatal_error("Unsupported const array literal");
+                }
+            }
+        }
+
+        return mlir::DenseElementsAttr::get(
+            mlir::VectorType::get({(int64_t)attrs.size()}, elemTy),
+            attrs
+        );
+    }
+
+  mlir::Value ExpressionsHelper::createConstArray(
+        const std::vector<mlir::Value>& elements,
+        PrimType::Prims kind
+    ) {
+        assert(!elements.empty());
+
+        // -------------------------
+        // 1. LLVM element type
+        // -------------------------
+        mlir::Type elemTy;
+
+        switch (kind) {
+            case PrimType::Prims::Int:   elemTy = builder->getIntegerType(32); break;
+            case PrimType::Prims::Real:  elemTy = builder->getF32Type(); break;
+            case PrimType::Prims::Bool:  elemTy = builder->getI1Type(); break;
+            case PrimType::Prims::Char:  elemTy = builder->getIntegerType(8); break;
+            default:
+                llvm::report_fatal_error("Unsupported array type");
+        }
+
+        // -------------------------
+        // 2. Extract constants
+        // -------------------------
+        std::vector<mlir::Attribute> attrs;
+
+        for (auto v : elements) {
+            auto cst = v.getDefiningOp<mlir::arith::ConstantOp>();
+            if (!cst)
+                llvm::report_fatal_error("Non-constant array element");
+
+            attrs.push_back(cst.getValue());
+        }
+
+        // -------------------------
+        // 3. LLVM array type (NOT tensor)
+        // -------------------------
+        auto arrayTy = mlir::LLVM::LLVMArrayType::get(
+            elemTy,
+            elements.size()
+        );
+
+        auto denseAttr = mlir::DenseElementsAttr::get(
+            mlir::RankedTensorType::get({(int64_t)elements.size()}, elemTy),
+            attrs
+        );
+
+        // -------------------------
+        // 4. Create global
+        // -------------------------
+        auto oldIP = builder->saveInsertionPoint();
+        builder->setInsertionPointToStart(module.getBody());
+
+        std::string name = "arr_const_" + std::to_string(globalCounter++);
+
+        auto global = builder->create<mlir::LLVM::GlobalOp>(
+            loc,
+            arrayTy,   // ✅ FIXED: LLVM array type
+            true,
+            mlir::LLVM::Linkage::Internal,
+            name,
+            denseAttr
+        );
+
+        builder->restoreInsertionPoint(oldIP);
+
+        // -------------------------
+        // 5. Return pointer
+        // -------------------------
+        auto addr = builder->create<mlir::LLVM::AddressOfOp>(loc, global);
+
+        return builder->create<mlir::LLVM::BitcastOp>(
+            loc,
+            mlir::LLVM::LLVMPointerType::get(builder->getContext()),
+            addr
+        );
+    }
+
+mlir::Value ExpressionsHelper::createRuntimeArray(
+    const std::vector<mlir::Value>& elements,
+    PrimType::Prims kind
+) {
+    mlir::Type elemTy;
+
+    switch (kind) {
+        case PrimType::Prims::Int:   elemTy = types->i32; break;
+        case PrimType::Prims::Real:  elemTy = types->f32; break;
+        case PrimType::Prims::Bool:  elemTy = types->b1; break;
+        case PrimType::Prims::Char:  elemTy = types->c8; break;
+        case rex::PrimType::Prims::String: elemTy = mlir::LLVM::LLVMPointerType::get(builder->getContext()); break;
+        default:
+            llvm::report_fatal_error("Unsupported array type");
+    }
+
+    auto ptrTy = mlir::LLVM::LLVMPointerType::get(builder->getContext());
+
+    auto one = builder->create<mlir::arith::ConstantIntOp>(loc, 1, 32);
+
+    auto alloca = builder->create<mlir::LLVM::AllocaOp>(
+        loc,
+        ptrTy,
+        elemTy,
+        one.getResult()
+    );
+
+    for (size_t i = 0; i < elements.size(); i++) {
+        auto idx = builder->create<mlir::arith::ConstantIntOp>(loc, i, 32);
+
+        auto gep = builder->create<mlir::LLVM::GEPOp>(
+            loc,
+            ptrTy,
+            elemTy,
+            alloca,
+            mlir::ValueRange{idx}
+        );
+
+        builder->create<mlir::LLVM::StoreOp>(loc, elements[i], gep);
+    }
+
+    return alloca;
+}
+
+mlir::Value ExpressionsHelper::createConstStringArray(
+    const std::vector<mlir::Value> &elements
+) {
+    assert(!elements.empty());
+
+    auto ctx = builder->getContext();
+
+    auto ptrTy = mlir::LLVM::LLVMPointerType::get(ctx);
+
+    auto arrayTy = mlir::LLVM::LLVMArrayType::get(
+        ptrTy,
+        elements.size()
+    );
+
+    // -------------------------------------------------
+    // 1. Extract string globals as symbol references
+    // -------------------------------------------------
+    std::vector<mlir::Attribute> initVals;
+    initVals.reserve(elements.size());
+
+    for (auto v : elements) {
+
+        auto addr = v.getDefiningOp<mlir::LLVM::AddressOfOp>();
+        if (!addr)
+            llvm::report_fatal_error("Non-string constant in const string array");
+
+        // ✅ THIS is the correct way in your setup
+        auto symName = addr.getGlobalName();
+
+        initVals.push_back(
+            mlir::FlatSymbolRefAttr::get(ctx, symName)
+        );
+    }
+
+    // -------------------------------------------------
+    // 2. Build DenseElementsAttr initializer
+    // -------------------------------------------------
+    auto denseAttr = mlir::DenseElementsAttr::get(
+        mlir::RankedTensorType::get(
+            {(int64_t)elements.size()},
+            ptrTy
+        ),
+        initVals
+    );
+
+    // -------------------------------------------------
+    // 3. Create global constant array
+    // -------------------------------------------------
+    auto oldIP = builder->saveInsertionPoint();
+    builder->setInsertionPointToStart(module.getBody());
+
+    std::string name = "str_arr_" + std::to_string(globalCounter++);
+
+    auto global = builder->create<mlir::LLVM::GlobalOp>(
+        loc,
+        arrayTy,
+        true, // constant
+        mlir::LLVM::Linkage::Internal,
+        name,
+        denseAttr
+    );
+
+    builder->restoreInsertionPoint(oldIP);
+
+    // -------------------------------------------------
+    // 4. Return pointer to global
+    // -------------------------------------------------
+    auto addr = builder->create<mlir::LLVM::AddressOfOp>(loc, global);
+
+    return builder->create<mlir::LLVM::BitcastOp>(
+        loc,
+        ptrTy,
+        addr
+    );
+}
  }
