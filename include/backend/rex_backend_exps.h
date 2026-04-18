@@ -135,8 +135,11 @@ class ExpressionsHelper {
     mlir::Value and_(mlir::Value lhs, mlir::Value rhs);
     mlir::Value or_(mlir::Value lhs, mlir::Value rhs);
 
+    mlir::Value index(mlir::Value arr_p, mlir::Value i, mlir::Type type);
+
     mlir::Value castTo(mlir::Value val, mlir::Type targetType);
     mlir::Type  getComputeType(mlir::Type lhs, mlir::Type rhs);  
+
 
 
     // String Helpers and Creation 
@@ -154,6 +157,8 @@ class ExpressionsHelper {
     bool isConstArrayExpr(std::shared_ptr<ArrayExpr> arr);
     mlir::Attribute buildConstArrayAttr(std::shared_ptr<ArrayExpr> arr, mlir::Type elemTy);
     mlir::Value createConstArray(const std::vector<mlir::Value>& elements, PrimType::Prims kind);
+
+    // Array Runtime Creation
     mlir::Value createRuntimeArray(const std::vector<mlir::Value>& elements, PrimType::Prims kind);
     mlir::Value createConstStringArray(const std::vector<mlir::Value>& elements);
 

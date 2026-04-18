@@ -4,6 +4,7 @@
 #include "rex_ast_nodes.h"
 #include "rex_exps.h"
 #include "rex_stmts.h"
+#include "rex_types.h"
 #include <memory>
 
 namespace rex {
@@ -21,6 +22,9 @@ namespace rex {
         return visitBinary(std::static_pointer_cast<BinaryExpr>(expr));
       if(expr_t == ExprKind::Array)
         return visitArray(std::static_pointer_cast<ArrayExpr>(expr));
+      if(expr_t == ExprKind::Index)
+        return visitIndex(std::static_pointer_cast<IndexExpr>(expr));
+        
       return mlir::Value();
     }
 
@@ -89,7 +93,6 @@ namespace rex {
      return mlir::Value();
     }
 
-
    mlir::Value CodegenVisitor::visitArray(std::shared_ptr<ArrayExpr> arr) {
     auto arrTy = std::static_pointer_cast<ArrayType>(arr->type);
     auto prim = std::static_pointer_cast<PrimType>(arrTy->elem);
@@ -143,7 +146,22 @@ namespace rex {
                 llvm::report_fatal_error("Unsupported type in print");
         }
     }
-    
+    mlir::Value CodegenVisitor::visitIndex(std::shared_ptr<IndexExpr> i) {
+        // 1. evaluate base (this already gives you the pointer)
+        mlir::Value arr_p = visitExp(i->base);
+
+        // 2. evaluate index
+        mlir::Value index = visitExp(i->index);
+
+        // 3. get ARRAY TYPE from AST (this is the key)
+        auto arrTy = std::static_pointer_cast<ArrayType>(i->base->type);
+
+        // 4. get element MLIR type, (yeah prints have this so I just go directly to that ig)
+        mlir::Type elemTy = prints->types->getMLIRType(arrTy->elem);
+
+        // 5. delegate to helper
+        return exps->index(arr_p, index, elemTy);
+    }
     void CodegenVisitor::visitStmt(std::shared_ptr<Stmt> stmt){
       auto stmt_t = stmt->stmt_kind;
       if(stmt_t == StmtKind::Print)

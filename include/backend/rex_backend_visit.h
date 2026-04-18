@@ -3,6 +3,7 @@
 // Pass manager
 #include <memory>
 #include <string_view>
+#include <strings.h>
 
 
 #include "mlir/Conversion/ArithToLLVM/ArithToLLVM.h"
@@ -80,6 +81,7 @@ namespace rex {
         mlir::Value visitLiteral(std::shared_ptr<LiteralExpr> l);
         mlir::Value visitBinary(std::shared_ptr<BinaryExpr> bi);
         mlir::Value visitArray(std::shared_ptr<ArrayExpr> arr);
+        mlir::Value visitIndex(std::shared_ptr<IndexExpr> i);
 
 
         void visitPrint(std::shared_ptr<PrintStmt> p);

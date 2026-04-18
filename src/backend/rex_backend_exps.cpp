@@ -992,7 +992,7 @@
             case PrimType::Prims::Bool:  elemTy = builder->getI1Type(); break;
             case PrimType::Prims::Char:  elemTy = builder->getIntegerType(8); break;
             default:
-                llvm::report_fatal_error("Unsupported array type");
+                elemTy = mlir::LLVM::LLVMPointerType::get(builder->getContext());
         }
 
         // -------------------------
@@ -1063,9 +1063,8 @@ mlir::Value ExpressionsHelper::createRuntimeArray(
         case PrimType::Prims::Real:  elemTy = types->f32; break;
         case PrimType::Prims::Bool:  elemTy = types->b1; break;
         case PrimType::Prims::Char:  elemTy = types->c8; break;
-        case rex::PrimType::Prims::String: elemTy = mlir::LLVM::LLVMPointerType::get(builder->getContext()); break;
         default:
-            llvm::report_fatal_error("Unsupported array type");
+           elemTy = mlir::LLVM::LLVMPointerType::get(builder->getContext()); break;
     }
 
     auto ptrTy = mlir::LLVM::LLVMPointerType::get(builder->getContext());
@@ -1169,6 +1168,30 @@ mlir::Value ExpressionsHelper::createConstStringArray(
         loc,
         ptrTy,
         addr
+    );
+}
+
+   mlir::Value ExpressionsHelper::index(
+    mlir::Value arr_p,
+    mlir::Value idx,
+    mlir::Type elemTy
+) {
+    auto ptrTy = mlir::LLVM::LLVMPointerType::get(builder->getContext());
+
+    // GEP → pointer to element
+    auto gep = builder->create<mlir::LLVM::GEPOp>(
+        loc,
+        ptrTy,
+        elemTy,
+        arr_p,
+        mlir::ValueRange{idx}
+    );
+
+    // LOAD → actual value
+    return builder->create<mlir::LLVM::LoadOp>(
+        loc,
+        elemTy,
+        gep
     );
 }
  }
