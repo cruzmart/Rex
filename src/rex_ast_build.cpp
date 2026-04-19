@@ -419,6 +419,16 @@ antlrcpp::Any rex_ast_build::visitIndexExpr(RexParser::IndexExprContext* ctx) {
     return std::static_pointer_cast<Expr>(idx);
 }
 
+antlrcpp::Any rex_ast_build::visitIndexTupleExpr(RexParser::IndexTupleExprContext *ctx) {
+    auto idx = std::make_shared<IndexTupleExpr>();
+    idx->exp_kind = ExprKind::TupleIndex;
+    idx->loc = loc(ctx);
+    idx->base = as_expr<Expr>(visit(ctx->expr(0)));
+    idx->field = as_expr<Expr>(visit(ctx->expr(1)));
+    idx->type = std::make_shared<Type>(TypeKind::Error);
+    return std::static_pointer_cast<Expr>(idx);
+}
+
 antlrcpp::Any rex_ast_build::visitTupleExpr(RexParser::TupleExprContext* ctx) {
     auto t = std::make_shared<TupleExpr>();
     t->exp_kind = ExprKind::Tuple;

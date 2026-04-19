@@ -34,6 +34,7 @@ enum class ExprKind {
     Tuple,
     Array,
     Index,
+    TupleIndex,
     Call,
     Range,
     Pipe,
@@ -65,6 +66,8 @@ struct Expr : AstNode {
                 return "Array";
             case ExprKind::Index:
                 return "Index";
+            case ExprKind::TupleIndex:
+                return "TupleIndex";
             case ExprKind::Call:
                 return "Call";
             case ExprKind::Pipe:
@@ -126,6 +129,15 @@ struct IndexExpr : Expr {
     IndexExpr() : Expr(ExprKind::Index) {}
     void dump(std::ostream& os, int i) const override; 
 };
+
+struct IndexTupleExpr : Expr {
+    std::shared_ptr<Expr> base; // this will be a TupleExpr
+    std::shared_ptr<Expr> field; // this will be a CONSTANT INT value ONLY 
+    int field_index;
+    IndexTupleExpr() : Expr(ExprKind::TupleIndex) {}
+    void dump(std::ostream& os, int i) const override;
+};
+
 struct TupleExpr : Expr { 
     std::vector<std::shared_ptr<Expr>> elements; 
     TupleExpr() : Expr(ExprKind::Tuple) {}

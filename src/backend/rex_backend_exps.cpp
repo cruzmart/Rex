@@ -158,6 +158,66 @@
     }
 
 
+   mlir::Value ExpressionsHelper::createTuple(
+    const std::vector<mlir::Type> types,
+    std::vector<mlir::Value> values
+) {
+    assert(!values.empty());
+    assert(values.size() == types.size());
+
+    auto ctx = builder->getContext();
+
+    // -----------------------------------
+    // 1. Build LLVM struct type
+    // -----------------------------------
+    auto structTy = mlir::LLVM::LLVMStructType::getLiteral(ctx, types);
+
+    auto ptrTy = mlir::LLVM::LLVMPointerType::get(ctx);
+
+    // -----------------------------------
+    // 2. Allocate stack space for struct
+    // -----------------------------------
+    auto one = builder->create<mlir::arith::ConstantIntOp>(loc, 1, 32);
+    auto zero = builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32);
+
+    auto alloca = builder->create<mlir::LLVM::AllocaOp>(loc, ptrTy, structTy, one);
+
+    // -----------------------------------
+    // 3. Store each field
+    // -----------------------------------
+    for (size_t i = 0; i < values.size(); i++) {
+
+
+        auto fieldPtr = builder->create<mlir::LLVM::GEPOp>(
+            loc,
+            ptrTy,
+            structTy,
+            alloca,
+            mlir::ArrayRef<mlir::LLVM::GEPArg>{
+                mlir::LLVM::GEPArg(0),
+                mlir::LLVM::GEPArg(static_cast<int64_t>(i))
+            }
+        );
+
+        builder->create<mlir::LLVM::StoreOp>(
+            loc,
+            values[i],
+            fieldPtr
+        );
+    }
+
+    // -----------------------------------
+    // 4. Return pointer to tuple
+    // -----------------------------------
+    return alloca;
+}
+
+
+
+
+
+
+
     mlir::Value ExpressionsHelper::createBinaryExp(mlir::Value lhs, mlir::Value rhs, PrimType::Prims prim_t, BinaryOp op){
 
          mlir::Type res_t;
@@ -928,52 +988,6 @@
         return true;
     }
 
-    mlir::Attribute ExpressionsHelper::buildConstArrayAttr(std::shared_ptr<ArrayExpr> arr, mlir::Type elemTy) {
-        std::vector<mlir::Attribute> attrs;
-
-        for (auto &elem : arr->elements) {
-
-            if (elem->exp_kind == ExprKind::Literal) {
-                auto lit = std::static_pointer_cast<LiteralExpr>(elem);
-
-                switch (std::static_pointer_cast<PrimType>(lit->type)->prim) {
-
-                    case PrimType::Prims::Int: {
-                        llvm::APInt v(32, lit->value, 10);
-                        attrs.push_back(builder->getIntegerAttr(elemTy, v));
-                        break;
-                    }
-
-                    case PrimType::Prims::Bool: {
-                        bool v = (lit->value == "true");
-                        attrs.push_back(builder->getBoolAttr(v));
-                        break;
-                    }
-
-                    case PrimType::Prims::Char: {
-                        char c = lit->value[0];
-                        attrs.push_back(builder->getI8IntegerAttr(c));
-                        break;
-                    }
-
-                    case PrimType::Prims::Real: {
-                        llvm::APFloat f(0.0f);
-                        f.convertFromString(lit->value, llvm::APFloat::rmNearestTiesToEven);
-                        attrs.push_back(builder->getFloatAttr(elemTy, f));
-                        break;
-                    }
-
-                    default:
-                        llvm::report_fatal_error("Unsupported const array literal");
-                }
-            }
-        }
-
-        return mlir::DenseElementsAttr::get(
-            mlir::VectorType::get({(int64_t)attrs.size()}, elemTy),
-            attrs
-        );
-    }
 
   mlir::Value ExpressionsHelper::createConstArray(
         const std::vector<mlir::Value>& elements,
@@ -1064,20 +1078,27 @@ mlir::Value ExpressionsHelper::createRuntimeArray(
         case PrimType::Prims::Bool:  elemTy = types->b1; break;
         case PrimType::Prims::Char:  elemTy = types->c8; break;
         default:
-           elemTy = mlir::LLVM::LLVMPointerType::get(builder->getContext()); break;
+            elemTy = mlir::LLVM::LLVMPointerType::get(builder->getContext());
+            break;
     }
 
     auto ptrTy = mlir::LLVM::LLVMPointerType::get(builder->getContext());
 
-    auto one = builder->create<mlir::arith::ConstantIntOp>(loc, 1, 32);
+    // 🔥 allocate N elements (THIS IS THE FIX)
+    auto size = builder->create<mlir::arith::ConstantIntOp>(
+        loc,
+        elements.size(),
+        32
+    );
 
     auto alloca = builder->create<mlir::LLVM::AllocaOp>(
         loc,
-        ptrTy,
-        elemTy,
-        one.getResult()
+        ptrTy,     // result type
+        elemTy,    // element type
+        size       // 🔥 number of elements
     );
 
+    // store elements
     for (size_t i = 0; i < elements.size(); i++) {
         auto idx = builder->create<mlir::arith::ConstantIntOp>(loc, i, 32);
 
@@ -1094,104 +1115,51 @@ mlir::Value ExpressionsHelper::createRuntimeArray(
 
     return alloca;
 }
-
-mlir::Value ExpressionsHelper::createConstStringArray(
-    const std::vector<mlir::Value> &elements
-) {
-    assert(!elements.empty());
-
-    auto ctx = builder->getContext();
-
-    auto ptrTy = mlir::LLVM::LLVMPointerType::get(ctx);
-
-    auto arrayTy = mlir::LLVM::LLVMArrayType::get(
-        ptrTy,
-        elements.size()
-    );
-
-    // -------------------------------------------------
-    // 1. Extract string globals as symbol references
-    // -------------------------------------------------
-    std::vector<mlir::Attribute> initVals;
-    initVals.reserve(elements.size());
-
-    for (auto v : elements) {
-
-        auto addr = v.getDefiningOp<mlir::LLVM::AddressOfOp>();
-        if (!addr)
-            llvm::report_fatal_error("Non-string constant in const string array");
-
-        // ✅ THIS is the correct way in your setup
-        auto symName = addr.getGlobalName();
-
-        initVals.push_back(
-            mlir::FlatSymbolRefAttr::get(ctx, symName)
-        );
-    }
-
-    // -------------------------------------------------
-    // 2. Build DenseElementsAttr initializer
-    // -------------------------------------------------
-    auto denseAttr = mlir::DenseElementsAttr::get(
-        mlir::RankedTensorType::get(
-            {(int64_t)elements.size()},
-            ptrTy
-        ),
-        initVals
-    );
-
-    // -------------------------------------------------
-    // 3. Create global constant array
-    // -------------------------------------------------
-    auto oldIP = builder->saveInsertionPoint();
-    builder->setInsertionPointToStart(module.getBody());
-
-    std::string name = "str_arr_" + std::to_string(globalCounter++);
-
-    auto global = builder->create<mlir::LLVM::GlobalOp>(
-        loc,
-        arrayTy,
-        true, // constant
-        mlir::LLVM::Linkage::Internal,
-        name,
-        denseAttr
-    );
-
-    builder->restoreInsertionPoint(oldIP);
-
-    // -------------------------------------------------
-    // 4. Return pointer to global
-    // -------------------------------------------------
-    auto addr = builder->create<mlir::LLVM::AddressOfOp>(loc, global);
-
-    return builder->create<mlir::LLVM::BitcastOp>(
-        loc,
-        ptrTy,
-        addr
-    );
-}
-
-   mlir::Value ExpressionsHelper::index(
+mlir::Value ExpressionsHelper::index(
     mlir::Value arr_p,
     mlir::Value idx,
     mlir::Type elemTy
-) {
+    ) {
+        auto ptrTy = mlir::LLVM::LLVMPointerType::get(builder->getContext());
+
+        // GEP → pointer to element
+        auto gep = builder->create<mlir::LLVM::GEPOp>(
+            loc,
+            ptrTy,
+            elemTy,
+            arr_p,
+            mlir::ValueRange{idx}
+        );
+
+        // LOAD → actual value
+        return builder->create<mlir::LLVM::LoadOp>(
+            loc,
+            elemTy,
+            gep
+        );
+    }
+
+ mlir::Value ExpressionsHelper::index(
+    mlir::Value tuple_ptr, 
+    mlir::LLVM::LLVMStructType struct_ty, 
+    mlir::Type tar_ty, 
+    mlir::Value i
+    ){
     auto ptrTy = mlir::LLVM::LLVMPointerType::get(builder->getContext());
 
-    // GEP → pointer to element
-    auto gep = builder->create<mlir::LLVM::GEPOp>(
-        loc,
-        ptrTy,
-        elemTy,
-        arr_p,
-        mlir::ValueRange{idx}
-    );
+        // GEP: get field pointer
+        auto index = mlir::ValueRange{builder->create<mlir::arith::ConstantOp>(loc, builder->getI32IntegerAttr(0)), i};
+        auto fieldPtr = builder->create<mlir::LLVM::GEPOp>(
+            loc, 
+            ptrTy, 
+            struct_ty, 
+            tuple_ptr, index);
 
-    // LOAD → actual value
-    return builder->create<mlir::LLVM::LoadOp>(
-        loc,
-        elemTy,
-        gep
-    );
-}
+       // LoadOp: load the value based on the target type we want to load up
+       return builder->create<mlir::LLVM::LoadOp>(
+            loc,
+            tar_ty,
+            fieldPtr
+        );
+    }
  }

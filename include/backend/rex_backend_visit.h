@@ -82,6 +82,8 @@ namespace rex {
         mlir::Value visitBinary(std::shared_ptr<BinaryExpr> bi);
         mlir::Value visitArray(std::shared_ptr<ArrayExpr> arr);
         mlir::Value visitIndex(std::shared_ptr<IndexExpr> i);
+        mlir::Value visitTuple(std::shared_ptr<TupleExpr> tup);
+        mlir::Value visitIndexTuple(std::shared_ptr<IndexTupleExpr> it);
 
 
         void visitPrint(std::shared_ptr<PrintStmt> p);

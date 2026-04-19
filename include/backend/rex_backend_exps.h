@@ -1,7 +1,9 @@
 #pragma once
 
 // Pass manager
+#include <llvm/IR/DerivedTypes.h>
 #include <memory>
+#include <mlir/Dialect/LLVMIR/LLVMTypes.h>
 #include <string_view>
 
 
@@ -106,6 +108,9 @@ class ExpressionsHelper {
     // String Creation
     mlir::Value createString(const std::string &text);
 
+    // Tuple Creation
+    mlir::Value createTuple(const std::vector<mlir::Type> types,std::vector<mlir::Value> values);
+
 
     // we got to impliment these, I wonder what I should pass..
 
@@ -136,6 +141,7 @@ class ExpressionsHelper {
     mlir::Value or_(mlir::Value lhs, mlir::Value rhs);
 
     mlir::Value index(mlir::Value arr_p, mlir::Value i, mlir::Type type);
+    mlir::Value index(mlir::Value tuple_d, mlir::LLVM::LLVMStructType stc_t, mlir::Type tar_ty, mlir::Value i);
 
     mlir::Value castTo(mlir::Value val, mlir::Type targetType);
     mlir::Type  getComputeType(mlir::Type lhs, mlir::Type rhs);  
@@ -155,12 +161,10 @@ class ExpressionsHelper {
     // Array Literal Creation
     mlir::Value createArray( const std::vector<mlir::Value>& elements, std::shared_ptr<Type> type);
     bool isConstArrayExpr(std::shared_ptr<ArrayExpr> arr);
-    mlir::Attribute buildConstArrayAttr(std::shared_ptr<ArrayExpr> arr, mlir::Type elemTy);
     mlir::Value createConstArray(const std::vector<mlir::Value>& elements, PrimType::Prims kind);
 
     // Array Runtime Creation
     mlir::Value createRuntimeArray(const std::vector<mlir::Value>& elements, PrimType::Prims kind);
-    mlir::Value createConstStringArray(const std::vector<mlir::Value>& elements);
 
 
 };

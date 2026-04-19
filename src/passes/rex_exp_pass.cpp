@@ -61,6 +61,9 @@
         case ExprKind::Index:
             return visitIndex(std::static_pointer_cast<IndexExpr>(exp));
 
+        case ExprKind::TupleIndex:
+            return visitTupleIndex(std::static_pointer_cast<IndexTupleExpr>(exp));
+
         case ExprKind::Call:
             return visitCall(std::static_pointer_cast<CallExpr>(exp));
 
@@ -464,6 +467,25 @@ void ExprPass::visitLetStmt(const std::shared_ptr<LetStmt> ls) {
         iexp->type = arr->elem;
 
         return iexp->type;
+
+    }
+
+    std::shared_ptr<Type> ExprPass::visitTupleIndex(const std::shared_ptr<IndexTupleExpr> itupe){
+        auto base_type = visitExpr(itupe->base);
+        auto field_type = visitExpr(itupe->field);
+
+        if(!(base_type->kind == TypeKind::Tuple))
+            err.error(itupe->base, "Field cannot get from Non-Tuple");
+
+        if(!(field_type->kind == TypeKind::Primitive))
+            err.error(itupe->field, "filed value is not a primitive value");
+
+        if(!(std::static_pointer_cast<PrimType>(field_type)->prim == PrimType::Prims::Int))
+            err.error(itupe->field, "Tuple filed input value is not of type INT");
+
+        itupe->field_index = std::stoi(std::static_pointer_cast<LiteralExpr>(itupe->field)->value);
+        itupe->type = std::static_pointer_cast<TupleType>(base_type)->elements[itupe->field_index];
+        return itupe->type;
 
     }
     void ExprPass::visitReturnNormalStmt(const std::shared_ptr<ReturnStmt> rs){
