@@ -36,7 +36,8 @@ for i in arr {
 }
 */
 
-/*
+
+
 print(2);
 print(2.36612);
 print(false);
@@ -58,55 +59,43 @@ print(true + true);
 
 
 print(true + 7 + 3.7 + 'a');
-*/
 
-/*
 print(1 < 4.9);
 print('d' == 'c');
 print(2.5 == 3);
 print(true == 'c');
-*/
 
-/*
 print("hello" + "world");
 print("hello" + "world");
 print("hello");
 print("world");
-*/
 
-/*
 print('c' == 'd');
 print(false or true);
-*/
 
-/*
 print("hello" != "world");
 print("hello" + "hello");
 print("hello" + 'c');
 print("no" != "yes");
 print(("yes" == "yes") + 1);
-*/
 
-/*
-let a : Int[2] = [1,2];
 print([2 + 3,3]);
 print([3.231,9.4151]);
-*/
-
-/*
 print(["hello", "dying","world"]);
-*/
-/*
 print([[3,4],[1,2]]);
-*/
+print([["hello","world"], ["hi", "hey"]][0][1]);
+
+print(["hello", "dying","world"]);
+print([1,2,3][1]);
+
+
+
+
+//print(((1,2.4,"hello", [1,2,4], [["hello","world"], ["hi", "hey"]]).4)[1]);
+//print(([["hello","world"], ["hi", "hey"]]));
 //print([["hello","world"], ["hi", "hey"]][0][1]);
 
-//print(["hello", "dying","world"]);
-//print([1,2,3][1]);
 
-
-
-
-//print((1,2.4,"hello", [1,2,4], [["hello","world"], ["hi", "hey"]]));
-//print(([["hello","world"], ["hi", "hey"]]));
+print(((1,2.4,"hello", [1,2,4], [["hello","world"], ["hi", "hey"]]).4)[1]);
+print(([["hello","world"], ["hi", "hey"]]));
 print([["hello","world"], ["hi", "hey"]][0][1]);

@@ -159,7 +159,6 @@ class ExpressionsHelper {
 
 
     // Array Literal Creation
-    mlir::Value createArray( const std::vector<mlir::Value>& elements, std::shared_ptr<Type> type);
     bool isConstArrayExpr(std::shared_ptr<ArrayExpr> arr);
     mlir::Value createConstArray(const std::vector<mlir::Value>& elements, PrimType::Prims kind);
 

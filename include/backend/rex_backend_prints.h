@@ -80,11 +80,6 @@ struct PrintHelper {
 
         void printPrimtive(mlir::Value value);
         void printInline(mlir::Value val);
-
-
-
-
-        void printString(mlir::LLVM::GlobalOp val);
         void printArray( mlir::Value arrayPtr, std::shared_ptr<ArrayType> arrType);
         void printTuple(mlir::Value tupPtr, mlir::LLVM::LLVMStructType t_s, std::vector<std::shared_ptr<Type>> t);
 
