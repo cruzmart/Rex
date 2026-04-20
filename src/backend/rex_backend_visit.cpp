@@ -24,10 +24,13 @@ namespace rex {
         return visitArray(std::static_pointer_cast<ArrayExpr>(expr));
       if(expr_t == ExprKind::Index)
         return visitIndex(std::static_pointer_cast<IndexExpr>(expr));
+      if(expr_t == ExprKind::TupleIndex)
+        return visitIndexTuple(std::static_pointer_cast<IndexTupleExpr>(expr));
+      if(expr_t == ExprKind::Tuple)
+        return visitTuple(std::static_pointer_cast<TupleExpr>(expr));
         
       return mlir::Value();
     }
-
     mlir::Value CodegenVisitor::visitLiteral(std::shared_ptr<LiteralExpr> l){
       return exps->createPrimitiveLiteral(l);
     }
@@ -92,8 +95,7 @@ namespace rex {
 
      return mlir::Value();
     }
-
-   mlir::Value CodegenVisitor::visitArray(std::shared_ptr<ArrayExpr> arr) {
+    mlir::Value CodegenVisitor::visitArray(std::shared_ptr<ArrayExpr> arr) {
     auto arrTy = std::static_pointer_cast<ArrayType>(arr->type);
     auto prim = std::static_pointer_cast<PrimType>(arrTy->elem);
 
@@ -122,8 +124,19 @@ namespace rex {
     // CASE 2: runtime array
     // -----------------------------------
     return exps->createRuntimeArray(elements, prim->prim);
-}
-    
+    }
+    mlir::Value CodegenVisitor::visitTuple(std::shared_ptr<TupleExpr> tup){
+        std::vector<mlir::Type> types;
+        for(auto type : std::static_pointer_cast<TupleType>(tup->type)->elements){
+            types.push_back(prints->types->getMLIRType(type));
+        }
+        std::vector<mlir::Value> values;
+        for(auto value : tup->elements){
+            values.push_back(visitExp(value));
+        }
+
+        return exps->createTuple(types, values);
+    }
     void CodegenVisitor::visitPrint(std::shared_ptr<PrintStmt> p) {
         mlir::Value val = visitExp(p->argument);
 
@@ -142,9 +155,27 @@ namespace rex {
                 break;
             }
 
+            case TypeKind::Tuple: {
+                auto tup_t = std::static_pointer_cast<TupleType>(type);
+                auto tup_s = prints->types->createStruct(tup_t->elements);
+                prints->printTuple(val, tup_s, tup_t->elements);
+                break;
+            }
+
             default:
                 llvm::report_fatal_error("Unsupported type in print");
         }
+
+        // -----------------------------------
+        // print '\n'
+        // -----------------------------------
+        auto close = builder->create<mlir::arith::ConstantIntOp>(loc, '\n', 8);
+
+        builder->create<mlir::LLVM::CallOp>(
+            loc, prints->printf_func, mlir::ValueRange{prints->getFmtAddress(prints->fmt_char), close}
+        );
+
+    
     }
     mlir::Value CodegenVisitor::visitIndex(std::shared_ptr<IndexExpr> i) {
         // 1. evaluate base (this already gives you the pointer)
@@ -161,6 +192,22 @@ namespace rex {
 
         // 5. delegate to helper
         return exps->index(arr_p, index, elemTy);
+    }
+    mlir::Value CodegenVisitor::visitIndexTuple(std::shared_ptr<IndexTupleExpr> it){
+        mlir::Value tup_ptr = visitExp(it->base);
+        mlir::Value field_val = visitExp(it->field);
+        std::vector<mlir::Type> typs;
+        llvm::errs() << (it->base->exp_kind == ExprKind::Tuple);
+        if(it->base->exp_kind == ExprKind::Tuple){
+            for(auto type : std::static_pointer_cast<TupleType>(it->base->type)->elements){
+                typs.push_back(prints->types->getMLIRType(type));
+            }
+
+            auto struc_t = mlir::LLVM::LLVMStructType::getLiteral(builder->getContext(), typs);
+            return exps->index(tup_ptr, struc_t, typs[it->field_index], field_val);
+        }
+        
+        return mlir::Value();
     }
     void CodegenVisitor::visitStmt(std::shared_ptr<Stmt> stmt){
       auto stmt_t = stmt->stmt_kind;

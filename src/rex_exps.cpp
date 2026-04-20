@@ -62,6 +62,14 @@ void IndexExpr::dump(std::ostream& os, int i) const {
     indent(os, i + 1); os << "index\n"; if(index) index->dump(os, i + 2);
 }
 
+// IndexExpr
+void IndexTupleExpr::dump(std::ostream& os, int i) const {
+    indent(os, i); 
+    os << "index tuple : " << type->to_string() << "\n";
+    indent(os, i + 1); os << "base\n"; if(base) base->dump(os, i + 2);
+    indent(os, i + 1); os << "field \n"; if(field) field->dump(os, i + 2);
+}
+
 // TupleExpr / ArrayExpr
 void TupleExpr::dump(std::ostream& os, int i) const { indent(os, i); os << "tuple\n"; for(auto& e : elements) e->dump(os, i + 1); }
 void ArrayExpr::dump(std::ostream& os, int i) const { indent(os, i); os << "array -> " + type->to_string() + "\n"; for(auto& e : elements) e->dump(os, i + 1); }

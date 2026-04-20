@@ -1,6 +1,7 @@
 #pragma once
 
 // Pass manager
+#include <mlir/Dialect/LLVMIR/LLVMTypes.h>
 #include <string_view>
 
 #include "backend/rex_backend_types.h"
@@ -79,13 +80,8 @@ struct PrintHelper {
 
         void printPrimtive(mlir::Value value);
         void printInline(mlir::Value val);
-
-
-
-
-        void printString(mlir::LLVM::GlobalOp val);
         void printArray( mlir::Value arrayPtr, std::shared_ptr<ArrayType> arrType);
-
+        void printTuple(mlir::Value tupPtr, mlir::LLVM::LLVMStructType t_s, std::vector<std::shared_ptr<Type>> t);
 
 };
 

@@ -144,6 +144,7 @@ expr
     |'(' expr (',' expr)+ ')'              #TupleExpr
     |'[' (expr (',' expr)*)? ']'            #ArrayExpr
     | expr '[' expr ']'                    #IndexExpr
+    | expr '.' expr                       #indexTupleExpr
     | expr op=(STAR | DIV | MOD) expr       #MulExpr
     | expr op=(PLUS | MINUS) expr             #AddExpr
     | expr op=(LT | GT | LTE | GTE) expr #CompareExpr

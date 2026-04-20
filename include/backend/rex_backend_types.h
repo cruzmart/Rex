@@ -88,14 +88,22 @@ struct TypesHelper {
                     }
                 }
 
-                case TypeKind::Array: {
-                    auto arr = std::static_pointer_cast<ArrayType>(t);
+                case TypeKind::Array: 
+                case TypeKind::Tuple: {
                     return mlir::LLVM::LLVMPointerType::get(builder->getContext());
                 }
 
                 default:
                     llvm_unreachable("Unsupported type");
             }
+        }
+
+        mlir::LLVM::LLVMStructType createStruct(std::vector<std::shared_ptr<Type>> types){
+            std::vector<mlir::Type> m_t;
+            for(auto type : types){
+                m_t.push_back(getMLIRType(type));
+            }
+            return mlir::LLVM::LLVMStructType::getLiteral(builder->getContext(), m_t);
         }
 };
 

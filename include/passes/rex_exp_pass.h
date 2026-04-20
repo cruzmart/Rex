@@ -54,6 +54,7 @@ struct ExprPass {
         std::shared_ptr<Type> visitTuple(const std::shared_ptr<TupleExpr> texp);
         std::shared_ptr<Type> visitArray (const std::shared_ptr<ArrayExpr> aexp);
         std::shared_ptr<Type> visitIndex (const std::shared_ptr<IndexExpr> iexp);
+        std::shared_ptr<Type> visitTupleIndex (const std::shared_ptr<IndexTupleExpr> itupe);
 
         std::shared_ptr<Type> visitRangeExpr (const std::shared_ptr<RangeExpr> rexp);
         std::shared_ptr<Type> visitCall (const std::shared_ptr<CallExpr> cexp);

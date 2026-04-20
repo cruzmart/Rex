@@ -69,4 +69,6 @@ private:
     virtual antlrcpp::Any visitPipeExpr(RexParser::PipeExprContext *ctx) override;
     virtual antlrcpp::Any visitRangeExpr(RexParser::RangeExprContext *ctx) override;
     virtual antlrcpp::Any visitIndexExpr(RexParser::IndexExprContext *ctx) override;
+    virtual antlrcpp::Any visitIndexTupleExpr(RexParser::IndexTupleExprContext *ctx) override;
+
 };
