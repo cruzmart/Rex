@@ -228,45 +228,109 @@ namespace rex {
     }
    
 
+// Flow Control
+bool IRGen::blockHasTerminator(mlir::Block *block) {
+    return !block->empty() &&
+           block->back().hasTrait<mlir::OpTrait::IsTerminator>();
+}
+
 void IRGen::visitIf(std::shared_ptr<IfStmt> if_stmt) {
     auto *curBlock = builder->getInsertionBlock();
     auto *func = curBlock->getParentOp();
     auto *region = &func->getRegion(0);
 
-    // save insertion point safety anchor
     auto *entryBlock = curBlock;
 
-    auto *thenBlock = builder->createBlock(region);
-    auto *elseBlock = builder->createBlock(region);
+    auto *thenBlock  = builder->createBlock(region);
+    auto *elseBlock  = builder->createBlock(region);
     auto *mergeBlock = builder->createBlock(region);
 
-    // condition MUST be emitted in current valid block
+    
+    // For Else IF Block Chaining.
+    struct ElseIfPair {
+        mlir::Block *condBlock;
+        mlir::Block *bodyBlock;
+    };
+
+    // create vector of blocks if else_if exists, and chain them together
+    std::vector<ElseIfPair> chain;
+    
+    for(auto i = 0; i < if_stmt->elifx_blocks.size(); i++){
+        chain.push_back({builder->createBlock(region), builder->createBlock(region)});
+    }
+
+    // =========================
+    // CONDITION
+    // =========================
     builder->setInsertionPointToEnd(entryBlock);
     mlir::Value cond = visitExp(if_stmt->condition);
 
+
+
+    auto ifFirstIFisFalse = (chain.empty()) ? elseBlock : chain[0].condBlock;
     builder->create<mlir::LLVM::CondBrOp>(
-        loc, cond, thenBlock, elseBlock
+        loc, cond, thenBlock, ifFirstIFisFalse
     );
 
+    // =========================
     // THEN
+    // =========================
     builder->setInsertionPointToStart(thenBlock);
     visitBlock(if_stmt->then_block);
-    
-        builder->create<mlir::LLVM::BrOp>(loc, mergeBlock);
-    
 
+    if (!blockHasTerminator(thenBlock)) {
+        builder->create<mlir::LLVM::BrOp>(loc, mergeBlock);
+    }
+
+    // =========================
+    // ELSE-IF CHAIN (FIXED)
+    // =========================
+
+
+
+    // helper: what does "false" go to?
+    auto getFalseTarget = [&](size_t i) -> mlir::Block* {
+        if (i + 1 < chain.size())
+            return chain[i + 1].condBlock;
+
+        return if_stmt->else_block ? elseBlock : mergeBlock;
+    };
+
+    for(auto i = 0; i < chain.size(); i++){
+        auto condBlock = chain[i].condBlock;
+        auto thenBlock = chain[i].bodyBlock;
+
+        builder->setInsertionPointToStart(condBlock);
+        auto cond = visitExp(if_stmt->elifx_blocks[i].first);
+
+        // but I got to make sure if it is the lasdt else if it would go to else if it is false though, not i + 1. like the case if there is only 1 else_if
+        builder->create<mlir::LLVM::CondBrOp>(loc, cond, thenBlock, getFalseTarget(i));
+
+        builder->setInsertionPointToStart(thenBlock);
+        visitBlock(if_stmt->elifx_blocks[i].second);
+
+         if (!blockHasTerminator(thenBlock)) {
+            builder->create<mlir::LLVM::BrOp>(loc, mergeBlock);
+        }
+    }
+
+    // =========================
     // ELSE
+    // =========================
     builder->setInsertionPointToStart(elseBlock);
     if (if_stmt->else_block)
         visitBlock(if_stmt->else_block);
 
-    builder->create<mlir::LLVM::BrOp>(loc, mergeBlock);
-    
 
+     if (!blockHasTerminator(elseBlock)) {
+            builder->create<mlir::LLVM::BrOp>(loc, mergeBlock);
+        }
+
+    // =========================
     // MERGE
+    // =========================
     builder->setInsertionPointToStart(mergeBlock);
 }
-
    void IRGen::visitBlock(std::shared_ptr<BlockExpr> block) {
     for (auto stmt : block->statements) {
 

@@ -64,6 +64,9 @@ namespace rex {
 
     class IRGen {
 
+    private:
+        bool blockHasTerminator(mlir::Block *block);
+        
     public:
         std::shared_ptr<mlir::OpBuilder> builder;
         mlir::ModuleOp module;

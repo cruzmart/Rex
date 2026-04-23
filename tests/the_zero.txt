@@ -102,8 +102,30 @@ print([["hello","world"], ["hi", "hey"]][0][1]);
 */
 
 
-
-if true {
+/*
+// Passes 
+if (5 < 3) {
     print(1);
-} 
+} elifx (1 > 2) {
+    print(2);
+} else {
+    print(3);
+}
+*/
+
+
+/*
+// Passes
+if (5 < 3) {
+    print(1);
+} else {
+    print(3);
+}
+*/
+
+
+// Fails
+if(1 < 2){
+    print(9);
+}
 
