@@ -8,13 +8,22 @@
 #include <memory>
 
 namespace rex {
-  CodegenVisitor::CodegenVisitor( std::shared_ptr<mlir::OpBuilder> b,
-                    mlir::ModuleOp & m,
-                    mlir::Location l
-                  ) : builder(b), module(m), loc(l) {}
+  IRGen::IRGen(std::shared_ptr<mlir::OpBuilder> b,
+      mlir::ModuleOp &m,
+      mlir::Location loc)
+    : builder(std::move(b)), module(m), loc(loc) {}
 
-      
-    mlir::Value CodegenVisitor::visitExp(std::shared_ptr<Expr> expr){
+    void IRGen::visit(std::shared_ptr<FileAst> file){
+       for(auto item : file->items){
+            if(item->ast_kind == AstNodeKind::Stmt){
+               auto stmt = std::static_pointer_cast<Stmt>(item);
+                visitStmt(stmt);
+            }
+        } 
+
+    
+    }
+    mlir::Value IRGen::visitExp(std::shared_ptr<Expr> expr){
       auto expr_t = expr->exp_kind;
       if(expr_t == ExprKind::Literal)
         return visitLiteral(std::static_pointer_cast<LiteralExpr>(expr));
@@ -31,10 +40,10 @@ namespace rex {
         
       return mlir::Value();
     }
-    mlir::Value CodegenVisitor::visitLiteral(std::shared_ptr<LiteralExpr> l){
+    mlir::Value IRGen::visitLiteral(std::shared_ptr<LiteralExpr> l){
       return exps->createPrimitiveLiteral(l);
     }
-    mlir::Value CodegenVisitor::visitBinary(std::shared_ptr<BinaryExpr> bi){
+    mlir::Value IRGen::visitBinary(std::shared_ptr<BinaryExpr> bi){
 
   
         BinaryOp op = bi->operation;
@@ -95,7 +104,7 @@ namespace rex {
 
      return mlir::Value();
     }
-    mlir::Value CodegenVisitor::visitArray(std::shared_ptr<ArrayExpr> arr) {
+    mlir::Value IRGen::visitArray(std::shared_ptr<ArrayExpr> arr) {
     auto arrTy = std::static_pointer_cast<ArrayType>(arr->type);
     auto prim = std::static_pointer_cast<PrimType>(arrTy->elem);
 
@@ -125,7 +134,7 @@ namespace rex {
     // -----------------------------------
     return exps->createRuntimeArray(elements, prim->prim);
     }
-    mlir::Value CodegenVisitor::visitTuple(std::shared_ptr<TupleExpr> tup){
+    mlir::Value IRGen::visitTuple(std::shared_ptr<TupleExpr> tup){
         std::vector<mlir::Type> types;
         for(auto type : std::static_pointer_cast<TupleType>(tup->type)->elements){
             types.push_back(prints->types->getMLIRType(type));
@@ -137,7 +146,7 @@ namespace rex {
 
         return exps->createTuple(types, values);
     }
-    void CodegenVisitor::visitPrint(std::shared_ptr<PrintStmt> p) {
+    void IRGen::visitPrint(std::shared_ptr<PrintStmt> p) {
         mlir::Value val = visitExp(p->argument);
 
         auto type = p->argument->type;
@@ -177,7 +186,7 @@ namespace rex {
 
     
     }
-    mlir::Value CodegenVisitor::visitIndex(std::shared_ptr<IndexExpr> i) {
+    mlir::Value IRGen::visitIndex(std::shared_ptr<IndexExpr> i) {
         // 1. evaluate base (this already gives you the pointer)
         mlir::Value arr_p = visitExp(i->base);
 
@@ -193,7 +202,7 @@ namespace rex {
         // 5. delegate to helper
         return exps->index(arr_p, index, elemTy);
     }
-    mlir::Value CodegenVisitor::visitIndexTuple(std::shared_ptr<IndexTupleExpr> it){
+    mlir::Value IRGen::visitIndexTuple(std::shared_ptr<IndexTupleExpr> it){
         mlir::Value tup_ptr = visitExp(it->base);
         mlir::Value field_val = visitExp(it->field);
         std::vector<mlir::Type> typs;
@@ -209,19 +218,66 @@ namespace rex {
         
         return mlir::Value();
     }
-    void CodegenVisitor::visitStmt(std::shared_ptr<Stmt> stmt){
+    void IRGen::visitStmt(std::shared_ptr<Stmt> stmt){
       auto stmt_t = stmt->stmt_kind;
       if(stmt_t == StmtKind::Print)
         visitPrint(std::static_pointer_cast<PrintStmt>(stmt));
+      if(stmt_t == StmtKind::If)
+        visitIf(std::static_pointer_cast<IfStmt>(stmt));
       return;
     }
-    void CodegenVisitor::visit(std::shared_ptr<FileAst> file){
-       for(auto item : file->items){
-            if(item->ast_kind == AstNodeKind::Stmt){
-               auto stmt = std::static_pointer_cast<Stmt>(item);
-                visitStmt(stmt);
-            }
-        } 
-    }
+   
 
+void IRGen::visitIf(std::shared_ptr<IfStmt> if_stmt) {
+    auto *curBlock = builder->getInsertionBlock();
+    auto *func = curBlock->getParentOp();
+    auto *region = &func->getRegion(0);
+
+    // save insertion point safety anchor
+    auto *entryBlock = curBlock;
+
+    auto *thenBlock = builder->createBlock(region);
+    auto *elseBlock = builder->createBlock(region);
+    auto *mergeBlock = builder->createBlock(region);
+
+    // condition MUST be emitted in current valid block
+    builder->setInsertionPointToEnd(entryBlock);
+    mlir::Value cond = visitExp(if_stmt->condition);
+
+    builder->create<mlir::LLVM::CondBrOp>(
+        loc, cond, thenBlock, elseBlock
+    );
+
+    // THEN
+    builder->setInsertionPointToStart(thenBlock);
+    visitBlock(if_stmt->then_block);
+    
+        builder->create<mlir::LLVM::BrOp>(loc, mergeBlock);
+    
+
+    // ELSE
+    builder->setInsertionPointToStart(elseBlock);
+    if (if_stmt->else_block)
+        visitBlock(if_stmt->else_block);
+
+    builder->create<mlir::LLVM::BrOp>(loc, mergeBlock);
+    
+
+    // MERGE
+    builder->setInsertionPointToStart(mergeBlock);
+}
+
+   void IRGen::visitBlock(std::shared_ptr<BlockExpr> block) {
+    for (auto stmt : block->statements) {
+
+        auto *b = builder->getBlock();
+
+        if (!b->empty() &&
+            b->back().hasTrait<mlir::OpTrait::IsTerminator>()) {
+            return; // 🔥 HARD STOP
+        }
+
+        visitStmt(stmt);
+    }
+}
 }

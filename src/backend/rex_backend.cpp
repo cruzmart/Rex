@@ -24,7 +24,7 @@ BackEnd::BackEnd() : loc(mlir::UnknownLoc::get(&context)) {
 
     
     types = std::make_shared<TypesHelper>(builder, loc);
-    visitor = std::make_shared<CodegenVisitor>(builder, module, loc);
+    visitor = std::make_shared<IRGen>(builder, module, loc);
     visitor->exps = std::make_shared<ExpressionsHelper>(builder, module, loc, types);
     visitor->prints = std::make_shared<PrintHelper>(builder, loc, types);
     
@@ -93,22 +93,44 @@ void BackEnd::dumpLLVM(std::ostream &os, bool debug) {
 
 
 int BackEnd::emitMain(std::shared_ptr<FileAst> file){
-    auto funcType = builder->getFunctionType({}, {types->i32});
+    // auto funcType = builder->getFunctionType({}, {types->i32});
 
-    auto func = builder->create<mlir::func::FuncOp>(loc, "main", funcType);
+    // //auto func = builder->create<mlir::func::FuncOp>(loc, "main", funcType);
+    // mlir::LLVM::LLVMFuncOp mainFunc = builder->create<mlir::LLVM::LLVMFuncOp>(loc, "main", funcType);
 
 
-    auto &entryBlock = *func.addEntryBlock();
-    builder->setInsertionPointToStart(&entryBlock);
+
+    // // auto &entryBlock = *func.addEntryBlock();
+    // // builder->setInsertionPointToStart(&entryBlock);
+
+    // mlir::Block *entry = mainFunc.addEntryBlock();
+    // builder->setInsertionPointToStart(entry);
 
 
     //example();
 
+    //visitor->visit(file);
+  
+
+    //mlir::Value zero = builder->create<mlir::LLVM::ConstantOp>(loc, types->i32, builder->getIntegerAttr(types->i32, 0));
+    //builder->create<mlir::LLVM::ReturnOp>(builder->getUnknownLoc(), zero);   
+
+    // Create a main function 
+    mlir::Type intType = mlir::IntegerType::get(&context, 32);
+    auto mainType = mlir::LLVM::LLVMFunctionType::get(intType, {}, false);
+    mlir::LLVM::LLVMFuncOp mainFunc = builder->create<mlir::LLVM::LLVMFuncOp>(loc, "main", mainType);
+    mlir::Block *entry = mainFunc.addEntryBlock();
+    builder->setInsertionPointToStart(entry);
+    
+  
     visitor->visit(file);
+  
 
-    auto zero = builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32);
-
-    builder->create<mlir::func::ReturnOp>(loc, mlir::ValueRange{zero});
+    // Return 0
+    mlir::Value zero = builder->create<mlir::LLVM::ConstantOp>(loc, intType, builder->getIntegerAttr(intType, 0));
+    builder->create<mlir::LLVM::ReturnOp>(builder->getUnknownLoc(), zero);    
+    
+   
 
     return 0;
 }

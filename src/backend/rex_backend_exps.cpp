@@ -20,7 +20,7 @@
 
     ExpressionsHelper::ExpressionsHelper(
                          std::shared_ptr<mlir::OpBuilder> b,
-                         mlir::ModuleOp & m,
+                         mlir::ModuleOp m,
                          mlir::Location l,
                          std::shared_ptr<TypesHelper> t)
             
@@ -178,7 +178,6 @@
     // 2. Allocate stack space for struct
     // -----------------------------------
     auto one = builder->create<mlir::arith::ConstantIntOp>(loc, 1, 32);
-    auto zero = builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32);
 
     auto alloca = builder->create<mlir::LLVM::AllocaOp>(loc, ptrTy, structTy, one);
 

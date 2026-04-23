@@ -58,24 +58,26 @@
 #include "rex_types.h"
 #include "rex_exps.h"
 #include "rex_ast_nodes.h"
+#include "rex_stmts.h"
 
 namespace rex {
 
-    class CodegenVisitor {
+    class IRGen {
+
     public:
         std::shared_ptr<mlir::OpBuilder> builder;
-        mlir::ModuleOp &module;
+        mlir::ModuleOp module;
         mlir::Location loc;
         std::unordered_map<std::string, mlir::Value> symbolTable;
+        mlir::func::FuncOp func_control;
 
 
         std::shared_ptr<ExpressionsHelper> exps;
         std::shared_ptr<PrintHelper> prints;
 
-        CodegenVisitor( std::shared_ptr<mlir::OpBuilder> b,
-                        mlir::ModuleOp & m,
-                        mlir::Location l
-                    );
+        IRGen(std::shared_ptr<mlir::OpBuilder> b,
+            mlir::ModuleOp &m,
+            mlir::Location l);
 
         mlir::Value visitExp(std::shared_ptr<Expr> expr);
         mlir::Value visitLiteral(std::shared_ptr<LiteralExpr> l);
@@ -90,5 +92,10 @@ namespace rex {
 
         void visitStmt(std::shared_ptr<Stmt> stmt);
         void visit(std::shared_ptr<FileAst> file);
+
+
+        // Flow Control Functions
+        void visitIf(std::shared_ptr<IfStmt> if_stmt);
+        void visitBlock(std::shared_ptr<BlockExpr> block);
     };
 }
