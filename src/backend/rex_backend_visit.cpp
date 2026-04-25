@@ -241,11 +241,10 @@ void IRGen::visitIf(std::shared_ptr<IfStmt> if_stmt) {
 
     auto *entryBlock = curBlock;
 
+    // BlOCKS
+    // IF //
     auto *thenBlock  = builder->createBlock(region);
-    auto *elseBlock  = builder->createBlock(region);
-    auto *mergeBlock = builder->createBlock(region);
-
-    
+    // ELSE IF//
     // For Else IF Block Chaining.
     struct ElseIfPair {
         mlir::Block *condBlock;
@@ -258,6 +257,13 @@ void IRGen::visitIf(std::shared_ptr<IfStmt> if_stmt) {
     for(auto i = 0; i < if_stmt->elifx_blocks.size(); i++){
         chain.push_back({builder->createBlock(region), builder->createBlock(region)});
     }
+
+    //// ELSE ///////////
+    
+    auto *elseBlock  = builder->createBlock(region);
+
+    // MERGE CONDITIONS TOGETHER
+    auto *mergeBlock = builder->createBlock(region);
 
     // =========================
     // CONDITION
