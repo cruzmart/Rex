@@ -70,7 +70,11 @@ namespace rex {
             assert(!contStack.empty() && "No continuation block!");
             return contStack.back();
         }
-        
+        mlir::Block* currentBreak() {
+            assert(!breakStack.empty() && "break used outside of loop!");
+            return breakStack.back();
+        }
+                
         
     public:
         std::shared_ptr<mlir::OpBuilder> builder;
@@ -81,8 +85,7 @@ namespace rex {
         mlir::Block * exitBlock;
         bool blockHasTerminator(mlir::Block *block);
 
-        std::vector<mlir::Block*> contStack;
-
+   
 
         std::shared_ptr<ExpressionsHelper> exps;
         std::shared_ptr<PrintHelper> prints;
@@ -90,6 +93,12 @@ namespace rex {
         IRGen(std::shared_ptr<mlir::OpBuilder> b,
             mlir::ModuleOp &m,
             mlir::Location l);
+
+
+        // CFG Helpers
+        std::vector<mlir::Block*> contStack;
+        std::vector<mlir::Block*> breakStack;
+
 
         mlir::Value visitExp(std::shared_ptr<Expr> expr);
         mlir::Value visitLiteral(std::shared_ptr<LiteralExpr> l);
@@ -109,5 +118,6 @@ namespace rex {
         void visitIf(std::shared_ptr<IfStmt> if_stmt);
         void visitWhile(std::shared_ptr<WhileStmt> whle_stmt);
         void visitBlock(std::shared_ptr<BlockExpr> block);
+        void visitBreak(std::shared_ptr<BreakStmt> brk);
     };
 }

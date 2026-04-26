@@ -147,8 +147,11 @@ if (5 < 3) {
 */
 
 
+while(true){
 if (5 > 10){
     print(0);
+}  elifx (5 >= 4) {
+    print(5);
 } else {
     if(7 >= 4){
         if(1 != 2){
@@ -157,11 +160,24 @@ if (5 > 10){
     }
 }
 
+if (5 > 10){
+    print(0);
+} elifx (5 <= 4) {
+    print(5);
+} else {
+    if(7 >= 4){
+        if(1 != 2){
+             print(1);
+             break;
+        }
+    }
+}
+}
+
 
 /*
-while(true){
-   if(true){
-    print(1);
-   }
+auto *b = builder->getInsertionBlock();
+if (b && !blockHasTerminator(b)) {
+    builder->create<mlir::LLVM::BrOp>(loc, condBlock);
 }
 */

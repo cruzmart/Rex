@@ -110,11 +110,12 @@ int BackEnd::emitMain(std::shared_ptr<FileAst> file){
     // Generate program
     visitor->visit(file);
 
-    // If entry didn't already branch, go to exit
-    if (!visitor->blockHasTerminator(entry)) {
+    // 🔥 THIS is the real fix
+    mlir::Block *current = builder->getInsertionBlock();
+
+    if (current && !visitor->blockHasTerminator(current)) {
         builder->create<mlir::LLVM::BrOp>(loc, exitBlock);
     }
-
     // Pop
     visitor->contStack.pop_back();
 

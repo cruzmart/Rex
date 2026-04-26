@@ -13,13 +13,21 @@ namespace rex {
       mlir::Location loc)
     : builder(std::move(b)), module(m), loc(loc) {}
 
-    void IRGen::visit(std::shared_ptr<FileAst> file){
-       for(auto item : file->items){
-            if(item->ast_kind == AstNodeKind::Stmt){
-               auto stmt = std::static_pointer_cast<Stmt>(item);
-                visitStmt(stmt);
-            }
-        } 
+   void IRGen::visit(std::shared_ptr<FileAst> file){
+    for(auto item : file->items){
+
+        auto *b = builder->getInsertionBlock();
+
+        // 🔥 STOP if block already terminated
+        if (!b || blockHasTerminator(b)) {
+            return;
+        }
+
+        if(item->ast_kind == AstNodeKind::Stmt){
+            auto stmt = std::static_pointer_cast<Stmt>(item);
+            visitStmt(stmt);
+        }
+    } 
 
     
     }
@@ -232,6 +240,9 @@ void IRGen::visitStmt(std::shared_ptr<Stmt> stmt){
 
     if(stmt_t == StmtKind::While)
         visitWhile(std::static_pointer_cast<WhileStmt>(stmt));
+
+    if(stmt_t == StmtKind::Break)
+        visitBreak(std::static_pointer_cast<BreakStmt>(stmt));
 }
    
 
@@ -265,16 +276,36 @@ void IRGen::visitWhile(std::shared_ptr<WhileStmt> whle_stmt){
     // BODY
     builder->setInsertionPointToStart(bodyBlock);
 
-    // 🔥 push loop continuation (continue goes here)
+    // 🔥 continue target
     contStack.push_back(condBlock);
+
+    // 🔥 break target
+    breakStack.push_back(mergeBlock);
+
     visitBlock(whle_stmt->body);
+
+    breakStack.pop_back();
     contStack.pop_back();
+
+    auto *b = builder->getInsertionBlock();
+    if (b && !blockHasTerminator(b)) {
+        builder->create<mlir::LLVM::BrOp>(loc, condBlock);
+    }
 
     // EXIT
     builder->setInsertionPointToStart(mergeBlock);
     if (!blockHasTerminator(mergeBlock)) {
         builder->create<mlir::LLVM::BrOp>(loc, currentCont());
     }
+}
+void IRGen::visitBreak(std::shared_ptr<BreakStmt> brk) {
+    auto *b = builder->getBlock();
+
+    // If already terminated, do nothing
+    if (blockHasTerminator(b))
+        return;
+
+    builder->create<mlir::LLVM::BrOp>(loc, currentBreak());
 }
 
 void IRGen::visitIf(std::shared_ptr<IfStmt> if_stmt) {
@@ -299,7 +330,9 @@ void IRGen::visitIf(std::shared_ptr<IfStmt> if_stmt) {
         });
     }
 
+    // -------------------------
     // CONDITION
+    // -------------------------
     builder->setInsertionPointToEnd(curBlock);
     auto cond = visitExp(if_stmt->condition);
 
@@ -310,13 +343,24 @@ void IRGen::visitIf(std::shared_ptr<IfStmt> if_stmt) {
         loc, cond, thenBlock, firstFalse
     );
 
+    // -------------------------
     // THEN
+    // -------------------------
     builder->setInsertionPointToStart(thenBlock);
     contStack.push_back(mergeBlock);
     visitBlock(if_stmt->then_block);
     contStack.pop_back();
 
+    {
+        auto *b = builder->getInsertionBlock();
+        if (b && !blockHasTerminator(b)) {
+            builder->create<mlir::LLVM::BrOp>(loc, mergeBlock);
+        }
+    }
+
+    // -------------------------
     // ELSE-IF chain
+    // -------------------------
     auto getFalseTarget = [&](size_t i) -> mlir::Block* {
         if (i + 1 < chain.size())
             return chain[i + 1].condBlock;
@@ -328,6 +372,7 @@ void IRGen::visitIf(std::shared_ptr<IfStmt> if_stmt) {
         auto condBlock = chain[i].condBlock;
         auto bodyBlock = chain[i].bodyBlock;
 
+        // condition
         builder->setInsertionPointToStart(condBlock);
         auto cond = visitExp(if_stmt->elifx_blocks[i].first);
 
@@ -335,45 +380,58 @@ void IRGen::visitIf(std::shared_ptr<IfStmt> if_stmt) {
             loc, cond, bodyBlock, getFalseTarget(i)
         );
 
+        // body
         builder->setInsertionPointToStart(bodyBlock);
         contStack.push_back(mergeBlock);
         visitBlock(if_stmt->elifx_blocks[i].second);
         contStack.pop_back();
+
+        auto *b = builder->getInsertionBlock();
+        if (b && !blockHasTerminator(b)) {
+            builder->create<mlir::LLVM::BrOp>(loc, mergeBlock);
+        }
     }
 
+    // -------------------------
     // ELSE
+    // -------------------------
     builder->setInsertionPointToStart(elseBlock);
     if (if_stmt->else_block) {
         contStack.push_back(mergeBlock);
         visitBlock(if_stmt->else_block);
         contStack.pop_back();
+
+        auto *b = builder->getInsertionBlock();
+        if (b && !blockHasTerminator(b)) {
+            builder->create<mlir::LLVM::BrOp>(loc, mergeBlock);
+        }
     } else {
         builder->create<mlir::LLVM::BrOp>(loc, mergeBlock);
     }
 
-    // MERGE → outer continuation
+    // -------------------------
+    // MERGE (NO TERMINATOR HERE)
+    // -------------------------
     builder->setInsertionPointToStart(mergeBlock);
-    if (!blockHasTerminator(mergeBlock)) {
-        builder->create<mlir::LLVM::BrOp>(loc, currentCont());
-    }
+    // If nothing else gets inserted later, this block must still be valid
+
 }
 
 void IRGen::visitBlock(std::shared_ptr<BlockExpr> block) {
     for (auto stmt : block->statements) {
 
-        auto *b = builder->getBlock();
+        auto *b = builder->getInsertionBlock();
 
-        if (!b->empty() &&
-            b->back().hasTrait<mlir::OpTrait::IsTerminator>()) {
-            return;
+        if (!b || blockHasTerminator(b)) {
+            return; // 🔥 HARD STOP
         }
 
         visitStmt(stmt);
     }
 
-    // fallthrough → current continuation
-    auto *b = builder->getBlock();
-    if (!blockHasTerminator(b)) {
+    auto *b = builder->getInsertionBlock();
+
+    if (b && !blockHasTerminator(b)) {
         builder->create<mlir::LLVM::BrOp>(loc, currentCont());
     }
 }
