@@ -234,13 +234,12 @@ void IRGen::visitStmt(std::shared_ptr<Stmt> stmt){
 
     if(stmt_t == StmtKind::Print)
         visitPrint(std::static_pointer_cast<PrintStmt>(stmt));
-
     if(stmt_t == StmtKind::If)
         visitIf(std::static_pointer_cast<IfStmt>(stmt));
-
     if(stmt_t == StmtKind::While)
         visitWhile(std::static_pointer_cast<WhileStmt>(stmt));
-
+    if(stmt_t == StmtKind::Loop)
+        visitLoop(std::static_pointer_cast<LoopStmt>(stmt));
     if(stmt_t == StmtKind::Break)
         visitBreak(std::static_pointer_cast<BreakStmt>(stmt));
 }
@@ -250,6 +249,52 @@ void IRGen::visitStmt(std::shared_ptr<Stmt> stmt){
 bool IRGen::blockHasTerminator(mlir::Block *block) {
     return !block->empty() &&
            block->back().hasTrait<mlir::OpTrait::IsTerminator>();
+}
+
+void IRGen::visitLoop(std::shared_ptr<LoopStmt> lop_stmt){
+    auto *curBlock = builder->getInsertionBlock();
+    auto *func = curBlock->getParentOp();
+    auto *region = &func->getRegion(0);
+
+    auto *condBlock  = builder->createBlock(region);
+    auto *bodyBlock  = builder->createBlock(region);
+    auto *mergeBlock = builder->createBlock(region);
+
+      // jump to condition
+    builder->setInsertionPointToEnd(curBlock);
+    builder->create<mlir::LLVM::BrOp>(loc, condBlock);
+
+    // CONDITION
+    builder->setInsertionPointToStart(condBlock);
+    
+    builder->create<mlir::LLVM::CondBrOp>(
+        loc, exps->createBool("true"), bodyBlock, mergeBlock
+    );
+
+    // BODY
+    builder->setInsertionPointToStart(bodyBlock);
+
+    // 🔥 continue target
+    contStack.push_back(condBlock);
+
+    // 🔥 break target
+    breakStack.push_back(mergeBlock);
+
+    visitBlock(lop_stmt->body);
+
+    breakStack.pop_back();
+    contStack.pop_back();
+
+    auto *b = builder->getInsertionBlock();
+    if (b && !blockHasTerminator(b)) {
+        builder->create<mlir::LLVM::BrOp>(loc, condBlock);
+    }
+
+    // EXIT
+    builder->setInsertionPointToStart(mergeBlock);
+    if (!blockHasTerminator(mergeBlock)) {
+        builder->create<mlir::LLVM::BrOp>(loc, currentCont());
+    }
 }
 
 void IRGen::visitWhile(std::shared_ptr<WhileStmt> whle_stmt){
@@ -294,18 +339,7 @@ void IRGen::visitWhile(std::shared_ptr<WhileStmt> whle_stmt){
 
     // EXIT
     builder->setInsertionPointToStart(mergeBlock);
-    if (!blockHasTerminator(mergeBlock)) {
-        builder->create<mlir::LLVM::BrOp>(loc, currentCont());
-    }
-}
-void IRGen::visitBreak(std::shared_ptr<BreakStmt> brk) {
-    auto *b = builder->getBlock();
 
-    // If already terminated, do nothing
-    if (blockHasTerminator(b))
-        return;
-
-    builder->create<mlir::LLVM::BrOp>(loc, currentBreak());
 }
 
 void IRGen::visitIf(std::shared_ptr<IfStmt> if_stmt) {
@@ -434,6 +468,16 @@ void IRGen::visitBlock(std::shared_ptr<BlockExpr> block) {
     if (b && !blockHasTerminator(b)) {
         builder->create<mlir::LLVM::BrOp>(loc, currentCont());
     }
+}
+
+void IRGen::visitBreak(std::shared_ptr<BreakStmt> brk) {
+    auto *b = builder->getBlock();
+
+    // If already terminated, do nothing
+    if (blockHasTerminator(b))
+        return;
+
+    builder->create<mlir::LLVM::BrOp>(loc, currentBreak());
 }
 
 }

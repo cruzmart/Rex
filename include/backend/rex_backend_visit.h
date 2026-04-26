@@ -117,6 +117,7 @@ namespace rex {
         void visitStmt(std::shared_ptr<Stmt> stmt);
         void visitIf(std::shared_ptr<IfStmt> if_stmt);
         void visitWhile(std::shared_ptr<WhileStmt> whle_stmt);
+        void visitLoop(std::shared_ptr<LoopStmt> lop_stmt);
         void visitBlock(std::shared_ptr<BlockExpr> block);
         void visitBreak(std::shared_ptr<BreakStmt> brk);
     };
