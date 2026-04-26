@@ -65,7 +65,12 @@ namespace rex {
     class IRGen {
 
     private:
-        bool blockHasTerminator(mlir::Block *block);
+        mlir::Block *contBlock;
+        mlir::Block* currentCont() {
+            assert(!contStack.empty() && "No continuation block!");
+            return contStack.back();
+        }
+        
         
     public:
         std::shared_ptr<mlir::OpBuilder> builder;
@@ -73,6 +78,10 @@ namespace rex {
         mlir::Location loc;
         std::unordered_map<std::string, mlir::Value> symbolTable;
         mlir::func::FuncOp func_control;
+        mlir::Block * exitBlock;
+        bool blockHasTerminator(mlir::Block *block);
+
+        std::vector<mlir::Block*> contStack;
 
 
         std::shared_ptr<ExpressionsHelper> exps;
@@ -92,13 +101,13 @@ namespace rex {
 
 
         void visitPrint(std::shared_ptr<PrintStmt> p);
-
-        void visitStmt(std::shared_ptr<Stmt> stmt);
         void visit(std::shared_ptr<FileAst> file);
 
 
         // Flow Control Functions
+        void visitStmt(std::shared_ptr<Stmt> stmt);
         void visitIf(std::shared_ptr<IfStmt> if_stmt);
+        void visitWhile(std::shared_ptr<WhileStmt> whle_stmt);
         void visitBlock(std::shared_ptr<BlockExpr> block);
     };
 }

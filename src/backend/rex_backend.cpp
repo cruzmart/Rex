@@ -93,44 +93,41 @@ void BackEnd::dumpLLVM(std::ostream &os, bool debug) {
 
 
 int BackEnd::emitMain(std::shared_ptr<FileAst> file){
-    // auto funcType = builder->getFunctionType({}, {types->i32});
-
-    // //auto func = builder->create<mlir::func::FuncOp>(loc, "main", funcType);
-    // mlir::LLVM::LLVMFuncOp mainFunc = builder->create<mlir::LLVM::LLVMFuncOp>(loc, "main", funcType);
-
-
-
-    // // auto &entryBlock = *func.addEntryBlock();
-    // // builder->setInsertionPointToStart(&entryBlock);
-
-    // mlir::Block *entry = mainFunc.addEntryBlock();
-    // builder->setInsertionPointToStart(entry);
-
-
-    //example();
-
-    //visitor->visit(file);
-  
-
-    //mlir::Value zero = builder->create<mlir::LLVM::ConstantOp>(loc, types->i32, builder->getIntegerAttr(types->i32, 0));
-    //builder->create<mlir::LLVM::ReturnOp>(builder->getUnknownLoc(), zero);   
 
     // Create a main function 
     mlir::Type intType = mlir::IntegerType::get(&context, 32);
     auto mainType = mlir::LLVM::LLVMFunctionType::get(intType, {}, false);
     mlir::LLVM::LLVMFuncOp mainFunc = builder->create<mlir::LLVM::LLVMFuncOp>(loc, "main", mainType);
     mlir::Block *entry = mainFunc.addEntryBlock();
-    builder->setInsertionPointToStart(entry);
-    
-  
-    visitor->visit(file);
-  
+    mlir::Block *exitBlock = builder->createBlock(&mainFunc.getBody());
 
-    // Return 0
-    mlir::Value zero = builder->create<mlir::LLVM::ConstantOp>(loc, intType, builder->getIntegerAttr(intType, 0));
-    builder->create<mlir::LLVM::ReturnOp>(builder->getUnknownLoc(), zero);    
+    // Start in entry
+    builder->setInsertionPointToStart(entry);
+
+    // Push global continuation
+    visitor->contStack.push_back(exitBlock);
+
+    // Generate program
+    visitor->visit(file);
+
+    // If entry didn't already branch, go to exit
+    if (!visitor->blockHasTerminator(entry)) {
+        builder->create<mlir::LLVM::BrOp>(loc, exitBlock);
+    }
+
+    // Pop
+    visitor->contStack.pop_back();
+
+    // Emit exit block
+    builder->setInsertionPointToStart(exitBlock);
+
+    mlir::Value zero = builder->create<mlir::LLVM::ConstantOp>(
+        loc, intType, builder->getIntegerAttr(intType, 0)
+    );
+
+    builder->create<mlir::LLVM::ReturnOp>(loc, zero);
+        
     
-   
 
     return 0;
 }

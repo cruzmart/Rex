@@ -125,12 +125,14 @@ if (5 < 3) {
 
 
 // Pass
+/*
 if(1 < 2){
     print(9);
 }
+*/
 
 
-
+/*
 if (5 < 3) {
     print(1);
 } elifx (5 <= 4) {
@@ -142,3 +144,24 @@ if (5 < 3) {
 } else {
     print(3);
 }
+*/
+
+
+if (5 > 10){
+    print(0);
+} else {
+    if(7 >= 4){
+        if(1 != 2){
+             print(1);
+        }
+    }
+}
+
+
+/*
+while(true){
+   if(true){
+    print(1);
+   }
+}
+*/
