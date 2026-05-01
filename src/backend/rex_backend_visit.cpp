@@ -6,14 +6,18 @@
 #include "rex_stmts.h"
 #include "rex_types.h"
 #include <memory>
+#include <mlir/Dialect/LLVMIR/LLVMDialect.h>
+#include <mlir/IR/ValueRange.h>
 
 namespace rex {
   IRGen::IRGen(std::shared_ptr<mlir::OpBuilder> b,
       mlir::ModuleOp &m,
-      mlir::Location loc)
-    : builder(std::move(b)), module(m), loc(loc) {}
+      mlir::Location loc,
+    std::shared_ptr<TypesHelper> t)
+    : builder(std::move(b)), module(m), loc(loc), types(t) {}
 
    void IRGen::visit(std::shared_ptr<FileAst> file){
+    currentScope = std::make_shared<Scope>();
     for(auto item : file->items){
 
         auto *b = builder->getInsertionBlock();
@@ -45,6 +49,8 @@ namespace rex {
         return visitIndexTuple(std::static_pointer_cast<IndexTupleExpr>(expr));
       if(expr_t == ExprKind::Tuple)
         return visitTuple(std::static_pointer_cast<TupleExpr>(expr));
+      if(expr_t == ExprKind::Id)
+        return visitId(std::static_pointer_cast<IdExpr>(expr));
         
       return mlir::Value();
     }
@@ -240,11 +246,35 @@ void IRGen::visitStmt(std::shared_ptr<Stmt> stmt){
         visitWhile(std::static_pointer_cast<WhileStmt>(stmt));
     if(stmt_t == StmtKind::Loop)
         visitLoop(std::static_pointer_cast<LoopStmt>(stmt));
+    if(stmt_t == StmtKind::For)
+        visitFor(std::static_pointer_cast<ForStmt>(stmt));
     if(stmt_t == StmtKind::Break)
         visitBreak(std::static_pointer_cast<BreakStmt>(stmt));
 }
    
+// Variables
+mlir::Value IRGen::visitId(std::shared_ptr<IdExpr> id){
+    auto sym = id->resolved;
+    if (!sym) {
+        llvm_unreachable("Unresolved symbol in visitId");
+    }
 
+    // Symbol holds pointer to storage
+    mlir::Value ptr = sym->value;
+
+    if (!ptr) {
+        llvm_unreachable("Symbol has no allocated storage");
+    }
+
+    // Load current value
+    auto loaded = builder->create<mlir::LLVM::LoadOp>(
+        loc,
+        types->getMLIRType(sym->type),
+        ptr
+    );
+
+    return loaded;
+}
 // Flow Control
 bool IRGen::blockHasTerminator(mlir::Block *block) {
     return !block->empty() &&
@@ -271,6 +301,7 @@ void IRGen::visitLoop(std::shared_ptr<LoopStmt> lop_stmt){
         loc, exps->createBool("true"), bodyBlock, mergeBlock
     );
 
+
     // BODY
     builder->setInsertionPointToStart(bodyBlock);
 
@@ -285,6 +316,7 @@ void IRGen::visitLoop(std::shared_ptr<LoopStmt> lop_stmt){
     breakStack.pop_back();
     contStack.pop_back();
 
+
     auto *b = builder->getInsertionBlock();
     if (b && !blockHasTerminator(b)) {
         builder->create<mlir::LLVM::BrOp>(loc, condBlock);
@@ -295,6 +327,7 @@ void IRGen::visitLoop(std::shared_ptr<LoopStmt> lop_stmt){
     if (!blockHasTerminator(mergeBlock)) {
         builder->create<mlir::LLVM::BrOp>(loc, currentCont());
     }
+
 }
 
 void IRGen::visitWhile(std::shared_ptr<WhileStmt> whle_stmt){
@@ -340,6 +373,196 @@ void IRGen::visitWhile(std::shared_ptr<WhileStmt> whle_stmt){
     // EXIT
     builder->setInsertionPointToStart(mergeBlock);
 
+}
+
+// For Loop Helper
+mlir::Value IRGen::getIterableSize(std::shared_ptr<Expr> exp){
+    // if exp is a array 
+    mlir::Value size;
+
+    if(exp->exp_kind == ExprKind::Array){
+        auto arr_t = std::static_pointer_cast<ArrayType>(exp->type);
+        size = builder->create<mlir::arith::ConstantOp>(loc, builder->getI32IntegerAttr(arr_t->size));
+        return size;
+    }
+
+    // if exp is a range
+    if(exp->exp_kind == ExprKind::Range){
+         auto rng_exp = std::static_pointer_cast<RangeExpr>(exp);
+         // size = (b - a) + 1;
+         auto size_sub = exps->sub(visitExp(rng_exp->rhs), visitExp(rng_exp->lhs), types->i32);
+         size = exps->add(size_sub, builder->create<mlir::arith::ConstantOp>(loc, builder->getI32IntegerAttr(1)), types->i32);
+         return size;
+
+    }
+
+    return mlir::Value();
+
+}
+
+void IRGen::visitFor(std::shared_ptr<ForStmt> for_stmt) {
+
+    // -------------------------
+    // GET CURRENT CONTEXT
+    // -------------------------
+    auto *entryBlock = builder->getInsertionBlock();
+    auto *func = entryBlock->getParentOp();
+    auto *region = &func->getRegion(0);
+
+    auto ptr_t = mlir::LLVM::LLVMPointerType::get(builder->getContext());
+
+    // constants
+    auto one = builder->create<mlir::arith::ConstantOp>(
+        loc, builder->getI32IntegerAttr(1));
+
+    auto zero = builder->create<mlir::arith::ConstantOp>(
+        loc, builder->getI32IntegerAttr(0));
+
+    // -------------------------
+    // CREATE BLOCKS
+    // -------------------------
+    auto *condBlock  = builder->createBlock(region);
+    auto *bodyBlock  = builder->createBlock(region);
+    auto *incBlock   = builder->createBlock(region);   // 🔥 REQUIRED
+    auto *mergeBlock = builder->createBlock(region);
+
+    builder->setInsertionPointToEnd(entryBlock);
+
+    // -------------------------
+    // NEW SCOPE
+    // -------------------------
+    auto oldScope = currentScope;
+    currentScope = currentScope->push();
+
+    // -------------------------
+    // EVALUATE ITERABLE (ONCE)
+    // -------------------------
+    auto iterable_ptr = visitExp(for_stmt->iterable);
+    auto size = getIterableSize(for_stmt->iterable);
+
+    // -------------------------
+    // INDEX (i)
+    // -------------------------
+    auto index_ptr = builder->create<mlir::LLVM::AllocaOp>(
+        loc, ptr_t, builder->getI32Type(), one);
+
+    builder->create<mlir::LLVM::StoreOp>(loc, zero, index_ptr);
+
+    // -------------------------
+    // LOOP VARIABLE (user variable)
+    // -------------------------
+    auto iterSym =
+        std::static_pointer_cast<IdExpr>(for_stmt->iter_var)->resolved;
+
+    mlir::Type val_t = types->getMLIRType(iterSym->type);
+
+    auto value_ptr = builder->create<mlir::LLVM::AllocaOp>(
+        loc, ptr_t, val_t, one);
+
+    iterSym->value = value_ptr;
+    currentScope->define(iterSym);
+
+    // -------------------------
+    // JUMP → CONDITION
+    // -------------------------
+    builder->create<mlir::LLVM::BrOp>(loc, condBlock);
+
+    // =====================================================
+    // CONDITION BLOCK
+    // =====================================================
+    builder->setInsertionPointToStart(condBlock);
+
+    auto index = builder->create<mlir::LLVM::LoadOp>(
+        loc, types->i32, index_ptr);
+
+    auto cond = builder->create<mlir::arith::CmpIOp>(
+        loc,
+        mlir::arith::CmpIPredicate::slt,
+        index,
+        size
+    );
+
+    builder->create<mlir::LLVM::CondBrOp>(
+        loc, cond, bodyBlock, mergeBlock
+    );
+
+    // =====================================================
+    // BODY BLOCK
+    // =====================================================
+    builder->setInsertionPointToStart(bodyBlock);
+
+    // 🔥 IMPORTANT: continue → increment block
+    contStack.push_back(incBlock);
+    breakStack.push_back(mergeBlock);
+
+    // -------------------------
+    // LOAD ELEMENT → loop variable
+    // -------------------------
+    switch (for_stmt->iterable->exp_kind) {
+        case ExprKind::Array: {
+            auto gep = builder->create<mlir::LLVM::GEPOp>(
+                loc,
+                ptr_t,
+                val_t,
+                iterable_ptr,
+                mlir::ValueRange{index} // ✅ correct for arrays
+            );
+
+            auto loaded = builder->create<mlir::LLVM::LoadOp>(
+                loc, val_t, gep);
+
+            builder->create<mlir::LLVM::StoreOp>(
+                loc, loaded, value_ptr);
+            break;
+        }
+
+        default:
+            llvm_unreachable("Unsupported iterable in for loop");
+    }
+
+    // -------------------------
+    // LOOP BODY
+    // -------------------------
+    visitBlock(for_stmt->body);
+
+    breakStack.pop_back();
+    contStack.pop_back();
+
+    // if body didn’t terminate → go to increment
+    auto *b = builder->getInsertionBlock();
+    if (b && !blockHasTerminator(b)) {
+        builder->create<mlir::LLVM::BrOp>(loc, incBlock);
+    }
+
+    // =====================================================
+    // INCREMENT BLOCK
+    // =====================================================
+    builder->setInsertionPointToStart(incBlock);
+
+    auto curIdx = builder->create<mlir::LLVM::LoadOp>(
+        loc, types->i32, index_ptr);
+
+    auto nextIdx = builder->create<mlir::arith::AddIOp>(
+        loc, curIdx, one);
+
+    builder->create<mlir::LLVM::StoreOp>(
+        loc, nextIdx, index_ptr);
+
+    builder->create<mlir::LLVM::BrOp>(loc, condBlock);
+
+    // =====================================================
+    // MERGE BLOCK
+    // =====================================================
+    builder->setInsertionPointToStart(mergeBlock);
+
+    if (!blockHasTerminator(mergeBlock)) {
+        builder->create<mlir::LLVM::BrOp>(loc, currentCont());
+    }
+
+    // -------------------------
+    // RESTORE SCOPE
+    // -------------------------
+    currentScope = oldScope;
 }
 
 void IRGen::visitIf(std::shared_ptr<IfStmt> if_stmt) {

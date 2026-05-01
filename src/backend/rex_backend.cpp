@@ -24,7 +24,7 @@ BackEnd::BackEnd() : loc(mlir::UnknownLoc::get(&context)) {
 
     
     types = std::make_shared<TypesHelper>(builder, loc);
-    visitor = std::make_shared<IRGen>(builder, module, loc);
+    visitor = std::make_shared<IRGen>(builder, module, loc, types);
     visitor->exps = std::make_shared<ExpressionsHelper>(builder, module, loc, types);
     visitor->prints = std::make_shared<PrintHelper>(builder, loc, types);
     

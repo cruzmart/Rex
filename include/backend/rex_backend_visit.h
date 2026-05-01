@@ -59,6 +59,8 @@
 #include "rex_exps.h"
 #include "rex_ast_nodes.h"
 #include "rex_stmts.h"
+#include "rex_symbol.h"
+#include "rex_scope.h"
 
 namespace rex {
 
@@ -74,6 +76,9 @@ namespace rex {
             assert(!breakStack.empty() && "break used outside of loop!");
             return breakStack.back();
         }
+        std::shared_ptr<Scope> currentScope;
+        mlir::Value getIterableSize(std::shared_ptr<Expr> exp);
+        
                 
         
     public:
@@ -89,10 +94,12 @@ namespace rex {
 
         std::shared_ptr<ExpressionsHelper> exps;
         std::shared_ptr<PrintHelper> prints;
+        std::shared_ptr<TypesHelper> types;
 
         IRGen(std::shared_ptr<mlir::OpBuilder> b,
             mlir::ModuleOp &m,
-            mlir::Location l);
+            mlir::Location l,
+            std::shared_ptr<TypesHelper> t);
 
 
         // CFG Helpers
@@ -112,11 +119,14 @@ namespace rex {
         void visitPrint(std::shared_ptr<PrintStmt> p);
         void visit(std::shared_ptr<FileAst> file);
 
+        // Variable
+        mlir::Value visitId(std::shared_ptr<IdExpr> id);
 
         // Flow Control Functions
         void visitStmt(std::shared_ptr<Stmt> stmt);
         void visitIf(std::shared_ptr<IfStmt> if_stmt);
         void visitWhile(std::shared_ptr<WhileStmt> whle_stmt);
+        void visitFor(std::shared_ptr<ForStmt> for_stmt);
         void visitLoop(std::shared_ptr<LoopStmt> lop_stmt);
         void visitBlock(std::shared_ptr<BlockExpr> block);
         void visitBreak(std::shared_ptr<BreakStmt> brk);

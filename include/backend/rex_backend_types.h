@@ -1,4 +1,6 @@
 #pragma once
+#include <cstddef>
+#include <string>
 #pragma once
 
 // Pass manager
@@ -72,30 +74,36 @@ struct TypesHelper {
 
 
         mlir::Type getMLIRType(std::shared_ptr<Type> t) {
-            switch (t->kind) {
-                case TypeKind::Primitive: {
-                    auto prim = std::static_pointer_cast<PrimType>(t);
 
-                    switch (prim->prim) {
-                        case PrimType::Prims::Int:    return i32;
-                        case PrimType::Prims::Real:   return f32;
-                        case PrimType::Prims::Bool:   return b1;
-                        case PrimType::Prims::Char:   return c8;
-                        case PrimType::Prims::String:
-                            return mlir::LLVM::LLVMPointerType::get(builder->getContext());
+     \
+            if(t->kind == TypeKind::Primitive){
+                auto prim = std::static_pointer_cast<PrimType>(t);
+        
+                
+                switch (prim->prim) {
+
+                        case PrimType::Prims::Int:    return builder->getI32Type();
+                        case PrimType::Prims::Real:   return builder->getF32Type();
+                        case PrimType::Prims::Bool:   return builder->getI1Type();
+                        case PrimType::Prims::Char:   return builder->getI8Type();
+                        case PrimType::Prims::String: return mlir::LLVM::LLVMPointerType::get(builder->getContext());
                         default:
                             llvm_unreachable("Unsupported type");
                     }
-                }
-
-                case TypeKind::Array: 
-                case TypeKind::Tuple: {
-                    return mlir::LLVM::LLVMPointerType::get(builder->getContext());
-                }
-
-                default:
-                    llvm_unreachable("Unsupported type");
             }
+
+            if(t->kind == TypeKind::Array){
+                return mlir::LLVM::LLVMPointerType::get(builder->getContext());
+            }
+
+            if(t->kind == TypeKind::Range){
+                llvm::errs() << "bye\n";
+                return mlir::LLVM::LLVMPointerType::get(builder->getContext());
+            }
+
+
+            llvm_unreachable("Unsupported type");
+        
         }
 
         mlir::LLVM::LLVMStructType createStruct(std::vector<std::shared_ptr<Type>> types){

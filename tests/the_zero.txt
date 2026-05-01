@@ -36,6 +36,10 @@ for i in arr {
 }
 */
 
+
+// Bunch Of Example Expressions Printing //////////
+
+
 /*
 
 print(2);
@@ -101,6 +105,7 @@ print(([["hello","world"], ["hi", "hey"]]));
 print([["hello","world"], ["hi", "hey"]][0][1]);
 */
 
+// If Examples //////////
 
 /*
 // Passes 
@@ -147,6 +152,8 @@ if (5 < 3) {
 */
 
 
+// While Loop Examples
+/*
 while(true){
 if (5 > 10){
     print(0);
@@ -194,6 +201,7 @@ if (5 > 10){
 }
 break;
 }
+*/
 
 
 
@@ -238,10 +246,11 @@ while(true){
 */
 
 
+/// For Loop Examples
 
-/*
-auto *b = builder->getInsertionBlock();
-if (b && !blockHasTerminator(b)) {
-    builder->create<mlir::LLVM::BrOp>(loc, condBlock);
+
+for i in [1,2,3] {
+    print(i);
 }
-*/
+
+
