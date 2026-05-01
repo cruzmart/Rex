@@ -107,6 +107,10 @@
             case StmtKind::For:
                 visitForStmt(std::static_pointer_cast<ForStmt>(stmt));
                 break;
+                
+            case StmtKind::Loop:
+                visitLoopStmt(std::static_pointer_cast<LoopStmt>(stmt));
+                break;
 
             case StmtKind::If:
                 visitIfStmt(std::static_pointer_cast<IfStmt>(stmt));
@@ -274,6 +278,7 @@ void ExprPass::visitLetStmt(const std::shared_ptr<LetStmt> ls) {
         // 5. restore scope
         current_scope = prev;
     }
+
     void ExprPass::visitIfStmt(const std::shared_ptr<IfStmt> is){
         // check condition of if statement
         visitExpr(is->condition);
@@ -296,6 +301,11 @@ void ExprPass::visitLetStmt(const std::shared_ptr<LetStmt> ls) {
     void ExprPass::visitWhileStmt(const std::shared_ptr<WhileStmt> ws){
         visitExpr(ws->cond);
         visitBlock(ws->body);
+        std::cout << ws->stmt_string() << std::endl;
+    }
+
+    void ExprPass::visitLoopStmt(const std::shared_ptr<LoopStmt> ls){
+        visitBlock(ls->body);
     }
 
 

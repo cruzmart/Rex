@@ -57,7 +57,6 @@ PrintHelper::PrintHelper(
     void PrintHelper::printArray(mlir::Value arrayPtr, std::shared_ptr<ArrayType> arrType) {
         auto ctx = builder->getContext();
 
-        auto i32Ty = builder->getI32Type();
         auto zero  = builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32);
         auto one   = builder->create<mlir::arith::ConstantIntOp>(loc, 1, 32);
         auto sizeC = builder->create<mlir::arith::ConstantIntOp>(loc, arrType->size, 32);
@@ -227,6 +226,9 @@ PrintHelper::PrintHelper(
                     case PrimType::Prims::String:
                         printInline(value);
                         break;
+                    default:
+                        llvm::report_fatal_error("Type unknown to be printed");
+
                 }
             }
             else if (t[i]->kind == TypeKind::Array) {

@@ -58,24 +58,54 @@
 #include "rex_types.h"
 #include "rex_exps.h"
 #include "rex_ast_nodes.h"
+#include "rex_stmts.h"
+#include "rex_symbol.h"
+#include "rex_scope.h"
 
 namespace rex {
 
-    class CodegenVisitor {
+    class IRGen {
+
+    private:
+        mlir::Block *contBlock;
+        mlir::Block* currentCont() {
+            assert(!contStack.empty() && "No continuation block!");
+            return contStack.back();
+        }
+        mlir::Block* currentBreak() {
+            assert(!breakStack.empty() && "break used outside of loop!");
+            return breakStack.back();
+        }
+        std::shared_ptr<Scope> currentScope;
+        mlir::Value getIterableSize(std::shared_ptr<Expr> exp);
+        
+                
+        
     public:
         std::shared_ptr<mlir::OpBuilder> builder;
-        mlir::ModuleOp &module;
+        mlir::ModuleOp module;
         mlir::Location loc;
         std::unordered_map<std::string, mlir::Value> symbolTable;
+        mlir::func::FuncOp func_control;
+        mlir::Block * exitBlock;
+        bool blockHasTerminator(mlir::Block *block);
 
+   
 
         std::shared_ptr<ExpressionsHelper> exps;
         std::shared_ptr<PrintHelper> prints;
+        std::shared_ptr<TypesHelper> types;
 
-        CodegenVisitor( std::shared_ptr<mlir::OpBuilder> b,
-                        mlir::ModuleOp & m,
-                        mlir::Location l
-                    );
+        IRGen(std::shared_ptr<mlir::OpBuilder> b,
+            mlir::ModuleOp &m,
+            mlir::Location l,
+            std::shared_ptr<TypesHelper> t);
+
+
+        // CFG Helpers
+        std::vector<mlir::Block*> contStack;
+        std::vector<mlir::Block*> breakStack;
+
 
         mlir::Value visitExp(std::shared_ptr<Expr> expr);
         mlir::Value visitLiteral(std::shared_ptr<LiteralExpr> l);
@@ -87,8 +117,18 @@ namespace rex {
 
 
         void visitPrint(std::shared_ptr<PrintStmt> p);
-
-        void visitStmt(std::shared_ptr<Stmt> stmt);
         void visit(std::shared_ptr<FileAst> file);
+
+        // Variable
+        mlir::Value visitId(std::shared_ptr<IdExpr> id);
+
+        // Flow Control Functions
+        void visitStmt(std::shared_ptr<Stmt> stmt);
+        void visitIf(std::shared_ptr<IfStmt> if_stmt);
+        void visitWhile(std::shared_ptr<WhileStmt> whle_stmt);
+        void visitFor(std::shared_ptr<ForStmt> for_stmt);
+        void visitLoop(std::shared_ptr<LoopStmt> lop_stmt);
+        void visitBlock(std::shared_ptr<BlockExpr> block);
+        void visitBreak(std::shared_ptr<BreakStmt> brk);
     };
 }

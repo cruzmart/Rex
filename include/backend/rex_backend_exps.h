@@ -71,8 +71,8 @@ class ExpressionsHelper {
 
     private:
         
-        std::shared_ptr<mlir::OpBuilder> builder;
-        mlir::ModuleOp & module;
+        
+        mlir::ModuleOp module;
         mlir::Location loc;
         std::shared_ptr<TypesHelper> types;
         Errors errors;
@@ -92,9 +92,10 @@ class ExpressionsHelper {
     // than we do operations and return the result
 
     public:
+    std::shared_ptr<mlir::OpBuilder> builder;
 
     ExpressionsHelper(  std::shared_ptr<mlir::OpBuilder> b,
-                        mlir::ModuleOp  & m,
+                        mlir::ModuleOp  m,
                         mlir::Location l,
                         std::shared_ptr<TypesHelper> t);
 

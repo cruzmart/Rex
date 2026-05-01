@@ -64,6 +64,7 @@ class BackEnd {
     void dumpLLVM(std::ostream &os, bool);
     void example();
     void createGlobalString(const char *str, const char *name);
+    
 
  protected:
     void setupPrintf();
@@ -79,10 +80,14 @@ class BackEnd {
     mlir::ModuleOp module;
     std::shared_ptr<mlir::OpBuilder> builder;
     mlir::Location loc;
+    mlir::func::FuncOp func_control;
+    
     std::shared_ptr<TypesHelper> types;
     std::shared_ptr<PrintHelper> prints;
     std::shared_ptr<ExpressionsHelper> exps;
-    std::shared_ptr<CodegenVisitor> visitor;
+    std::shared_ptr<IRGen> visitor;
+
+
 
 
      // LLVM

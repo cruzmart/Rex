@@ -41,6 +41,7 @@ struct ExprPass {
         void visitReturnExprStmt(const std::shared_ptr<ExprStmt> es);
         void visitWhileStmt(const std::shared_ptr<WhileStmt> ws);
         void visitForStmt(const std::shared_ptr<ForStmt> fs);
+        void visitLoopStmt(const std::shared_ptr<LoopStmt> ls);
         void visitIfStmt(const std::shared_ptr<IfStmt> is);
         void visitPrintStmt(const std::shared_ptr<PrintStmt> ps);
         void visitReturnNormalStmt(const std::shared_ptr<ReturnStmt> rs);
