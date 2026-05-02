@@ -118,36 +118,38 @@ namespace rex {
 
      return mlir::Value();
     }
+
     mlir::Value IRGen::visitArray(std::shared_ptr<ArrayExpr> arr) {
-    auto arrTy = std::static_pointer_cast<ArrayType>(arr->type);
-    auto prim = std::static_pointer_cast<PrimType>(arrTy->elem);
+        auto arrTy = std::static_pointer_cast<ArrayType>(arr->type);
+        auto prim = std::static_pointer_cast<PrimType>(arrTy->elem);
 
-    std::vector<mlir::Value> elements;
-    elements.reserve(arr->elements.size());
+        std::vector<mlir::Value> elements;
+        elements.reserve(arr->elements.size());
 
-    bool allConst = true;
+        bool allConst = true;
 
-    for (auto &e : arr->elements) {
-        mlir::Value v = visitExp(e);
-        elements.push_back(v);
+        for (auto &e : arr->elements) {
+            mlir::Value v = visitExp(e);
+            elements.push_back(v);
 
-        if (!v.getDefiningOp<mlir::arith::ConstantOp>()) {
-            allConst = false;
+            if (!v.getDefiningOp<mlir::arith::ConstantOp>()) {
+                allConst = false;
+            }
         }
+
+        // -----------------------------------
+        // CASE 1: compile-time array
+        // -----------------------------------
+        if (allConst) {
+            return exps->createConstArray(elements, prim->prim);
+        }
+
+        // -----------------------------------
+        // CASE 2: runtime array
+        // -----------------------------------
+        return exps->createRuntimeArray(elements, prim->prim);
     }
 
-    // -----------------------------------
-    // CASE 1: compile-time array
-    // -----------------------------------
-    if (allConst) {
-        return exps->createConstArray(elements, prim->prim);
-    }
-
-    // -----------------------------------
-    // CASE 2: runtime array
-    // -----------------------------------
-    return exps->createRuntimeArray(elements, prim->prim);
-    }
     mlir::Value IRGen::visitTuple(std::shared_ptr<TupleExpr> tup){
         std::vector<mlir::Type> types;
         for(auto type : std::static_pointer_cast<TupleType>(tup->type)->elements){
@@ -252,29 +254,42 @@ void IRGen::visitStmt(std::shared_ptr<Stmt> stmt){
         visitBreak(std::static_pointer_cast<BreakStmt>(stmt));
 }
    
-// Variables
+// Declerations
+
 mlir::Value IRGen::visitId(std::shared_ptr<IdExpr> id){
+    
     auto sym = id->resolved;
-    if (!sym) {
+    
+    if(!sym){
         llvm_unreachable("Unresolved symbol in visitId");
     }
 
-    // Symbol holds pointer to storage
-    mlir::Value ptr = sym->value;
+    if(sym->kind == SymbolType::Variable){
+        auto symVar = std::static_pointer_cast<VariableSymbol>(sym);
+        if (!symVar) {
+            llvm_unreachable("Unresolved symbol in visitId");
+        }
 
-    if (!ptr) {
-        llvm_unreachable("Symbol has no allocated storage");
+        // Symbol holds pointer to storage
+        mlir::Value ptr = symVar->ptr;
+
+        if (!ptr) {
+            llvm_unreachable("Symbol has no allocated storage");
+        }
+
+        // Load current value
+        auto loaded = builder->create<mlir::LLVM::LoadOp>(
+            loc,
+            types->getMLIRType(sym->type),
+            ptr
+        );
+
+        return loaded;
     }
-
-    // Load current value
-    auto loaded = builder->create<mlir::LLVM::LoadOp>(
-        loc,
-        types->getMLIRType(sym->type),
-        ptr
-    );
-
-    return loaded;
 }
+
+
+
 // Flow Control
 bool IRGen::blockHasTerminator(mlir::Block *block) {
     return !block->empty() &&
@@ -423,7 +438,7 @@ void IRGen::visitFor(std::shared_ptr<ForStmt> for_stmt) {
     // -------------------------
     auto *condBlock  = builder->createBlock(region);
     auto *bodyBlock  = builder->createBlock(region);
-    auto *incBlock   = builder->createBlock(region);   // 🔥 REQUIRED
+    //auto *incBlock   = builder->createBlock(region);   // 🔥 REQUIRED
     auto *mergeBlock = builder->createBlock(region);
 
     builder->setInsertionPointToEnd(entryBlock);
@@ -453,13 +468,14 @@ void IRGen::visitFor(std::shared_ptr<ForStmt> for_stmt) {
     // -------------------------
     auto iterSym =
         std::static_pointer_cast<IdExpr>(for_stmt->iter_var)->resolved;
+    auto iterSymVar = std::static_pointer_cast<VariableSymbol>(iterSym);
 
     mlir::Type val_t = types->getMLIRType(iterSym->type);
 
     auto value_ptr = builder->create<mlir::LLVM::AllocaOp>(
         loc, ptr_t, val_t, one);
 
-    iterSym->value = value_ptr;
+    iterSymVar->ptr = value_ptr;
     currentScope->define(iterSym);
 
     // -------------------------
@@ -492,7 +508,7 @@ void IRGen::visitFor(std::shared_ptr<ForStmt> for_stmt) {
     builder->setInsertionPointToStart(bodyBlock);
 
     // 🔥 IMPORTANT: continue → increment block
-    contStack.push_back(incBlock);
+    contStack.push_back(condBlock);
     breakStack.push_back(mergeBlock);
 
     // -------------------------
@@ -520,25 +536,6 @@ void IRGen::visitFor(std::shared_ptr<ForStmt> for_stmt) {
             llvm_unreachable("Unsupported iterable in for loop");
     }
 
-    // -------------------------
-    // LOOP BODY
-    // -------------------------
-    visitBlock(for_stmt->body);
-
-    breakStack.pop_back();
-    contStack.pop_back();
-
-    // if body didn’t terminate → go to increment
-    auto *b = builder->getInsertionBlock();
-    if (b && !blockHasTerminator(b)) {
-        builder->create<mlir::LLVM::BrOp>(loc, incBlock);
-    }
-
-    // =====================================================
-    // INCREMENT BLOCK
-    // =====================================================
-    builder->setInsertionPointToStart(incBlock);
-
     auto curIdx = builder->create<mlir::LLVM::LoadOp>(
         loc, types->i32, index_ptr);
 
@@ -548,16 +545,23 @@ void IRGen::visitFor(std::shared_ptr<ForStmt> for_stmt) {
     builder->create<mlir::LLVM::StoreOp>(
         loc, nextIdx, index_ptr);
 
-    builder->create<mlir::LLVM::BrOp>(loc, condBlock);
+    // -------------------------
+    // LOOP BODY
+    // -------------------------
+    visitBlock(for_stmt->body);
+
+    breakStack.pop_back();
+    contStack.pop_back();
+
+    auto *b = builder->getInsertionBlock();
+    if (b && !blockHasTerminator(b)) {
+        builder->create<mlir::LLVM::BrOp>(loc, condBlock);
+    }
 
     // =====================================================
     // MERGE BLOCK
     // =====================================================
     builder->setInsertionPointToStart(mergeBlock);
-
-    if (!blockHasTerminator(mergeBlock)) {
-        builder->create<mlir::LLVM::BrOp>(loc, currentCont());
-    }
 
     // -------------------------
     // RESTORE SCOPE

@@ -1,7 +1,8 @@
 
 // type decimal = Real;
+type integer = Int;
 
-// let a : Int[2] = [2,2.0];
+let a : integer[2] = [2,2];
 
 
 /*
@@ -248,9 +249,14 @@ while(true){
 
 /// For Loop Examples
 
-
-for i in [1,2,3] {
-    print(i);
+while(true){
+    for i in ["angel","owl","bug"] {
+        print(i);
+      
+    }
 }
+    
+  
+
 
 

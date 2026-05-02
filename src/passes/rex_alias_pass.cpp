@@ -118,7 +118,7 @@ void AliasPass::visitTypeDecl(const std::shared_ptr<TypeDecl>& td) {
 
     td->type = resolveType(td->type);
 
-    auto sym = std::make_shared<Symbol>(SymbolType::Typealias, td->name);
+    auto sym = std::make_shared<TypeSymbol>(td->name, td->type);
     sym->type = td->type;
 
     if (current_scope->symbols.contains(td->name))
@@ -187,7 +187,11 @@ std::shared_ptr<Type> AliasPass::resolveType(const std::shared_ptr<Type>& type) 
             if (!sym)
                 throw std::runtime_error("Unknown type alias: " + named->alias);
 
-            named->actual = resolveType(sym->type);
+            auto typeSym = std::static_pointer_cast<TypeSymbol>(sym);
+            if (!typeSym)
+                throw std::runtime_error("Symbol '" + named->alias + "' is not a type");
+
+            named->actual = resolveType(typeSym->aliased);
             print("Alias final resolution: " + named->actual->to_string());
             return named->actual;
         }
