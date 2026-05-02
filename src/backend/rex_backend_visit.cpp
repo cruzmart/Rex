@@ -18,23 +18,22 @@ namespace rex {
 
    void IRGen::visit(std::shared_ptr<FileAst> file){
     currentScope = std::make_shared<Scope>();
-    for(auto item : file->items){
+        for(auto item : file->items){
 
-        auto *b = builder->getInsertionBlock();
+            auto *b = builder->getInsertionBlock();
 
-        // 🔥 STOP if block already terminated
-        if (!b || blockHasTerminator(b)) {
-            return;
-        }
+            // 🔥 STOP if block already terminated
+            if (!b || blockHasTerminator(b)) {
+                return;
+            }
 
-        if(item->ast_kind == AstNodeKind::Stmt){
-            auto stmt = std::static_pointer_cast<Stmt>(item);
-            visitStmt(stmt);
-        }
-    } 
-
-    
+            if(item->ast_kind == AstNodeKind::Stmt){
+                auto stmt = std::static_pointer_cast<Stmt>(item);
+                visitStmt(stmt);
+            }
+        } 
     }
+
     mlir::Value IRGen::visitExp(std::shared_ptr<Expr> expr){
       auto expr_t = expr->exp_kind;
       if(expr_t == ExprKind::Literal)
@@ -252,13 +251,86 @@ void IRGen::visitStmt(std::shared_ptr<Stmt> stmt){
         visitFor(std::static_pointer_cast<ForStmt>(stmt));
     if(stmt_t == StmtKind::Break)
         visitBreak(std::static_pointer_cast<BreakStmt>(stmt));
+
+    if(stmt_t == StmtKind::LetDecl)
+        visitDelc(std::static_pointer_cast<LetStmt>(stmt));
+
+    if(stmt_t == StmtKind::Assign)
+        visitAssign(std::static_pointer_cast<AssignStmt>(stmt));
+
+
 }
    
 // Declerations
+void IRGen::visitDelc(std::shared_ptr<LetStmt> var){
+    auto ptr_t = mlir::LLVM::LLVMPointerType::get(builder->getContext());
+    auto one = builder->create<mlir::arith::ConstantOp>(
+        loc, builder->getI32IntegerAttr(1));
+
+    if(var->id_pattern->pat_type == PatternType::Single){
+        auto id = std::static_pointer_cast<PatternId>(var->id_pattern);
+      
+        auto alloca = builder->create<mlir::LLVM::AllocaOp>(
+        loc, ptr_t, types->getMLIRType(var->type), one);
+
+        builder->create<mlir::LLVM::StoreOp>(loc, visitExp(var->exp) , alloca);
+
+        auto variable_symbol = std::make_shared<VariableSymbol>(id->id, var->type, alloca);
+        currentScope->define(variable_symbol);
+    }
+
+    if(var->id_pattern->pat_type == PatternType::Multiple){
+        auto id_package = std::static_pointer_cast<PatternIds>(var->id_pattern);
+        auto ids = id_package->ids;
+       
+        auto tuple_exps = std::static_pointer_cast<TupleExpr>(var->exp);
+        auto tuple_t = std::static_pointer_cast<TupleType>(tuple_exps->type);
+
+        std::vector<mlir::Value> e;
+        for(size_t i = 0; i < tuple_exps->elements.size(); i++){
+            e.push_back(visitExp(tuple_exps->elements[i]));
+        }
+
+        std::vector<mlir::Type> t;
+         for(size_t i = 0; i < tuple_exps->elements.size(); i++){
+            t.push_back(types->getMLIRType(tuple_t->elements[i]));
+        }
+        
+        
+
+        for(size_t i = 0; i < ids.size(); i++){
+             auto alloca = builder->create<mlir::LLVM::AllocaOp>(
+            loc, ptr_t, t[i], one);
+
+            builder->create<mlir::LLVM::StoreOp>(loc, e[i] , alloca);
+
+            auto variable_symbol = std::make_shared<VariableSymbol>(ids[i], tuple_t->elements[i], alloca);
+            
+            currentScope->define(variable_symbol);
+        }
+    }
+
+    return;
+}
+
+void IRGen:: visitAssign(std::shared_ptr<AssignStmt> var){
+    // if ID exp
+    if(var->target->exp_kind == ExprKind::Id){
+        auto id = std::static_pointer_cast<IdExpr>(var->target);
+        auto symbol = currentScope->resolve(id->name);
+        if(!(symbol->kind == SymbolType::Variable))
+             llvm_unreachable("Variable ID is undefined or unknown");
+        auto symbol_variable = std::static_pointer_cast<VariableSymbol>(symbol);
+        builder->create<mlir::LLVM::StoreOp>(loc, visitExp(var->value) , symbol_variable->ptr);
+
+    }
+    // the rest will be impliemented later
+    return;
+}
 
 mlir::Value IRGen::visitId(std::shared_ptr<IdExpr> id){
     
-    auto sym = id->resolved;
+    auto sym = currentScope->resolve(id->name);
     
     if(!sym){
         llvm_unreachable("Unresolved symbol in visitId");
@@ -286,8 +358,9 @@ mlir::Value IRGen::visitId(std::shared_ptr<IdExpr> id){
 
         return loaded;
     }
-}
 
+     llvm_unreachable("Symbol does not exist");
+}
 
 
 // Flow Control

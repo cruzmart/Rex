@@ -1,9 +1,10 @@
 
 // type decimal = Real;
+/*
 type integer = Int;
 
 let a : integer[2] = [2,2];
-
+*/
 
 /*
 
@@ -249,11 +250,21 @@ while(true){
 
 /// For Loop Examples
 
+
+let i : Int = 0;
+
+/*
 while(true){
     for i in ["angel","owl","bug"] {
         print(i);
       
     }
+}
+*/
+
+while(i < 5){
+    print(i);
+    i = i + 1;
 }
     
   
