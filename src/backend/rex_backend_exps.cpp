@@ -963,7 +963,7 @@ mlir::Value ExpressionsHelper::createConstArray(const std::vector<mlir::Value>& 
 
     auto global = builder->create<mlir::LLVM::GlobalOp>(
         loc,
-        arrayTy,   // ✅ FIXED: LLVM array type
+        arrayTy,  
         true,
         mlir::LLVM::Linkage::Internal,
         name,
@@ -977,12 +977,10 @@ mlir::Value ExpressionsHelper::createConstArray(const std::vector<mlir::Value>& 
     // -------------------------
     auto addr = builder->create<mlir::LLVM::AddressOfOp>(loc, global);
 
-    return builder->create<mlir::LLVM::BitcastOp>(
-        loc,
-        mlir::LLVM::LLVMPointerType::get(builder->getContext()),
-        addr
-    );
+
+    return addr;
 }
+
 mlir::Value ExpressionsHelper::createRuntimeArray(const std::vector<mlir::Value>& elements, PrimType::Prims kind) {
     mlir::Type elemTy;
 

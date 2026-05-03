@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+
 namespace rex {
 
 // -------------------------------------------------
@@ -130,9 +131,17 @@ struct NamedType : Type {
 // -------------------------------------------------
 // Array / Slice types
 // -------------------------------------------------
+
+enum class ArrayStorageKind {
+    GlobalConst,
+    RuntimeAlloc
+};
+
 struct ArrayType : Type {
     std::shared_ptr<Type> elem;
     int size = 0;
+
+    ArrayStorageKind arrayKind;
 
     explicit ArrayType(std::shared_ptr<Type> e, int s = 0)
         : Type(TypeKind::Array), elem(std::move(e)), size(s) {}

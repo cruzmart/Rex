@@ -6,6 +6,8 @@
 #include "rex_stmts.h"
 #include "rex_types.h"
 #include <memory>
+
+
 #include <mlir/Dialect/LLVMIR/LLVMDialect.h>
 #include <mlir/IR/ValueRange.h>
 
@@ -133,6 +135,7 @@ namespace rex {
 
             if (!v.getDefiningOp<mlir::arith::ConstantOp>()) {
                 allConst = false;
+                
             }
         }
 
@@ -140,12 +143,14 @@ namespace rex {
         // CASE 1: compile-time array
         // -----------------------------------
         if (allConst) {
+            arrTy->arrayKind = ArrayStorageKind::GlobalConst;
             return exps->createConstArray(elements, prim->prim);
         }
 
         // -----------------------------------
         // CASE 2: runtime array
         // -----------------------------------
+        arrTy->arrayKind = ArrayStorageKind::RuntimeAlloc;
         return exps->createRuntimeArray(elements, prim->prim);
     }
 
@@ -261,59 +266,191 @@ void IRGen::visitStmt(std::shared_ptr<Stmt> stmt){
 
 }
    
-// Declerations
-void IRGen::visitDelc(std::shared_ptr<LetStmt> var){
-    auto ptr_t = mlir::LLVM::LLVMPointerType::get(builder->getContext());
+void IRGen::visitDelc(std::shared_ptr<LetStmt> var) {
+    auto ctx = builder->getContext();
+
+    auto ptr_t = mlir::LLVM::LLVMPointerType::get(ctx);
+
     auto one = builder->create<mlir::arith::ConstantOp>(
         loc, builder->getI32IntegerAttr(1));
 
-    if(var->id_pattern->pat_type == PatternType::Single){
+    auto zero = builder->create<mlir::arith::ConstantOp>(
+        loc, builder->getI32IntegerAttr(0));
+
+    // =========================================================
+    // SINGLE PATTERN
+    // =========================================================
+    if (var->id_pattern->pat_type == PatternType::Single) {
+
         auto id = std::static_pointer_cast<PatternId>(var->id_pattern);
-      
-        auto alloca = builder->create<mlir::LLVM::AllocaOp>(
-        loc, ptr_t, types->getMLIRType(var->type), one);
+        auto exp = visitExp(var->exp);
 
-        builder->create<mlir::LLVM::StoreOp>(loc, visitExp(var->exp) , alloca);
+        // -------------------------
+        // ARRAY CASE
+        // -------------------------
+        if (var->type->kind == TypeKind::Array) {
 
-        auto variable_symbol = std::make_shared<VariableSymbol>(id->id, var->type, alloca);
-        currentScope->define(variable_symbol);
-    }
+            auto arr_t = std::static_pointer_cast<ArrayType>(var->type);
 
-    if(var->id_pattern->pat_type == PatternType::Multiple){
-        auto id_package = std::static_pointer_cast<PatternIds>(var->id_pattern);
-        auto ids = id_package->ids;
-       
-        auto tuple_exps = std::static_pointer_cast<TupleExpr>(var->exp);
-        auto tuple_t = std::static_pointer_cast<TupleType>(tuple_exps->type);
+            auto elemTy = types->getMLIRType(arr_t->elem);
+            auto arrayTy = mlir::LLVM::LLVMArrayType::get(elemTy, arr_t->size);
 
-        std::vector<mlir::Value> e;
-        for(size_t i = 0; i < tuple_exps->elements.size(); i++){
-            e.push_back(visitExp(tuple_exps->elements[i]));
+            // allocate stack array
+            auto alloca = builder->create<mlir::LLVM::AllocaOp>(
+                loc, ptr_t, arrayTy, one);
+
+            // -------------------------
+            // ELEMENT-WISE COPY (NO MEMCPY)
+            // -------------------------
+            for (int i = 0; i < arr_t->size; i++) {
+
+                auto idx = builder->create<mlir::arith::ConstantOp>(
+                    loc, builder->getI32IntegerAttr(i));
+
+                auto src = builder->create<mlir::LLVM::GEPOp>(
+                    loc,
+                    ptr_t,
+                    arrayTy,
+                    exp,
+                    mlir::ValueRange{zero, idx}
+                );
+
+                auto dst = builder->create<mlir::LLVM::GEPOp>(
+                    loc,
+                    ptr_t,
+                    arrayTy,
+                    alloca,
+                    mlir::ValueRange{zero, idx}
+                );
+
+                auto val = builder->create<mlir::LLVM::LoadOp>(
+                    loc,
+                    elemTy,
+                    src
+                );
+
+                builder->create<mlir::LLVM::StoreOp>(loc, val, dst);
+            }
+
+            auto variable_symbol = std::make_shared<VariableSymbol>(
+                id->id, var->type, alloca);
+
+            currentScope->define(variable_symbol);
         }
 
-        std::vector<mlir::Type> t;
-         for(size_t i = 0; i < tuple_exps->elements.size(); i++){
-            t.push_back(types->getMLIRType(tuple_t->elements[i]));
-        }
-        
-        
+        // -------------------------
+        // SCALAR CASE
+        // -------------------------
+        else {
+            auto alloca = builder->create<mlir::LLVM::AllocaOp>(
+                loc, ptr_t, types->getMLIRType(var->type), one);
 
-        for(size_t i = 0; i < ids.size(); i++){
-             auto alloca = builder->create<mlir::LLVM::AllocaOp>(
-            loc, ptr_t, t[i], one);
+            builder->create<mlir::LLVM::StoreOp>(loc, exp, alloca);
 
-            builder->create<mlir::LLVM::StoreOp>(loc, e[i] , alloca);
+            auto variable_symbol = std::make_shared<VariableSymbol>(
+                id->id, var->type, alloca);
 
-            auto variable_symbol = std::make_shared<VariableSymbol>(ids[i], tuple_t->elements[i], alloca);
-            
             currentScope->define(variable_symbol);
         }
     }
 
-    return;
+    // =========================================================
+    // MULTIPLE PATTERN (TUPLES)
+    // =========================================================
+    if (var->id_pattern->pat_type == PatternType::Multiple) {
+
+        auto id_package = std::static_pointer_cast<PatternIds>(var->id_pattern);
+        auto ids = id_package->ids;
+
+        auto tuple_exps = std::static_pointer_cast<TupleExpr>(var->exp);
+        auto tuple_t = std::static_pointer_cast<TupleType>(tuple_exps->type);
+
+        std::vector<mlir::Value> e;
+        for (auto &el : tuple_exps->elements) {
+            e.push_back(visitExp(el));
+        }
+
+        std::vector<mlir::Type> t;
+        for (auto &ty : tuple_t->elements) {
+            t.push_back(types->getMLIRType(ty));
+        }
+
+        for (size_t i = 0; i < ids.size(); i++) {
+
+            // =====================================================
+            // ARRAY INSIDE TUPLE
+            // =====================================================
+            if (tuple_t->elements[i]->kind == TypeKind::Array) {
+
+                auto arr_t = std::static_pointer_cast<ArrayType>(
+                    tuple_t->elements[i]);
+
+                auto elemTy = types->getMLIRType(arr_t->elem);
+                auto arrayTy = mlir::LLVM::LLVMArrayType::get(elemTy, arr_t->size);
+
+                auto alloca = builder->create<mlir::LLVM::AllocaOp>(
+                    loc, ptr_t, arrayTy, one);
+
+                // IMPORTANT: NO MEMCPY → element-wise copy
+                for (int j = 0; j < arr_t->size; j++) {
+
+                    auto idx = builder->create<mlir::arith::ConstantOp>(
+                        loc, builder->getI32IntegerAttr(j));
+
+                    auto src = builder->create<mlir::LLVM::GEPOp>(
+                        loc,
+                        ptr_t,
+                        arrayTy,
+                        e[i],
+                        mlir::ValueRange{zero, idx}
+                    );
+
+                    auto dst = builder->create<mlir::LLVM::GEPOp>(
+                        loc,
+                        ptr_t,
+                        arrayTy,
+                        alloca,
+                        mlir::ValueRange{zero, idx}
+                    );
+
+                    auto val = builder->create<mlir::LLVM::LoadOp>(
+                        loc,
+                        elemTy,
+                        src
+                    );
+
+                    builder->create<mlir::LLVM::StoreOp>(loc, val, dst);
+                }
+
+                auto variable_symbol = std::make_shared<VariableSymbol>(
+                    ids[i], tuple_t->elements[i], alloca);
+
+                currentScope->define(variable_symbol);
+            }
+
+            // =====================================================
+            // SCALAR INSIDE TUPLE
+            // =====================================================
+            else {
+                auto alloca = builder->create<mlir::LLVM::AllocaOp>(
+                    loc, ptr_t, t[i], one);
+
+                builder->create<mlir::LLVM::StoreOp>(loc, e[i], alloca);
+
+                auto variable_symbol = std::make_shared<VariableSymbol>(
+                    ids[i], tuple_t->elements[i], alloca);
+
+                currentScope->define(variable_symbol);
+            }
+        }
+    }
 }
 
 void IRGen:: visitAssign(std::shared_ptr<AssignStmt> var){
+auto ptr_t = mlir::LLVM::LLVMPointerType::get(builder->getContext());
+   auto zero = builder->create<mlir::arith::ConstantOp>(
+        loc, builder->getI32IntegerAttr(0));
+
     // if ID exp
     if(var->target->exp_kind == ExprKind::Id){
         auto id = std::static_pointer_cast<IdExpr>(var->target);
@@ -324,42 +461,82 @@ void IRGen:: visitAssign(std::shared_ptr<AssignStmt> var){
         builder->create<mlir::LLVM::StoreOp>(loc, visitExp(var->value) , symbol_variable->ptr);
 
     }
+
+    // if it is a index base[index]
+
+    if(var->target->exp_kind == ExprKind::Index){
+        // array[value] = exp
+        auto index = std::static_pointer_cast<IndexExpr>(var->target);
+
+        // if the base is a id (i.e the base is a array)
+        if(index->base->exp_kind == ExprKind::Id){
+            
+            auto arr_id = std::static_pointer_cast<IdExpr>(index->base);
+        
+
+            if(arr_id->type->kind == TypeKind::Array){
+
+                auto arr_t = std::static_pointer_cast<ArrayType>(arr_id->type);
+                auto arr_elem = types->getMLIRType(arr_t->elem);
+                auto base = visitExp(index->base);
+                auto value = visitExp(var->value);
+
+                auto idx = visitExp(index->index);
+
+                auto arrayTy = mlir::LLVM::LLVMArrayType::get(arr_elem, arr_t->size);
+
+
+                auto elemPtr = builder->create<mlir::LLVM::GEPOp>(
+                    loc,
+                    ptr_t,
+                    arrayTy,
+                    base,
+                    mlir::ValueRange{zero, idx}   // ✅ FIX
+                );
+
+
+                 builder->create<mlir::LLVM::StoreOp>(loc, value, elemPtr);
+
+            }
+        }
+        
+    }
+
     // the rest will be impliemented later
     return;
 }
 
-mlir::Value IRGen::visitId(std::shared_ptr<IdExpr> id){
-    
+void visitAssignIndex(std::shared_ptr<IndexExpr> var_index){
+}
+
+mlir::Value IRGen::visitId(std::shared_ptr<IdExpr> id) {
     auto sym = currentScope->resolve(id->name);
-    
-    if(!sym){
-        llvm_unreachable("Unresolved symbol in visitId");
+
+    if (sym->kind != SymbolType::Variable)
+        llvm_unreachable("Not a variable");
+
+    auto var = std::static_pointer_cast<VariableSymbol>(sym);
+
+    if (!var->ptr)
+        llvm_unreachable("No storage");
+
+    auto ty = sym->type;
+
+    // -------------------------
+    // ARRAY → return pointer
+    // -------------------------
+    if (ty->kind == TypeKind::Array) {
+        return var->ptr;   // ❗ NO LOAD
     }
 
-    if(sym->kind == SymbolType::Variable){
-        auto symVar = std::static_pointer_cast<VariableSymbol>(sym);
-        if (!symVar) {
-            llvm_unreachable("Unresolved symbol in visitId");
-        }
-
-        // Symbol holds pointer to storage
-        mlir::Value ptr = symVar->ptr;
-
-        if (!ptr) {
-            llvm_unreachable("Symbol has no allocated storage");
-        }
-
-        // Load current value
-        auto loaded = builder->create<mlir::LLVM::LoadOp>(
-            loc,
-            types->getMLIRType(sym->type),
-            ptr
-        );
-
-        return loaded;
-    }
-
-     llvm_unreachable("Symbol does not exist");
+    // -------------------------
+    // SCALAR → load value
+    // -------------------------
+    return builder->create<mlir::LLVM::LoadOp>(
+        loc,
+        types->getMLIRType(ty),
+        var->ptr
+    );
 }
 
 

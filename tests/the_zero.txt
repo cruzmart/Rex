@@ -251,7 +251,32 @@ while(true){
 /// For Loop Examples
 
 
-let i : Int = 0;
+// let k : Int = 1;
+/*
+let m : Int[3] = [1,2,3];
+*/
+
+
+let s : Int[2] = [2, 4];
+print(s);
+s[0] = 99;
+print(s);
+
+
+/*
+while(k > 2){
+    print(k);
+    k = k - 1;
+}
+*/
+
+let x : String[2][2] = [["hello", "world"],["goodbye", "life"]];
+print(x[1]);
+
+
+
+
+
 
 /*
 while(true){
@@ -262,10 +287,13 @@ while(true){
 }
 */
 
+/*
+let i : Int = 0;
 while(i < 5){
     print(i);
     i = i + 1;
 }
+*/
     
   
 

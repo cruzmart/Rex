@@ -60,6 +60,7 @@ struct Symbol {
 struct VariableSymbol : Symbol {
     mlir::Value ptr; // ALWAYS pointer
 
+
     VariableSymbol(std::string name,
                    std::shared_ptr<Type> type,
                    mlir::Value ptr)

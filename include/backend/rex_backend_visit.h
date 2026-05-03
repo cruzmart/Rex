@@ -122,9 +122,14 @@ namespace rex {
         // Variable
         mlir::Value visitId(std::shared_ptr<IdExpr> id);
 
+
         // Variable Decleration
         void visitDelc(std::shared_ptr<LetStmt> var);
+
+
         void visitAssign(std::shared_ptr<AssignStmt> var);
+        void visitAssignIndex(std::shared_ptr<IndexExpr> target, mlir::Value value);
+    
 
         // Flow Control Functions
         void visitStmt(std::shared_ptr<Stmt> stmt);

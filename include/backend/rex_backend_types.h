@@ -93,7 +93,9 @@ struct TypesHelper {
             }
 
             if(t->kind == TypeKind::Array){
+ 
                 return mlir::LLVM::LLVMPointerType::get(builder->getContext());
+
             }
 
             if(t->kind == TypeKind::Range){
