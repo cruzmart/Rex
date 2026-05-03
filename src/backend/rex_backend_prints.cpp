@@ -64,76 +64,82 @@ PrintHelper::PrintHelper(
     auto ptrTy = mlir::LLVM::LLVMPointerType::get(ctx);
 
     // -------------------------
+    // Build types
+    // -------------------------
+    auto elemMLIRTy = types->getMLIRType(arrType->elem);
+    auto arrayTy = mlir::LLVM::LLVMArrayType::get(elemMLIRTy, arrType->size);
+
+    // -------------------------
     // print "["
     // -------------------------
     auto fmtChar = getFmtAddress(fmt_char);
     auto open = builder->create<mlir::arith::ConstantIntOp>(loc, '[', 8);
 
     builder->create<mlir::LLVM::CallOp>(
-        loc,
-        printf_func,
-        mlir::ValueRange{fmtChar, open}
+        loc, printf_func, mlir::ValueRange{fmtChar, open}
     );
 
     // -------------------------
     // LOOP
     // -------------------------
-    auto loop = builder->create<mlir::scf::ForOp>(
-        loc, zero, sizeC, one
-    );
-
+    auto loop = builder->create<mlir::scf::ForOp>(loc, zero, sizeC, one);
     builder->setInsertionPointToStart(loop.getBody());
 
     auto iv = loop.getInductionVar();
 
     // -------------------------
-    // GEP (FIXED)
+    // GEP (✅ FIXED)
     // -------------------------
-    auto elemMLIRTy = types->getMLIRType(arrType->elem);
-
     auto elemPtr = builder->create<mlir::LLVM::GEPOp>(
         loc,
         ptrTy,
-        mlir::LLVM::LLVMArrayType::get(elemMLIRTy, arrType->size),
+        arrayTy,                        // ✅ correct type
         arrayPtr,
-        mlir::ValueRange{zero, iv}
+        mlir::ValueRange{zero, iv}      // ✅ correct indices
     );
+
+    // -------------------------
+    // Determine element type
+    // -------------------------
+    mlir::Type loadTy;
+    if (arrType->elem->kind == TypeKind::Array) {
+        loadTy = ptrTy;  // nested array → pointer
+    } else {
+        loadTy = elemMLIRTy;
+    }
 
     // -------------------------
     // LOAD
     // -------------------------
     auto elemVal = builder->create<mlir::LLVM::LoadOp>(
         loc,
-        elemMLIRTy,
+        loadTy,
         elemPtr
     );
 
     // -------------------------
-    // PRINT ELEMENT
+    // PRINT
     // -------------------------
 
-    // detect nested array (ONLY real arrays, NOT strings)
-    bool isNestedArray =
-        arrType->elem->kind == TypeKind::Array;
 
-    // STRING = pointer type (i8*)
-    bool isString =
-        elemMLIRTy.isa<mlir::LLVM::LLVMPointerType>();
+bool isNestedArray =
+    arrType->elem->kind == TypeKind::Array;
+
+bool isString =
+    elemMLIRTy.isa<mlir::LLVM::LLVMPointerType>();
 
     if (isNestedArray) {
-        printArray(
-            elemVal,
-            std::static_pointer_cast<ArrayType>(arrType->elem)
-        );
-    }
-    else {
-        // IMPORTANT:
-        // strings are NOT arrays → just print as pointer (%s)
-        printInline(elemVal);
-    }
+    printArray(
+        elemVal,
+        std::static_pointer_cast<ArrayType>(arrType->elem)
+    );
+}
+else {
+    printInline(elemVal);  // ✅ works for BOTH int + string
+}
 
     // -------------------------
-    // COMMA LOGIC
+    // ", " logic
     // -------------------------
     auto lastIdx = builder->create<mlir::arith::SubIOp>(loc, sizeC, one);
 
@@ -145,37 +151,30 @@ PrintHelper::PrintHelper(
     );
 
     auto ifOp = builder->create<mlir::scf::IfOp>(loc, cond, false);
-
     builder->setInsertionPointToStart(&ifOp.getThenRegion().front());
 
     auto comma = builder->create<mlir::arith::ConstantIntOp>(loc, ',', 8);
     auto space = builder->create<mlir::arith::ConstantIntOp>(loc, ' ', 8);
 
     builder->create<mlir::LLVM::CallOp>(
-        loc,
-        printf_func,
-        mlir::ValueRange{fmtChar, comma}
+        loc, printf_func, mlir::ValueRange{fmtChar, comma}
     );
 
     builder->create<mlir::LLVM::CallOp>(
-        loc,
-        printf_func,
-        mlir::ValueRange{fmtChar, space}
+        loc, printf_func, mlir::ValueRange{fmtChar, space}
     );
 
     builder->setInsertionPointAfter(ifOp);
 
     // -------------------------
-    // CLOSE BRACKET
+    // after loop → print "]"
     // -------------------------
     builder->setInsertionPointAfter(loop);
 
     auto close = builder->create<mlir::arith::ConstantIntOp>(loc, ']', 8);
 
     builder->create<mlir::LLVM::CallOp>(
-        loc,
-        printf_func,
-        mlir::ValueRange{fmtChar, close}
+        loc, printf_func, mlir::ValueRange{fmtChar, close}
     );
 }
 

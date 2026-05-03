@@ -124,10 +124,13 @@ namespace rex {
 
 
         // Variable Decleration
+        mlir::Value allocateStorage(std::shared_ptr<Type> type,  mlir::Type ptr_t,  mlir::Value one);
+        void initializeStorage( mlir::Value dst, mlir::Value src, std::shared_ptr<Type> type);
         void visitDelc(std::shared_ptr<LetStmt> var);
 
-
+       
         void visitAssign(std::shared_ptr<AssignStmt> var);
+        
         void visitAssignIndex(std::shared_ptr<IndexExpr> target, mlir::Value value);
     
 
