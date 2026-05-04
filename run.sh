@@ -9,8 +9,8 @@ if [ ! -f "$BUILD_DIR/build.ninja" ]; then
   cmake -S "$ROOT" -B "$BUILD_DIR" -G Ninja
 fi
 
-# Build
-cmake --build "$BUILD_DIR"
+# Build using at most 2 cores
+cmake --build "$BUILD_DIR" -j 2
 
 # Run executable
 "$BUILD_DIR/src/rex" "$@"
