@@ -10,7 +10,7 @@ if [ ! -f "$BUILD_DIR/build.ninja" ]; then
 fi
 
 # Build using at most 2 cores
-cmake --build "$BUILD_DIR" -j 2
+nice cmake --build "$BUILD_DIR" -j 2
 
 # Run executable
 "$BUILD_DIR/src/rex" "$@"

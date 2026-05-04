@@ -273,19 +273,23 @@ while(k > 2){
 let x : String[2][2] = [["hello", "world"],["goodbye", "life"]];
 print(x[1]);
 
+let z : String[4] = ["hello", "world", "goodbye", "life"];
 
 
 
 
 
-/*
-while(true){
-    for i in ["angel","owl","bug"] {
+
+
+
+let i : Int = 0;
+while(i < 3){
+    for i in ["hello", "world", "goodbye", "life"] {
         print(i);
-      
     }
+    i = i + 1;
 }
-*/
+
 
 /*
 let i : Int = 0;

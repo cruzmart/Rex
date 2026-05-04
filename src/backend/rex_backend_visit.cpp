@@ -702,8 +702,11 @@ void IRGen::visitFor(std::shared_ptr<ForStmt> for_stmt) {
             break;
         }
 
+        // Need to impliment case that it is a ID and Range
+
         default:
             llvm_unreachable("Unsupported iterable in for loop");
+            break;
     }
 
     auto curIdx = builder->create<mlir::LLVM::LoadOp>(
@@ -847,6 +850,8 @@ void IRGen::visitIf(std::shared_ptr<IfStmt> if_stmt) {
 
 }
 void IRGen::visitBlock(std::shared_ptr<BlockExpr> block) {
+    auto oldScope = currentScope;
+    currentScope = currentScope->push();
     for (auto stmt : block->statements) {
 
         auto *b = builder->getInsertionBlock();
@@ -863,6 +868,8 @@ void IRGen::visitBlock(std::shared_ptr<BlockExpr> block) {
     if (b && !blockHasTerminator(b)) {
         builder->create<mlir::LLVM::BrOp>(loc, currentCont());
     }
+
+    currentScope = oldScope;
 }
 void IRGen::visitBreak(std::shared_ptr<BreakStmt> brk) {
     auto *b = builder->getBlock();
