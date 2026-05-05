@@ -21,7 +21,6 @@
 namespace rex {
 
 struct Type;
-struct Expr;
 
 // ------------------ SYMBOL KIND -------------------
 
@@ -36,15 +35,9 @@ enum class SymbolType {
 struct Symbol {
     SymbolType kind;
     std::string name;
-
-    // type: shared_type information
     std::shared_ptr<Type> type;
 
-    // optional expression (initializer or function body)
-    std::shared_ptr<Expr> expr;
-
-    // mlir::LLVM::AllocaOp value;
-    mlir::Value value;
+    virtual ~Symbol() = default;
 
     Symbol(SymbolType k, std::string n)
         : kind(k), name(std::move(n)) {}
@@ -60,6 +53,56 @@ struct Symbol {
             default:
                 return "<?>";
         }
+    }
+};
+
+
+struct VariableSymbol : Symbol {
+    mlir::Value ptr; // ALWAYS pointer
+
+
+    VariableSymbol(std::string name,
+                   std::shared_ptr<Type> type,
+                   mlir::Value ptr)
+        : Symbol(SymbolType::Variable, std::move(name)) {
+        this->type = type;
+        this->ptr = ptr;
+    }
+    VariableSymbol(std::string name)
+        : Symbol(SymbolType::Variable, std::move(name)) {
+        this->type = nullptr;
+        this->ptr = nullptr;
+    }
+};
+
+
+struct FunctionSymbol : Symbol {
+    mlir::Value func; // function reference
+
+    FunctionSymbol(std::string name,
+                   std::shared_ptr<Type> type,
+                   mlir::Value func)
+        : Symbol(SymbolType::Function, std::move(name)) {
+        this->type = type;
+        this->func = func;
+    }
+
+    FunctionSymbol(std::string name)
+        : Symbol(SymbolType::Function, std::move(name)) {
+        this->type = nullptr;
+        this->func = nullptr;
+    }
+};
+
+
+struct TypeSymbol : Symbol {
+    std::shared_ptr<Type> aliased;
+
+    TypeSymbol(std::string name,
+               std::shared_ptr<Type> aliased)
+        : Symbol(SymbolType::Typealias, std::move(name)) {
+        this->aliased = aliased;
+        this->type = aliased; // optional but usually useful
     }
 };
 

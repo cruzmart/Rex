@@ -54,116 +54,131 @@ PrintHelper::PrintHelper(
 
         builder->create<mlir::LLVM::CallOp>(loc, printf_func, mlir::ValueRange{fmt, val});
     }
-    void PrintHelper::printArray(mlir::Value arrayPtr, std::shared_ptr<ArrayType> arrType) {
-        auto ctx = builder->getContext();
+   void PrintHelper::printArray(mlir::Value arrayPtr, std::shared_ptr<ArrayType> arrType) {
+    auto ctx = builder->getContext();
 
-        auto zero  = builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32);
-        auto one   = builder->create<mlir::arith::ConstantIntOp>(loc, 1, 32);
-        auto sizeC = builder->create<mlir::arith::ConstantIntOp>(loc, arrType->size, 32);
+    auto zero  = builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32);
+    auto one   = builder->create<mlir::arith::ConstantIntOp>(loc, 1, 32);
+    auto sizeC = builder->create<mlir::arith::ConstantIntOp>(loc, arrType->size, 32);
 
-        auto ptrTy = mlir::LLVM::LLVMPointerType::get(ctx);
+    auto ptrTy = mlir::LLVM::LLVMPointerType::get(ctx);
 
-        // -------------------------
-        // print "["
-        // -------------------------
-        auto fmtChar = getFmtAddress(fmt_char);
-        auto open = builder->create<mlir::arith::ConstantIntOp>(loc, '[', 8);
+    // -------------------------
+    // Build types
+    // -------------------------
+    auto elemMLIRTy = types->getMLIRType(arrType->elem);
+    auto arrayTy = mlir::LLVM::LLVMArrayType::get(elemMLIRTy, arrType->size);
 
-        builder->create<mlir::LLVM::CallOp>(
-            loc, printf_func, mlir::ValueRange{fmtChar, open}
-        );
+    // -------------------------
+    // print "["
+    // -------------------------
+    auto fmtChar = getFmtAddress(fmt_char);
+    auto open = builder->create<mlir::arith::ConstantIntOp>(loc, '[', 8);
 
-        // -------------------------
-        // LOOP
-        // -------------------------
-        auto loop = builder->create<mlir::scf::ForOp>(loc, zero, sizeC, one);
-        builder->setInsertionPointToStart(loop.getBody());
+    builder->create<mlir::LLVM::CallOp>(
+        loc, printf_func, mlir::ValueRange{fmtChar, open}
+    );
 
-        auto iv = loop.getInductionVar();
+    // -------------------------
+    // LOOP
+    // -------------------------
+    auto loop = builder->create<mlir::scf::ForOp>(loc, zero, sizeC, one);
+    builder->setInsertionPointToStart(loop.getBody());
 
-        // -------------------------
-        // 🔥 FIX: element type
-        // -------------------------
-        mlir::Type elemTy;
+    auto iv = loop.getInductionVar();
 
-        if (arrType->elem->kind == TypeKind::Array) {
-            // nested array → pointer to sub-array
-            elemTy = ptrTy;
-        } else {
-            elemTy = types->getMLIRType(arrType->elem);
-        }
+    // -------------------------
+    // GEP (✅ FIXED)
+    // -------------------------
+    auto elemPtr = builder->create<mlir::LLVM::GEPOp>(
+        loc,
+        ptrTy,
+        arrayTy,                        // ✅ correct type
+        arrayPtr,
+        mlir::ValueRange{zero, iv}      // ✅ correct indices
+    );
 
-        // -------------------------
-        // GEP
-        // -------------------------
-        auto elemPtr = builder->create<mlir::LLVM::GEPOp>(
-            loc,
-            ptrTy,
-            elemTy,
-            arrayPtr,
-            mlir::ValueRange{iv}
-        );
-
-        // -------------------------
-        // LOAD
-        // -------------------------
-        auto elemVal = builder->create<mlir::LLVM::LoadOp>(
-            loc,
-            elemTy,
-            elemPtr
-        );
-
-        // -------------------------
-        // PRINT (recursive if needed)
-        // -------------------------
-        if (arrType->elem->kind == TypeKind::Array) {
-            printArray(
-                elemVal,
-                std::static_pointer_cast<ArrayType>(arrType->elem)
-            );
-        } else {
-            printInline(elemVal);
-        }
-
-        // -------------------------
-        // ", " logic
-        // -------------------------
-        auto lastIdx = builder->create<mlir::arith::SubIOp>(loc, sizeC, one);
-
-        auto cond = builder->create<mlir::arith::CmpIOp>(
-            loc,
-            mlir::arith::CmpIPredicate::ne,
-            iv,
-            lastIdx
-        );
-
-        auto ifOp = builder->create<mlir::scf::IfOp>(loc, cond, false);
-        builder->setInsertionPointToStart(&ifOp.getThenRegion().front());
-
-        auto comma = builder->create<mlir::arith::ConstantIntOp>(loc, ',', 8);
-        auto space = builder->create<mlir::arith::ConstantIntOp>(loc, ' ', 8);
-
-        builder->create<mlir::LLVM::CallOp>(
-            loc, printf_func, mlir::ValueRange{fmtChar, comma}
-        );
-
-        builder->create<mlir::LLVM::CallOp>(
-            loc, printf_func, mlir::ValueRange{fmtChar, space}
-        );
-
-        builder->setInsertionPointAfter(ifOp);
-
-        // -------------------------
-        // after loop → print "]"
-        // -------------------------
-        builder->setInsertionPointAfter(loop);
-
-        auto close = builder->create<mlir::arith::ConstantIntOp>(loc, ']', 8);
-
-        builder->create<mlir::LLVM::CallOp>(
-            loc, printf_func, mlir::ValueRange{fmtChar, close}
-        );
+    // -------------------------
+    // Determine element type
+    // -------------------------
+    mlir::Type loadTy;
+    if (arrType->elem->kind == TypeKind::Array) {
+        loadTy = ptrTy;  // nested array → pointer
+    } else {
+        loadTy = elemMLIRTy;
     }
+
+    // -------------------------
+    // LOAD
+    // -------------------------
+    auto elemVal = builder->create<mlir::LLVM::LoadOp>(
+        loc,
+        loadTy,
+        elemPtr
+    );
+
+    // -------------------------
+    // PRINT
+    // -------------------------
+
+
+bool isNestedArray =
+    arrType->elem->kind == TypeKind::Array;
+
+bool isString =
+    elemMLIRTy.isa<mlir::LLVM::LLVMPointerType>();
+
+    if (isNestedArray) {
+    printArray(
+        elemVal,
+        std::static_pointer_cast<ArrayType>(arrType->elem)
+    );
+}
+else {
+    printInline(elemVal);  // ✅ works for BOTH int + string
+}
+
+    // -------------------------
+    // ", " logic
+    // -------------------------
+    auto lastIdx = builder->create<mlir::arith::SubIOp>(loc, sizeC, one);
+
+    auto cond = builder->create<mlir::arith::CmpIOp>(
+        loc,
+        mlir::arith::CmpIPredicate::ne,
+        iv,
+        lastIdx
+    );
+
+    auto ifOp = builder->create<mlir::scf::IfOp>(loc, cond, false);
+    builder->setInsertionPointToStart(&ifOp.getThenRegion().front());
+
+    auto comma = builder->create<mlir::arith::ConstantIntOp>(loc, ',', 8);
+    auto space = builder->create<mlir::arith::ConstantIntOp>(loc, ' ', 8);
+
+    builder->create<mlir::LLVM::CallOp>(
+        loc, printf_func, mlir::ValueRange{fmtChar, comma}
+    );
+
+    builder->create<mlir::LLVM::CallOp>(
+        loc, printf_func, mlir::ValueRange{fmtChar, space}
+    );
+
+    builder->setInsertionPointAfter(ifOp);
+
+    // -------------------------
+    // after loop → print "]"
+    // -------------------------
+    builder->setInsertionPointAfter(loop);
+
+    auto close = builder->create<mlir::arith::ConstantIntOp>(loc, ']', 8);
+
+    builder->create<mlir::LLVM::CallOp>(
+        loc, printf_func, mlir::ValueRange{fmtChar, close}
+    );
+}
+
+
     void PrintHelper::printTuple(mlir::Value tupPtr, mlir::LLVM::LLVMStructType t_s, std::vector<std::shared_ptr<Type>> t){
 
 

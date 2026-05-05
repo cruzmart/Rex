@@ -1,8 +1,10 @@
 
 // type decimal = Real;
+/*
+type integer = Int;
 
-// let a : Int[2] = [2,2.0];
-
+let a : integer[2] = [2,2];
+*/
 
 /*
 
@@ -153,7 +155,7 @@ if (5 < 3) {
 
 
 // While Loop Examples
-/*
+
 while(true){
 if (5 > 10){
     print(0);
@@ -201,26 +203,29 @@ if (5 > 10){
 }
 break;
 }
-*/
 
 
 
-/*
+
+let y : Real = 2.9;
 while(true){
     while(true){
-        print(3);
-        print(2);
+        print(y);
+        print((y + 2)/9);
+        y = y + 10;
         break;
     }
 
     break;
 }
-*/
 
-/*
 loop {
+        let i : Int = 0;
         while(true){
-            print(2);
+            while (i < 9){
+               print(i + y);   
+               i = i + 2;
+            }
             break;
         }
         
@@ -236,7 +241,43 @@ loop {
         break;
       
     }
-*/
+
+
+let r : Int = 0;
+while(r < 3){
+    for r in ["hello", "world", "goodbye", "life"] {
+        print(r);
+    }
+    r = r + 1;
+    break;
+}
+
+
+let o : Int = 0;
+while(o < 5){
+    print(o);
+    o = o + 1;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*
 while(true){
@@ -249,8 +290,29 @@ while(true){
 /// For Loop Examples
 
 
-for i in [1,2,3] {
-    print(i);
+// let k : Int = 1;
+
+/*
+let m : Int[3] = [1,2,3];
+
+let s : Int[2] = [2, 4];
+print(s);
+s[0] = 99;
+print(s);
+
+
+
+while(k > 2){
+    print(k);
+    k = k - 1;
 }
 
+let x : String[2][2] = [["hello", "world"],["goodbye", "life"]];
+print(x[1]);
+
+let z : String[4] = ["hello", "world", "goodbye", "life"];
+*/
+
+    
+  
 

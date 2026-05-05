@@ -122,6 +122,7 @@
             
             case StmtKind::Print:
                 visitPrintStmt(std::static_pointer_cast<PrintStmt>(stmt));
+                break;
 
             default:
                 break;
@@ -158,7 +159,7 @@ void ExprPass::visitLetStmt(const std::shared_ptr<LetStmt> ls) {
             if (current_scope->symbols.contains(pid->id))
                 err.error(ls, "Variable/Function '" + pid->id + "' is already defined");
 
-            auto sym = std::make_shared<Symbol>(SymbolType::Variable, pid->id);
+            auto sym = std::make_shared<VariableSymbol>(pid->id);
 
             auto expr_t = visitExpr(ls->exp);
 
@@ -176,7 +177,6 @@ void ExprPass::visitLetStmt(const std::shared_ptr<LetStmt> ls) {
 
             sym->type = ls->type ? ls->type : expr_t;
             ls->type = sym->type;
-            sym->expr = ls->exp;
 
             current_scope->define(sym);
             break;
@@ -208,7 +208,7 @@ void ExprPass::visitLetStmt(const std::shared_ptr<LetStmt> ls) {
                 if (current_scope->symbols.contains(pids->ids[i]))
                     err.error(ls, "Variable/Function '" + pids->ids[i] + "' is already defined");
 
-                auto sym = std::make_shared<Symbol>(SymbolType::Variable, pids->ids[i]);
+                auto sym = std::make_shared<VariableSymbol>(pids->ids[i]);
 
                 auto elem_expr = texp->elements[i];
                 auto actual_type = visitExpr(elem_expr);
@@ -216,7 +216,6 @@ void ExprPass::visitLetStmt(const std::shared_ptr<LetStmt> ls) {
                 if (no_init_type) {
                     // infer type
                     sym->type = actual_type;
-                    sym->expr = elem_expr;
 
                     if (ttype) {
                         ttype->elements.push_back(actual_type);
@@ -236,7 +235,6 @@ void ExprPass::visitLetStmt(const std::shared_ptr<LetStmt> ls) {
                     }
 
                     sym->type = expected_type;
-                    sym->expr = elem_expr;
                 }
 
                 current_scope->define(sym);
@@ -257,7 +255,8 @@ void ExprPass::visitLetStmt(const std::shared_ptr<LetStmt> ls) {
         if (current_scope->symbols.contains(f->func_name))
             err.error(f, "Function '" + f->func_name + "' already defined");
 
-        auto sym = std::make_shared<Symbol>(SymbolType::Function, f->func_name);
+       
+        auto sym = std::make_shared<FunctionSymbol>(f->func_name);
         sym->type = f->func_type;
         current_scope->define(sym);
 
@@ -267,7 +266,7 @@ void ExprPass::visitLetStmt(const std::shared_ptr<LetStmt> ls) {
 
         // 3. define parameters
         for (auto param : f->func_type->params) {
-            auto psym = std::make_shared<Symbol>(SymbolType::Variable, param->para_name);
+            auto psym = std::make_shared<VariableSymbol>(param->para_name);
             psym->type = param->para_type;
             current_scope->define(psym);
         }
@@ -358,17 +357,19 @@ void ExprPass::visitLetStmt(const std::shared_ptr<LetStmt> ls) {
 
     std::shared_ptr<Type> ExprPass::visitId(const std::shared_ptr<IdExpr> id){
 
-
     if(!id->resolved){
+
             auto value = current_scope->resolve(id->name);
 
             if(!value){
                 err.error(id, "Undefined identifier: '" + id->name + "'");
             }
 
+     
             if(value->kind == SymbolType::Function){
                 err.error(id, "'" + id->name + "' is a function that requires arguments");
             }
+            
 
             id->resolved = value;
             id->type = value->type;
