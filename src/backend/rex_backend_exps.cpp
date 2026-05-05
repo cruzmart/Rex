@@ -16,149 +16,170 @@
 
  namespace rex {
 
-    // Literal Creation 
+  /// =============================================================
+/// ExpressionsHelper
+/// -------------------------------------------------------------
+/// Responsible for lowering high-level expressions into MLIR.
+/// Handles:
+///  - Literal creation
+///  - Binary expressions
+///  - Type casting
+///  - Tuple + array construction
+///  - String handling (including pooling + folding)
+/// =============================================================
 
-    ExpressionsHelper::ExpressionsHelper(
-                         std::shared_ptr<mlir::OpBuilder> b,
-                         mlir::ModuleOp m,
-                         mlir::Location l,
-                         std::shared_ptr<TypesHelper> t)
-            
+ExpressionsHelper::ExpressionsHelper(
+    std::shared_ptr<mlir::OpBuilder> b,
+    mlir::ModuleOp m,
+    mlir::Location l,
+    std::shared_ptr<TypesHelper> t)
     : builder(b), module(m), loc(l), types(t) {}
 
-    mlir::Value ExpressionsHelper::createPrimitiveLiteral(std::shared_ptr<LiteralExpr> lit) {
-        assert(lit && "null literal");
-        assert(lit->type && "literal has no type");
 
-        auto prim = std::static_pointer_cast<PrimType>(lit->type);
-        const std::string &value = lit->value;
+/// =============================================================
+/// Literal Creation
+/// =============================================================
 
-        switch (prim->prim) {
-            case rex::PrimType::Prims::Int:    return createInt(value);
-            case rex::PrimType::Prims::Bool:   return createBool(value);
-            case rex::PrimType::Prims::Char:   return createChar(value);
-            case rex::PrimType::Prims::Real:   return createFloat(value);
-            case rex::PrimType::Prims::String: return createString(value);
+/// Dispatch creation of primitive literals based on type.
+mlir::Value ExpressionsHelper::createPrimitiveLiteral(std::shared_ptr<LiteralExpr> lit) {
+    assert(lit && "null literal");
+    assert(lit->type && "literal has no type");
+
+    auto prim = std::static_pointer_cast<PrimType>(lit->type);
+    const std::string &value = lit->value;
+
+    switch (prim->prim) {
+        case rex::PrimType::Prims::Int:    return createInt(value);
+        case rex::PrimType::Prims::Bool:   return createBool(value);
+        case rex::PrimType::Prims::Char:   return createChar(value);
+        case rex::PrimType::Prims::Real:   return createFloat(value);
+        case rex::PrimType::Prims::String: return createString(value);
+        default:
+            break;
+    }
+
+    llvm_unreachable("Unhandled literal type");
+}
+
+/// Create 32-bit integer constant (safe parsing via APInt).
+mlir::Value ExpressionsHelper::createInt(const std::string &text){
+    llvm::APInt value(32, text, 10);
+    return builder->create<mlir::arith::ConstantOp>(
+        loc, builder->getIntegerAttr(types->i32, value));
+}
+
+/// Create 32-bit float constant with validation.
+mlir::Value ExpressionsHelper::createFloat(const std::string &text){
+    llvm::APFloat value(0.0f);
+
+    auto statusOrError = value.convertFromString(text, llvm::APFloat::rmNearestTiesToEven);
+    if (!statusOrError || (*statusOrError & llvm::APFloat::opInvalidOp)) {
+        throw std::runtime_error("Invalid float literal: " + text);
+    }
+
+    return builder->create<mlir::arith::ConstantOp>(
+        loc,
+        builder->getFloatAttr(types->f32, value)
+    );
+}
+
+/// Create boolean constant (true/false → i1).
+mlir::Value ExpressionsHelper::createBool(const std::string &text){
+    if (text == "true") {
+        return builder->create<mlir::arith::ConstantOp>(
+            loc, builder->getIntegerAttr(types->b1, 1));
+    } else if (text == "false") {
+        return builder->create<mlir::arith::ConstantOp>(
+            loc, builder->getIntegerAttr(types->b1, 0));
+    }
+
+    throw std::runtime_error("Invalid boolean literal: " + text);
+}
+
+/// Create character constant (handles escape sequences).
+mlir::Value ExpressionsHelper::createChar(const std::string &text) {
+    if (text.empty())
+        throw std::runtime_error("Empty char literal");
+
+    char value;
+
+    // Handle escape sequences like '\n', '\t', etc.
+    if (text[0] == '\\') {
+        if (text.size() != 2)
+            throw std::runtime_error("Invalid escaped char");
+
+        switch (text[1]) {
+            case 'n':  value = '\n'; break;
+            case 't':  value = '\t'; break;
+            case 'r':  value = '\r'; break;
+            case '\\': value = '\\'; break;
+            case '\'': value = '\''; break;
+            case '0':  value = '\0'; break;
             default:
-                break;
+                throw std::runtime_error("Unknown escape sequence");
         }
+    } else {
+        if (text.size() != 1)
+            throw std::runtime_error("Invalid char literal");
 
-        llvm_unreachable("Unhandled literal type");
-    }
-    mlir::Value ExpressionsHelper::createInt(const std::string &text){
-        llvm::APInt value(32, text, 10); // avoids std::stoi overflow
-        return builder->create<mlir::arith::ConstantOp>(loc, builder->getIntegerAttr(types->i32, value));
-    }
-    mlir::Value ExpressionsHelper::createFloat(const std::string &text){
-        llvm::APFloat value(0.0f);
-
-        auto statusOrError = value.convertFromString(text, llvm::APFloat::rmNearestTiesToEven);
-        if (!statusOrError) {
-            throw std::runtime_error("Invalid float literal: " + text);
-        }
-        auto status = *statusOrError;
-        if (status & llvm::APFloat::opInvalidOp) {
-            throw std::runtime_error("Invalid float literal: " + text);
-        }
-
-        return builder->create<mlir::arith::ConstantOp>(
-            loc,
-            builder->getFloatAttr(types->f32, value)
-        );
-    }
-    mlir::Value ExpressionsHelper::createBool(const std::string &text){
-        if (text == "true") {
-        return builder->create<mlir::arith::ConstantOp>(
-            loc,
-            builder->getIntegerAttr(types->b1, 1)
-        );
-        } else if (text == "false") {
-            return builder->create<mlir::arith::ConstantOp>(
-                loc,
-                builder->getIntegerAttr(types->b1, 0)
-            );
-        }
-
-        throw std::runtime_error("Invalid boolean literal: " + text);
-    }
-    mlir::Value ExpressionsHelper::createChar(const std::string &text) {
-        if (text.empty())
-            throw std::runtime_error("Empty char literal");
-
-        char value;
-
-        if (text[0] == '\\') {
-            if (text.size() != 2)
-                throw std::runtime_error("Invalid escaped char");
-
-            switch (text[1]) {
-                case 'n':  value = '\n'; break;
-                case 't':  value = '\t'; break;
-                case 'r':  value = '\r'; break;
-                case '\\': value = '\\'; break;
-                case '\'': value = '\''; break;
-                case '0':  value = '\0'; break;
-                default:
-                    throw std::runtime_error("Unknown escape sequence");
-            }
-        } else {
-            if (text.size() != 1)
-                throw std::runtime_error("Invalid char literal");
-
-            value = text[0];
-        }
-
-        return builder->create<mlir::arith::ConstantOp>(
-            loc,
-            builder->getI8IntegerAttr(static_cast<int8_t>(value))
-        );
-    } 
-
-    mlir::Value ExpressionsHelper::createString(const std::string &text) {
-
-        // 🔥 1. reuse existing string literal
-        auto it = stringPool.find(text);
-        if (it != stringPool.end()) {
-            return builder->create<mlir::LLVM::AddressOfOp>(loc, it->second);
-        }
-
-        // 🔥 2. insert global at module start
-        auto oldIP = builder->saveInsertionPoint();
-        builder->setInsertionPointToStart(module.getBody());
-
-        std::string strWithNull = text + '\0';
-
-        std::string name = "str_const_" + std::to_string(globalCounter++);
-
-        auto i8Ty = builder->getIntegerType(8);
-        auto arrayTy = mlir::LLVM::LLVMArrayType::get(i8Ty, strWithNull.size());
-
-        auto global = builder->create<mlir::LLVM::GlobalOp>(
-            loc,
-            arrayTy,
-            true,
-            mlir::LLVM::Linkage::Internal,
-            name,
-            builder->getStringAttr(strWithNull)
-        );
-
-        builder->restoreInsertionPoint(oldIP);
-
-        stringPool[text] = global;
-
-        // 🔥 3. return pointer to first element (IMPORTANT CHANGE)
-        auto addr = builder->create<mlir::LLVM::AddressOfOp>(loc, global);
-
-        // cast to i8*
-        return builder->create<mlir::LLVM::BitcastOp>(
-            loc,
-            mlir::LLVM::LLVMPointerType::get(builder->getContext()),
-            addr
-        );
+        value = text[0];
     }
 
+    return builder->create<mlir::arith::ConstantOp>(
+        loc,
+        builder->getI8IntegerAttr(static_cast<int8_t>(value))
+    );
+}
 
-   mlir::Value ExpressionsHelper::createTuple(
+/// Create (or reuse) global string literal.
+/// Implements string pooling + LLVM global emission.
+mlir::Value ExpressionsHelper::createString(const std::string &text) {
+
+    // 1. Reuse existing string if already created
+    auto it = stringPool.find(text);
+    if (it != stringPool.end()) {
+        return builder->create<mlir::LLVM::AddressOfOp>(loc, it->second);
+    }
+
+    // 2. Insert global string at module start
+    auto oldIP = builder->saveInsertionPoint();
+    builder->setInsertionPointToStart(module.getBody());
+
+    std::string strWithNull = text + '\0';
+    std::string name = "str_const_" + std::to_string(globalCounter++);
+
+    auto i8Ty = builder->getIntegerType(8);
+    auto arrayTy = mlir::LLVM::LLVMArrayType::get(i8Ty, strWithNull.size());
+
+    auto global = builder->create<mlir::LLVM::GlobalOp>(
+        loc,
+        arrayTy,
+        true,
+        mlir::LLVM::Linkage::Internal,
+        name,
+        builder->getStringAttr(strWithNull)
+    );
+
+    builder->restoreInsertionPoint(oldIP);
+    stringPool[text] = global;
+
+    // 3. Return i8* pointer to string
+    auto addr = builder->create<mlir::LLVM::AddressOfOp>(loc, global);
+
+    return builder->create<mlir::LLVM::BitcastOp>(
+        loc,
+        mlir::LLVM::LLVMPointerType::get(builder->getContext()),
+        addr
+    );
+}
+
+
+/// =============================================================
+/// Tuple Creation
+/// =============================================================
+
+/// Creates an LLVM struct on the stack and initializes fields.
+mlir::Value ExpressionsHelper::createTuple(
     const std::vector<mlir::Type> types,
     std::vector<mlir::Value> values
 ) {
@@ -167,26 +188,16 @@
 
     auto ctx = builder->getContext();
 
-    // -----------------------------------
-    // 1. Build LLVM struct type
-    // -----------------------------------
+    // 1. Build struct type
     auto structTy = mlir::LLVM::LLVMStructType::getLiteral(ctx, types);
-
     auto ptrTy = mlir::LLVM::LLVMPointerType::get(ctx);
 
-    // -----------------------------------
-    // 2. Allocate stack space for struct
-    // -----------------------------------
+    // 2. Allocate stack memory
     auto one = builder->create<mlir::arith::ConstantIntOp>(loc, 1, 32);
-
     auto alloca = builder->create<mlir::LLVM::AllocaOp>(loc, ptrTy, structTy, one);
 
-    // -----------------------------------
     // 3. Store each field
-    // -----------------------------------
     for (size_t i = 0; i < values.size(); i++) {
-
-
         auto fieldPtr = builder->create<mlir::LLVM::GEPOp>(
             loc,
             ptrTy,
@@ -198,78 +209,58 @@
             }
         );
 
-        builder->create<mlir::LLVM::StoreOp>(
-            loc,
-            values[i],
-            fieldPtr
-        );
+        builder->create<mlir::LLVM::StoreOp>(loc, values[i], fieldPtr);
     }
 
-    // -----------------------------------
-    // 4. Return pointer to tuple
-    // -----------------------------------
+    // 4. Return pointer to struct
     return alloca;
 }
 
 
+/// =============================================================
+/// Binary Expressions
+/// =============================================================
 
+/// Entry point for binary operations.
+/// Handles:
+///  - arithmetic
+///  - comparisons
+///  - logical ops
+///  - string concatenation
+mlir::Value ExpressionsHelper::createBinaryExp(
+    mlir::Value lhs,
+    mlir::Value rhs,
+    PrimType::Prims prim_t,
+    BinaryOp op
+){
+    mlir::Type res_t;
 
-
-
-
-mlir::Value ExpressionsHelper::createBinaryExp(mlir::Value lhs, mlir::Value rhs, PrimType::Prims prim_t, BinaryOp op){
-
-        mlir::Type res_t;
-
-        // we got to check if they are pointer types (it would be string)
-    //  if(lhs.isa<mlir::LLVM::LLVMPointerType>() )
-
-    // string concat 
-        if(lhs.getType().isa<mlir::LLVM::LLVMPointerType>() && rhs.getType().isa<mlir::LLVM::LLVMPointerType>() && op == BinaryOp::ADD)
+    // Special case: string concatenation
+    if(lhs.getType().isa<mlir::LLVM::LLVMPointerType>() &&
+       rhs.getType().isa<mlir::LLVM::LLVMPointerType>() &&
+       op == BinaryOp::ADD)
         return concatString(lhs, rhs);
 
-
-
+    // Determine result type
     switch(prim_t){
-        case PrimType::Prims::Int:{
-            res_t = types->i32;
-            break;
-        }
-        case PrimType::Prims::Real:{
-            res_t = types->f32;
-            break;
-        }
-        case rex::PrimType::Prims::Bool:{
-            res_t = types->b1;
-            break;
-        }
-        case PrimType::Prims::Char:{
-            res_t = types->c8;
-            break;
-        }
-        default: {
-            res_t = mlir::Type();
-            break;
-        }
+        case PrimType::Prims::Int:  res_t = types->i32; break;
+        case PrimType::Prims::Real: res_t = types->f32; break;
+        case PrimType::Prims::Bool: res_t = types->b1; break;
+        case PrimType::Prims::Char: res_t = types->c8; break;
+        default: res_t = mlir::Type(); break;
     }
-    
-    
 
-    // arth op
+    // Arithmetic
     switch(op){
         case BinaryOp::ADD: return add(lhs, rhs, res_t);
         case BinaryOp::SUB: return sub(lhs, rhs, res_t);
         case BinaryOp::MUL: return mul(lhs, rhs, res_t);
         case BinaryOp::DIV: return div(lhs, rhs, res_t);
         case BinaryOp::MOD: return mod(lhs, rhs, res_t);
-        default:
-            break;
+        default: break;
     }
 
-    
-    // =========================
-    // comparisons
-    // =========================
+    // Comparisons
     switch(op){
         case BinaryOp::EQ:  return eq(lhs, rhs);
         case BinaryOp::NEQ: return neq(lhs, rhs);
@@ -277,35 +268,37 @@ mlir::Value ExpressionsHelper::createBinaryExp(mlir::Value lhs, mlir::Value rhs,
         case BinaryOp::GT:  return gt(lhs, rhs);
         case BinaryOp::LE:  return le(lhs, rhs);
         case BinaryOp::GE:  return ge(lhs, rhs);
-        default:
-            break;
+        default: break;
     }
 
-    // =========================
-    // logic ops
-    // =========================
+    // Logical
     switch(op){
         case BinaryOp::AND: return and_(lhs, rhs);
         case BinaryOp::OR:  return or_(lhs, rhs);
-        default:
-            break;
+        default: break;
     }
-    
-    return mlir::Value();
 
+    return mlir::Value();
 }
 
 
-mlir::Value ExpressionsHelper::add( mlir::Value lhs, mlir::Value rhs,  mlir::Type resultType) {
+/// =============================================================
+/// Arithmetic Helpers
+/// =============================================================
 
-    // 🔥 STEP 1: choose computation type
+/// Generic addition with type promotion.
+/// Steps:
+///  1. Determine common compute type
+///  2. Cast operands
+///  3. Perform op (int or float)
+///  4. Cast back to requested result type
+mlir::Value ExpressionsHelper::add(mlir::Value lhs, mlir::Value rhs, mlir::Type resultType) {
+
     mlir::Type computeType = getComputeType(lhs.getType(), rhs.getType());
 
-    // 🔥 STEP 2: cast operands to compute type
     lhs = castTo(lhs, computeType);
     rhs = castTo(rhs, computeType);
 
-    // 🔥 STEP 3: perform operation
     mlir::Value result;
 
     if (computeType.isF32()) {
@@ -314,11 +307,12 @@ mlir::Value ExpressionsHelper::add( mlir::Value lhs, mlir::Value rhs,  mlir::Typ
         result = builder->create<mlir::arith::AddIOp>(loc, lhs, rhs);
     }
 
-
-    // 🔥 STEP 4: cast to final result type
     return castTo(result, resultType);
 }
+
+/// Subtraction (same structure as add).
 mlir::Value ExpressionsHelper::sub(mlir::Value lhs, mlir::Value rhs, mlir::Type resultType) {
+
     mlir::Type computeType = getComputeType(lhs.getType(), rhs.getType());
 
     lhs = castTo(lhs, computeType);
@@ -334,7 +328,10 @@ mlir::Value ExpressionsHelper::sub(mlir::Value lhs, mlir::Value rhs, mlir::Type 
 
     return castTo(result, resultType);
 }
-mlir::Value ExpressionsHelper::mul( mlir::Value lhs, mlir::Value rhs, mlir::Type resultType) {
+
+/// Multiplication with type promotion.
+mlir::Value ExpressionsHelper::mul(mlir::Value lhs, mlir::Value rhs, mlir::Type resultType) {
+
     mlir::Type computeType = getComputeType(lhs.getType(), rhs.getType());
 
     lhs = castTo(lhs, computeType);
@@ -350,13 +347,18 @@ mlir::Value ExpressionsHelper::mul( mlir::Value lhs, mlir::Value rhs, mlir::Type
 
     return castTo(result, resultType);
 }
-mlir::Value ExpressionsHelper::div( mlir::Value lhs, mlir::Value rhs, mlir::Type resultType) {
+
+/// Division with safety checks.
+/// - Performs compile-time divide-by-zero detection for constants
+/// - Uses signed division for integers
+mlir::Value ExpressionsHelper::div(mlir::Value lhs, mlir::Value rhs, mlir::Type resultType) {
+
     mlir::Type computeType = getComputeType(lhs.getType(), rhs.getType());
 
     lhs = castTo(lhs, computeType);
     rhs = castTo(rhs, computeType);
 
-    // 🔥 Constant zero check (compile-time only)
+    // Compile-time zero check
     if (auto cst = rhs.getDefiningOp<mlir::arith::ConstantOp>()) {
         if (auto intAttr = cst.getValue().dyn_cast<mlir::IntegerAttr>()) {
             if (intAttr.getValue().isZero()) {
@@ -375,13 +377,17 @@ mlir::Value ExpressionsHelper::div( mlir::Value lhs, mlir::Value rhs, mlir::Type
     if (computeType.isF32()) {
         result = builder->create<mlir::arith::DivFOp>(loc, lhs, rhs);
     } else {
-        // signed division
         result = builder->create<mlir::arith::DivSIOp>(loc, lhs, rhs);
     }
 
     return castTo(result, resultType);
 }
-mlir::Value ExpressionsHelper::mod( mlir::Value lhs, mlir::Value rhs, mlir::Type resultType) {
+
+/// Modulo (integer only).
+/// - Rejects float usage
+/// - Includes optional divide-by-zero check
+mlir::Value ExpressionsHelper::mod(mlir::Value lhs, mlir::Value rhs, mlir::Type resultType) {
+
     mlir::Type computeType = getComputeType(lhs.getType(), rhs.getType());
 
     lhs = castTo(lhs, computeType);
@@ -391,7 +397,7 @@ mlir::Value ExpressionsHelper::mod( mlir::Value lhs, mlir::Value rhs, mlir::Type
         llvm::report_fatal_error("Modulo not supported for float");
     }
 
-    // Optional: same zero check as div
+    // Compile-time zero check
     if (auto cst = rhs.getDefiningOp<mlir::arith::ConstantOp>()) {
         if (auto intAttr = cst.getValue().dyn_cast<mlir::IntegerAttr>()) {
             if (intAttr.getValue().isZero()) {
@@ -401,14 +407,17 @@ mlir::Value ExpressionsHelper::mod( mlir::Value lhs, mlir::Value rhs, mlir::Type
     }
 
     auto result = builder->create<mlir::arith::RemSIOp>(loc, lhs, rhs);
-
     return castTo(result, resultType);
 }
 
 
-// =====================================
-// Comparison Helpers
-// =====================================
+
+/// =============================================================
+/// Comparison Helpers
+/// =============================================================
+
+/// Generic comparison dispatcher.
+/// Chooses integer or floating-point comparison based on compute type.
 mlir::Value ExpressionsHelper::cmp(
     mlir::Value lhs,
     mlir::Value rhs,
@@ -427,19 +436,20 @@ mlir::Value ExpressionsHelper::cmp(
     }
 }
 
-// =====================================
-// Comparisons
-// =====================================
+
+/// =============================================================
+/// Equality / Inequality
+/// =============================================================
+
+/// Equality:
+/// - Special handling for strings via strcmp
+/// - Otherwise numeric comparison
 mlir::Value ExpressionsHelper::eq(mlir::Value lhs, mlir::Value rhs) {
-    auto lhsTy = lhs.getType();
-    auto rhsTy = rhs.getType();
 
-    bool lhsIsStr = lhsTy.isa<mlir::LLVM::LLVMPointerType>();
-    bool rhsIsStr = rhsTy.isa<mlir::LLVM::LLVMPointerType>();
+    bool lhsIsStr = lhs.getType().isa<mlir::LLVM::LLVMPointerType>();
+    bool rhsIsStr = rhs.getType().isa<mlir::LLVM::LLVMPointerType>();
 
-    // -------------------------
-    // STRING == STRING
-    // -------------------------
+    // String comparison using strcmp
     if (lhsIsStr && rhsIsStr) {
         auto strcmpFunc = getOrInsertStrcmp();
 
@@ -448,53 +458,29 @@ mlir::Value ExpressionsHelper::eq(mlir::Value lhs, mlir::Value rhs) {
             strcmpFunc,
             mlir::ValueRange{lhs, rhs}
         );
-
-        mlir::Value result = call.getResult();
 
         auto zero = builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32);
 
         return builder->create<mlir::arith::CmpIOp>(
             loc,
             mlir::arith::CmpIPredicate::eq,
-            result,
+            call.getResult(),
             zero
         );
     }
 
-    // -------------------------
-    // NORMAL NUMERIC CASE
-    // -------------------------
-    auto computeType = getComputeType(lhsTy, rhsTy);
-    lhs = castTo(lhs, computeType);
-    rhs = castTo(rhs, computeType);
-
-    if (computeType.isF32()) {
-        return builder->create<mlir::arith::CmpFOp>(
-            loc,
-            mlir::arith::CmpFPredicate::OEQ,
-            lhs,
-            rhs
-        );
-    }
-
-    return builder->create<mlir::arith::CmpIOp>(
-        loc,
+    return cmp(lhs, rhs,
         mlir::arith::CmpIPredicate::eq,
-        lhs,
-        rhs
+        mlir::arith::CmpFPredicate::OEQ
     );
 }
 
+/// Inequality (mirrors eq).
 mlir::Value ExpressionsHelper::neq(mlir::Value lhs, mlir::Value rhs) {
-    auto lhsTy = lhs.getType();
-    auto rhsTy = rhs.getType();
 
-    bool lhsIsStr = lhsTy.isa<mlir::LLVM::LLVMPointerType>();
-    bool rhsIsStr = rhsTy.isa<mlir::LLVM::LLVMPointerType>();
+    bool lhsIsStr = lhs.getType().isa<mlir::LLVM::LLVMPointerType>();
+    bool rhsIsStr = rhs.getType().isa<mlir::LLVM::LLVMPointerType>();
 
-    // -------------------------
-    // STRING != STRING
-    // -------------------------
     if (lhsIsStr && rhsIsStr) {
         auto strcmpFunc = getOrInsertStrcmp();
 
@@ -504,41 +490,26 @@ mlir::Value ExpressionsHelper::neq(mlir::Value lhs, mlir::Value rhs) {
             mlir::ValueRange{lhs, rhs}
         );
 
-        mlir::Value result = call.getResult();
-
         auto zero = builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32);
 
         return builder->create<mlir::arith::CmpIOp>(
             loc,
             mlir::arith::CmpIPredicate::ne,
-            result,
+            call.getResult(),
             zero
         );
     }
 
-    // -------------------------
-    // NORMAL NUMERIC CASE
-    // -------------------------
-    auto computeType = getComputeType(lhsTy, rhsTy);
-    lhs = castTo(lhs, computeType);
-    rhs = castTo(rhs, computeType);
-
-    if (computeType.isF32()) {
-        return builder->create<mlir::arith::CmpFOp>(
-            loc,
-            mlir::arith::CmpFPredicate::ONE,
-            lhs,
-            rhs
-        );
-    }
-
-    return builder->create<mlir::arith::CmpIOp>(
-        loc,
+    return cmp(lhs, rhs,
         mlir::arith::CmpIPredicate::ne,
-        lhs,
-        rhs
+        mlir::arith::CmpFPredicate::ONE
     );
 }
+
+
+/// =============================================================
+/// Relational Comparisons
+/// =============================================================
 
 mlir::Value ExpressionsHelper::lt(mlir::Value lhs, mlir::Value rhs){
     return cmp(lhs, rhs,
@@ -568,6 +539,12 @@ mlir::Value ExpressionsHelper::ge(mlir::Value lhs, mlir::Value rhs){
     );
 }
 
+
+/// =============================================================
+/// Logical Operations
+/// =============================================================
+
+/// Logical AND (forces operands to boolean).
 mlir::Value ExpressionsHelper::and_(mlir::Value lhs, mlir::Value rhs){
     lhs = castTo(lhs, types->b1);
     rhs = castTo(rhs, types->b1);
@@ -575,6 +552,7 @@ mlir::Value ExpressionsHelper::and_(mlir::Value lhs, mlir::Value rhs){
     return builder->create<mlir::arith::AndIOp>(loc, lhs, rhs);
 }
 
+/// Logical OR (forces operands to boolean).
 mlir::Value ExpressionsHelper::or_(mlir::Value lhs, mlir::Value rhs){
     lhs = castTo(lhs, types->b1);
     rhs = castTo(rhs, types->b1);
@@ -582,80 +560,70 @@ mlir::Value ExpressionsHelper::or_(mlir::Value lhs, mlir::Value rhs){
     return builder->create<mlir::arith::OrIOp>(loc, lhs, rhs);
 }
 
+
+/// =============================================================
+/// Casting + Type Promotion
+/// =============================================================
+
+/// Cast value between supported primitive types.
+/// Disallows pointer casts (handled elsewhere).
 mlir::Value ExpressionsHelper::castTo(mlir::Value val, mlir::Type targetType) {
+
     mlir::Type srcType = val.getType();
 
-    // 🚨 GUARD: never cast pointers
+    // Prevent unsafe pointer casting
     if (srcType.isa<mlir::LLVM::LLVMPointerType>() ||
         targetType.isa<mlir::LLVM::LLVMPointerType>()) {
         llvm::report_fatal_error("Invalid cast involving pointer type");
     }
 
-    // SAME TYPE → no-op
+    // No-op if already correct type
     if (srcType == targetType)
         return val;
 
-    // =========================
     // INT → FLOAT
-    // =========================
     if (srcType.isInteger(32) && targetType.isF32()) {
         return builder->create<mlir::arith::SIToFPOp>(loc, targetType, val);
     }
 
-    // =========================
     // FLOAT → INT
-    // =========================
     if (srcType.isF32() && targetType.isInteger(32)) {
         return builder->create<mlir::arith::FPToSIOp>(loc, targetType, val);
     }
 
-    // =========================
-    // BOOL (i1) → INT
-    // =========================
+    // BOOL → INT
     if (srcType.isInteger(1) && targetType.isInteger(32)) {
         return builder->create<mlir::arith::ExtUIOp>(loc, targetType, val);
     }
 
-    // =========================
     // BOOL → FLOAT
-    // =========================
     if (srcType.isInteger(1) && targetType.isF32()) {
         auto i32 = builder->create<mlir::arith::ExtUIOp>(loc, types->i32, val);
         return builder->create<mlir::arith::SIToFPOp>(loc, targetType, i32);
     }
 
-    // =========================
     // BOOL → CHAR
-    // =========================
     if (srcType.isInteger(1) && targetType.isInteger(8)) {
         return builder->create<mlir::arith::ExtUIOp>(loc, targetType, val);
     }
 
-    // =========================
-    // CHAR (i8) → INT
-    // =========================
+    // CHAR → INT
     if (srcType.isInteger(8) && targetType.isInteger(32)) {
         return builder->create<mlir::arith::ExtUIOp>(loc, targetType, val);
     }
 
-    // =========================
     // CHAR → FLOAT
-    // =========================
     if (srcType.isInteger(8) && targetType.isF32()) {
         auto i32 = builder->create<mlir::arith::ExtUIOp>(loc, types->i32, val);
         return builder->create<mlir::arith::SIToFPOp>(loc, targetType, i32);
     }
 
-    // =========================
-    // INT → CHAR
-    // =========================
+    // INT → CHAR (truncate)
     if (srcType.isInteger(32) && targetType.isInteger(8)) {
         return builder->create<mlir::arith::TruncIOp>(loc, targetType, val);
     }
 
-    // =========================
     // INT → BOOL
-    // =========================
     if (srcType.isInteger(32) && targetType.isInteger(1)) {
         auto zero = builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32);
         return builder->create<mlir::arith::CmpIOp>(
@@ -669,22 +637,32 @@ mlir::Value ExpressionsHelper::castTo(mlir::Value val, mlir::Type targetType) {
     llvm_unreachable("Unsupported cast");
 }
 
-mlir::Type ExpressionsHelper::getComputeType(mlir::Type lhs,  mlir::Type rhs) {
-    // FLOAT dominates everything
+/// Determines common compute type.
+/// Rule:
+///  - float dominates
+///  - otherwise use i32
+mlir::Type ExpressionsHelper::getComputeType(mlir::Type lhs, mlir::Type rhs) {
     if (lhs.isF32() || rhs.isF32()) {
         return types->f32;
     }
-
-    // otherwise use i32 as canonical integer compute type
     return types->i32;
 }
 
+/// =============================================================
+/// String Handling
+/// =============================================================
+
+/// Concatenate two *constant* strings at compile time.
+/// Requirements:
+///  - Both operands must be backed by LLVM globals
+///  - No runtime string concat supported here
 mlir::Value ExpressionsHelper::concatString(mlir::Value lhs, mlir::Value rhs) {
-    // Normalize both sides
+
+    // Normalize inputs to string values (i8*)
     lhs = toStringValue(lhs);
     rhs = toStringValue(rhs);
 
-    // Extract globals
+    // Extract AddressOf ops (must be globals)
     auto lhsAddr = lhs.getDefiningOp<mlir::LLVM::AddressOfOp>();
     auto rhsAddr = rhs.getDefiningOp<mlir::LLVM::AddressOfOp>();
 
@@ -692,6 +670,7 @@ mlir::Value ExpressionsHelper::concatString(mlir::Value lhs, mlir::Value rhs) {
         llvm::report_fatal_error("Only constant string concat supported");
     }
 
+    // Lookup global string definitions
     auto lhsGlobal = module.lookupSymbol<mlir::LLVM::GlobalOp>(
         lhsAddr.getGlobalName()
     );
@@ -700,30 +679,37 @@ mlir::Value ExpressionsHelper::concatString(mlir::Value lhs, mlir::Value rhs) {
         rhsAddr.getGlobalName()
     );
 
+    // Extract string contents
     auto lhsAttr = lhsGlobal.getValue()->dyn_cast<mlir::StringAttr>();
     auto rhsAttr = rhsGlobal.getValue()->dyn_cast<mlir::StringAttr>();
 
     std::string lhsStr = lhsAttr.getValue().str();
     std::string rhsStr = rhsAttr.getValue().str();
 
-    // Remove duplicate null
+    // Remove null terminator from LHS to avoid duplication
     if (!lhsStr.empty())
         lhsStr.pop_back();
 
     std::string combined = lhsStr + rhsStr;
 
+    // Recreate pooled string
     return createString(combined);
 }
 
+/// Normalize a value into a string (i8*).
+/// Supports:
+///  - string values (no-op)
+///  - constant char → string
 mlir::Value ExpressionsHelper::toStringValue(mlir::Value v) {
+
     auto type = v.getType();
 
-    // already string (i8*)
+    // Already a string pointer
     if (type.isa<mlir::LLVM::LLVMPointerType>()) {
         return v;
     }
 
-    // char → string (constant only)
+    // Char → string (constant only)
     if (type.isInteger(8)) {
         if (auto cst = v.getDefiningOp<mlir::arith::ConstantOp>()) {
             auto attr = cst.getValue().dyn_cast<mlir::IntegerAttr>();
@@ -738,42 +724,55 @@ mlir::Value ExpressionsHelper::toStringValue(mlir::Value v) {
     llvm::report_fatal_error("Cannot convert value to string");
 }
 
+
+/// =============================================================
+/// Constant String Folding (AST-level)
+/// =============================================================
+
+/// Checks if an expression can be folded into a constant string.
+/// Supports:
+///  - string literals
+///  - char literals
+///  - nested string concatenations
 bool ExpressionsHelper::isConstStringExpr(std::shared_ptr<Expr> expr) {
+
     if(expr->exp_kind == ExprKind::Literal){
         auto lit = std::static_pointer_cast<LiteralExpr>(expr);
         auto prim = std::static_pointer_cast<PrimType>(lit->type);
 
         return prim->prim == PrimType::Prims::String ||
-            prim->prim == PrimType::Prims::Char;
+               prim->prim == PrimType::Prims::Char;
     }
 
     if(expr->exp_kind == ExprKind::Binary){
         auto bin = std::static_pointer_cast<BinaryExpr>(expr);
+
         if (bin->operation != BinaryOp::ADD)
             return false;
 
         return isConstStringExpr(bin->lhs) &&
-            isConstStringExpr(bin->rhs);
+               isConstStringExpr(bin->rhs);
     }
 
     return false;   
 }
 
+/// Recursively folds a constant string expression into a std::string.
+/// Handles:
+///  - string literals
+///  - char literals (with escape parsing)
+///  - nested concatenation
 std::string ExpressionsHelper::foldConstString(std::shared_ptr<Expr> expr) {
 
-    // =========================
-    // CASE 1: Literal
-    // =========================
+    // ---------- Literal ----------
     if(expr->exp_kind == ExprKind::Literal){
         auto lit = std::static_pointer_cast<LiteralExpr>(expr);
         auto prim = std::static_pointer_cast<PrimType>(lit->type);
 
         switch (prim->prim) {
 
-            case PrimType::Prims::String: {
-                // Already a full string
+            case PrimType::Prims::String:
                 return lit->value;
-            }
 
             case PrimType::Prims::Char: {
                 const std::string &text = lit->value;
@@ -812,9 +811,7 @@ std::string ExpressionsHelper::foldConstString(std::shared_ptr<Expr> expr) {
         }
     }
 
-    // =========================
-    // CASE 2: BinaryExpr (+ only)
-    // =========================
+    // ---------- Binary (+ only) ----------
     if(expr->exp_kind == ExprKind::Binary){
         auto bin = std::static_pointer_cast<BinaryExpr>(expr);
 
@@ -822,24 +819,25 @@ std::string ExpressionsHelper::foldConstString(std::shared_ptr<Expr> expr) {
             llvm::report_fatal_error("Only + supported in foldConstString");
         }
 
-        // Recursively fold both sides
         std::string lhs = foldConstString(bin->lhs);
         std::string rhs = foldConstString(bin->rhs);
 
         return lhs + rhs;
     }
 
-    // =========================
-    // OTHERWISE
-    // =========================
     llvm::report_fatal_error("Expression is not a constant string expression");
 }
 
+/// Checks if an MLIR value is a string (i8*).
 bool ExpressionsHelper::isStringValue(mlir::Value v){
     return v.getType().isa<mlir::LLVM::LLVMPointerType>();
 }
 
-mlir::Value ExpressionsHelper::eqStringsConst(std::shared_ptr<Expr> lhs, std::shared_ptr<Expr> rhs) {
+/// Performs constant string equality at compile time.
+mlir::Value ExpressionsHelper::eqStringsConst(
+    std::shared_ptr<Expr> lhs,
+    std::shared_ptr<Expr> rhs
+) {
     std::string l = foldConstString(lhs);
     std::string r = foldConstString(rhs);
 
@@ -851,23 +849,29 @@ mlir::Value ExpressionsHelper::eqStringsConst(std::shared_ptr<Expr> lhs, std::sh
     );
 }
 
+
+/// =============================================================
+/// External Function Handling
+/// =============================================================
+
+/// Ensures strcmp is declared in the module.
+/// Returns existing declaration or inserts a new one.
 mlir::LLVM::LLVMFuncOp ExpressionsHelper::getOrInsertStrcmp() {
-    // Try to find existing declaration
+
     if (auto func = module.lookupSymbol<mlir::LLVM::LLVMFuncOp>("strcmp")) {
         return func;
     }
 
-    // i8*
     auto i8Ptr = mlir::LLVM::LLVMPointerType::get(builder->getContext());
 
     // int strcmp(i8*, i8*)
     auto fnType = mlir::LLVM::LLVMFunctionType::get(
         builder->getI32Type(),
         {i8Ptr, i8Ptr},
-        /*isVarArg=*/false
+        false
     );
 
-    // IMPORTANT: insert at module level (not inside a function)
+    // Must be inserted at module scope
     auto oldIP = builder->saveInsertionPoint();
     builder->setInsertionPointToStart(module.getBody());
 
@@ -882,40 +886,49 @@ mlir::LLVM::LLVMFuncOp ExpressionsHelper::getOrInsertStrcmp() {
     return func;
 }
 
+
+/// =============================================================
+/// Array Handling
+/// =============================================================
+
+/// Checks if array expression is fully constant.
+/// Allows:
+///  - literals
+///  - nested arrays
+///  - constant string expressions
 bool ExpressionsHelper::isConstArrayExpr(std::shared_ptr<ArrayExpr> arr) {
-        for (auto &elem : arr->elements) {
 
-            // Literal → OK
-            if (elem->exp_kind == ExprKind::Literal)
-                continue;
+    for (auto &elem : arr->elements) {
 
-            // Nested array → recurse
-            if (elem->exp_kind == ExprKind::Array) {
-                if (!isConstArrayExpr(std::static_pointer_cast<ArrayExpr>(elem)))
-                    return false;
-                continue;
-            }
+        if (elem->exp_kind == ExprKind::Literal)
+            continue;
 
-            // Binary → only allow const string folding case
-            if (elem->exp_kind == ExprKind::Binary) {
-                if (!isConstStringExpr(elem))
-                    return false;
-                continue;
-            }
-
-            // ❌ anything else = runtime
-            return false;
+        if (elem->exp_kind == ExprKind::Array) {
+            if (!isConstArrayExpr(std::static_pointer_cast<ArrayExpr>(elem)))
+                return false;
+            continue;
         }
 
-        return true;
+        if (elem->exp_kind == ExprKind::Binary) {
+            if (!isConstStringExpr(elem))
+                return false;
+            continue;
+        }
+
+        return false;
+    }
+
+    return true;
 }
 
-mlir::Value ExpressionsHelper::createConstArray(const std::vector<mlir::Value>& elements, PrimType::Prims kind) {
+/// Creates a global constant array.
+/// Emits LLVM global and returns pointer.
+mlir::Value ExpressionsHelper::createConstArray(
+    const std::vector<mlir::Value>& elements,
+    PrimType::Prims kind
+) {
     assert(!elements.empty());
 
-    // -------------------------
-    // 1. LLVM element type
-    // -------------------------
     mlir::Type elemTy;
 
     switch (kind) {
@@ -927,11 +940,8 @@ mlir::Value ExpressionsHelper::createConstArray(const std::vector<mlir::Value>& 
             elemTy = mlir::LLVM::LLVMPointerType::get(builder->getContext());
     }
 
-    // -------------------------
-    // 2. Extract constants
-    // -------------------------
+    // Extract constant attributes
     std::vector<mlir::Attribute> attrs;
-
     for (auto v : elements) {
         auto cst = v.getDefiningOp<mlir::arith::ConstantOp>();
         if (!cst)
@@ -940,22 +950,15 @@ mlir::Value ExpressionsHelper::createConstArray(const std::vector<mlir::Value>& 
         attrs.push_back(cst.getValue());
     }
 
-    // -------------------------
-    // 3. LLVM array type (NOT tensor)
-    // -------------------------
-    auto arrayTy = mlir::LLVM::LLVMArrayType::get(
-        elemTy,
-        elements.size()
-    );
+    // LLVM array type
+    auto arrayTy = mlir::LLVM::LLVMArrayType::get(elemTy, elements.size());
 
     auto denseAttr = mlir::DenseElementsAttr::get(
         mlir::RankedTensorType::get({(int64_t)elements.size()}, elemTy),
         attrs
     );
 
-    // -------------------------
-    // 4. Create global
-    // -------------------------
+    // Create global
     auto oldIP = builder->saveInsertionPoint();
     builder->setInsertionPointToStart(module.getBody());
 
@@ -963,7 +966,7 @@ mlir::Value ExpressionsHelper::createConstArray(const std::vector<mlir::Value>& 
 
     auto global = builder->create<mlir::LLVM::GlobalOp>(
         loc,
-        arrayTy,  
+        arrayTy,
         true,
         mlir::LLVM::Linkage::Internal,
         name,
@@ -972,16 +975,15 @@ mlir::Value ExpressionsHelper::createConstArray(const std::vector<mlir::Value>& 
 
     builder->restoreInsertionPoint(oldIP);
 
-    // -------------------------
-    // 5. Return pointer
-    // -------------------------
-    auto addr = builder->create<mlir::LLVM::AddressOfOp>(loc, global);
-
-
-    return addr;
+    return builder->create<mlir::LLVM::AddressOfOp>(loc, global);
 }
 
-mlir::Value ExpressionsHelper::createRuntimeArray(const std::vector<mlir::Value>& elements, PrimType::Prims kind) {
+/// Creates runtime array on stack using alloca.
+/// Stores elements sequentially.
+mlir::Value ExpressionsHelper::createRuntimeArray(
+    const std::vector<mlir::Value>& elements,
+    PrimType::Prims kind
+) {
     mlir::Type elemTy;
 
     switch (kind) {
@@ -996,22 +998,16 @@ mlir::Value ExpressionsHelper::createRuntimeArray(const std::vector<mlir::Value>
 
     auto ptrTy = mlir::LLVM::LLVMPointerType::get(builder->getContext());
 
-    // 🔥 allocate N elements (THIS IS THE FIX)
+    // Allocate N elements
     auto size = builder->create<mlir::arith::ConstantIntOp>(
-        loc,
-        elements.size(),
-        32
-    );
+        loc, elements.size(), 32);
 
     auto alloca = builder->create<mlir::LLVM::AllocaOp>(
-        loc,
-        ptrTy,     // result type
-        elemTy,    // element type
-        size       // 🔥 number of elements
-    );
+        loc, ptrTy, elemTy, size);
 
-    // store elements
+    // Store each element
     for (size_t i = 0; i < elements.size(); i++) {
+
         auto idx = builder->create<mlir::arith::ConstantIntOp>(loc, i, 32);
 
         auto gep = builder->create<mlir::LLVM::GEPOp>(
@@ -1027,41 +1023,66 @@ mlir::Value ExpressionsHelper::createRuntimeArray(const std::vector<mlir::Value>
 
     return alloca;
 }
-mlir::Value ExpressionsHelper::index(mlir::Value arr_p, mlir::Value idx, mlir::Type elemTy) {
-        auto ptrTy = mlir::LLVM::LLVMPointerType::get(builder->getContext());
 
-        // GEP → pointer to element
-        auto gep = builder->create<mlir::LLVM::GEPOp>(
-            loc,
-            ptrTy,
-            elemTy,
-            arr_p,
-            mlir::ValueRange{idx}
-        );
 
-        // LOAD → actual value
-        return builder->create<mlir::LLVM::LoadOp>(
-            loc,
-            elemTy,
-            gep
-        );
-}
-mlir::Value ExpressionsHelper::index(mlir::Value tuple_ptr, mlir::LLVM::LLVMStructType struct_ty, mlir::Type tar_ty,  mlir::Value i){
+/// =============================================================
+/// Indexing
+/// =============================================================
+
+/// Array indexing:
+///  - GEP to element pointer
+///  - Load element
+mlir::Value ExpressionsHelper::index(
+    mlir::Value arr_p,
+    mlir::Value idx,
+    mlir::Type elemTy
+) {
     auto ptrTy = mlir::LLVM::LLVMPointerType::get(builder->getContext());
 
-        // GEP: get field pointer
-        auto index = mlir::ValueRange{builder->create<mlir::arith::ConstantOp>(loc, builder->getI32IntegerAttr(0)), i};
-        auto fieldPtr = builder->create<mlir::LLVM::GEPOp>(
-            loc, 
-            ptrTy, 
-            struct_ty, 
-            tuple_ptr, index);
+    auto gep = builder->create<mlir::LLVM::GEPOp>(
+        loc,
+        ptrTy,
+        elemTy,
+        arr_p,
+        mlir::ValueRange{idx}
+    );
 
-       // LoadOp: load the value based on the target type we want to load up
-       return builder->create<mlir::LLVM::LoadOp>(
-            loc,
-            tar_ty,
-            fieldPtr
-        );
+    return builder->create<mlir::LLVM::LoadOp>(
+        loc,
+        elemTy,
+        gep
+    );
+}
+
+/// Tuple indexing:
+///  - GEP using struct layout
+///  - Load field value
+mlir::Value ExpressionsHelper::index(
+    mlir::Value tuple_ptr,
+    mlir::LLVM::LLVMStructType struct_ty,
+    mlir::Type tar_ty,
+    mlir::Value i
+){
+    auto ptrTy = mlir::LLVM::LLVMPointerType::get(builder->getContext());
+
+    auto index = mlir::ValueRange{
+        builder->create<mlir::arith::ConstantOp>(
+            loc, builder->getI32IntegerAttr(0)),
+        i
+    };
+
+    auto fieldPtr = builder->create<mlir::LLVM::GEPOp>(
+        loc,
+        ptrTy,
+        struct_ty,
+        tuple_ptr,
+        index
+    );
+
+    return builder->create<mlir::LLVM::LoadOp>(
+        loc,
+        tar_ty,
+        fieldPtr
+    );
 }
 }
