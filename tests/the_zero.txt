@@ -153,6 +153,7 @@ if (5 < 3) {
 }
 */
 
+/*
 
 // While Loop Examples
 
@@ -273,7 +274,7 @@ while(o < 5){
 
 
 
-
+*/
 
 
 
@@ -307,11 +308,13 @@ while(k > 2){
     k = k - 1;
 }
 
-let x : String[2][2] = [["hello", "world"],["goodbye", "life"]];
-print(x[1]);
-
-let z : String[4] = ["hello", "world", "goodbye", "life"];
 */
+
+let x : String[3][2] = [["hello", "world", "death"],["goodbye", "life", "pain"]];
+print([["hello", "world", "death"],["goodbye", "life", "pain"]]);
+
+//let z : String[4] = ["hello", "world", "goodbye", "life"];
+
 
     
   

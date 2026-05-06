@@ -436,6 +436,18 @@ public class RexBaseListener implements RexListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterIndexTupleExpr(RexParser.IndexTupleExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitIndexTupleExpr(RexParser.IndexTupleExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterArrayExpr(RexParser.ArrayExprContext ctx) { }
 	/**
 	 * {@inheritDoc}

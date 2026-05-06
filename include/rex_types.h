@@ -147,10 +147,15 @@ struct ArrayType : Type {
         : Type(TypeKind::Array), elem(std::move(e)), size(s) {}
 
     std::string to_string() const override {
+        if(elem->kind == TypeKind::Array){
+            auto elem_arr = std::static_pointer_cast<ArrayType>(elem);
+            return elem_arr->elem->to_string() + "[" + std::to_string(size) + "]" + "[" + std::to_string(elem_arr->size) +"]";
+        }
         return elem->to_string() + "[" + std::to_string(size) + "]";
     }
 
     bool equals(const std::shared_ptr<Type> other) const override {
+        // Broke For Now.
         if(kind != other->kind) return false;
         auto o = std::static_pointer_cast<ArrayType>(other);
         return size == o->size && elem->equals(o->elem);
