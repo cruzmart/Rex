@@ -168,35 +168,40 @@ mlir::Value IRGen::visitBinary(std::shared_ptr<BinaryExpr> bi){
 mlir::Value IRGen::visitArray(std::shared_ptr<ArrayExpr> arr) {
 
     auto arrTy = std::static_pointer_cast<ArrayType>(arr->type);
-    auto prim = std::static_pointer_cast<PrimType>(arrTy->elem);
+    std::vector<mlir::Value> flat;
 
-    std::vector<mlir::Value> elements;
-    elements.reserve(arr->elements.size());
 
-    bool allConst = true;
+    // -------------------------
+    // MATRIX CASE (flatten)
+    // -------------------------
+    if (arrTy->isMatrix()) {
+         auto prim  = arrTy->matrixType();
 
-    // Evaluate elements
-    for (auto &e : arr->elements) {
+        for (auto &rowExpr : arr->elements) {
+            auto row = std::static_pointer_cast<ArrayExpr>(rowExpr);
 
-        mlir::Value v = visitExp(e);
-        elements.push_back(v);
-
-        // Check if element is constant
-        if (!v.getDefiningOp<mlir::arith::ConstantOp>()) {
-            allConst = false;
+            for (auto &elem : row->elements) {
+                flat.push_back(visitExp(elem));
+            }
         }
+
+        arrTy->arrayKind = ArrayStorageKind::RuntimeAlloc;
+        return exps->createRuntimeArray(flat, prim);
     }
 
-    // Compile-time array
-    if (allConst) {
-        arrTy->arrayKind = ArrayStorageKind::GlobalConst;
-        return exps->createConstArray(elements, prim->prim);
+    // -------------------------
+    // 1D ARRAY
+
+    // -------------------------
+    auto prim  = arrTy->arrayType();
+    for (auto &e : arr->elements) {
+        flat.push_back(visitExp(e));
     }
 
-    // Runtime array
     arrTy->arrayKind = ArrayStorageKind::RuntimeAlloc;
-    return exps->createRuntimeArray(elements, prim->prim);
+    return exps->createRuntimeArray(flat, prim);
 }
+
 
 /// Tuple creation → delegates to ExpressionsHelper
 mlir::Value IRGen::visitTuple(std::shared_ptr<TupleExpr> tup){
@@ -942,7 +947,7 @@ void IRGen::visitPrint(std::shared_ptr<PrintStmt> p) {
     switch (type->kind) {
 
         case TypeKind::Primitive: {
-            prints->printPrimtive(val);
+            prints->printInline(val);
             break;
         }
 

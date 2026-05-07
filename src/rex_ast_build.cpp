@@ -130,11 +130,45 @@ antlrcpp::Any rex_ast_build::visitNamedType(RexParser::NamedTypeContext* ctx) {
 }
 
 antlrcpp::Any rex_ast_build::visitArrayType(RexParser::ArrayTypeContext* ctx) {
-    auto array_size = std::stoi(ctx->INT_LITERAL()->getText());
-    auto array_type = as_type<Type>(visit(ctx->type()));
-    auto at = std::make_shared<ArrayType>(array_type, array_size);
-    at->loc = loc(ctx);
-    return std::static_pointer_cast<Type>(at);
+
+    auto size = std::stoi(ctx->INT_LITERAL()->getText());
+
+    auto inner = as_type<Type>(visit(ctx->type()));
+
+    // Case 1:
+    // Primitive or non-array type
+    //
+    // String[2]
+    //
+    if (!std::dynamic_pointer_cast<ArrayType>(inner)) {
+
+        auto arr = std::make_shared<ArrayType>(inner, size);
+        arr->loc = loc(ctx);
+
+        return std::static_pointer_cast<Type>(arr);
+    }
+
+    // Case 2:
+    // Existing array => matrix construction
+    //
+    // String[2][3]
+    //
+    auto innerArr = std::dynamic_pointer_cast<ArrayType>(inner);
+    int innerSize = innerArr->size;
+    innerArr->size = size;
+    
+    auto outer =
+        std::make_shared<ArrayType>(
+            innerArr,
+            innerSize
+        );
+
+    outer->loc = loc(ctx);
+
+    std::cout << outer->to_string() <<  "sdasdasdsadasdasd" << std::endl;
+
+
+    return std::static_pointer_cast<Type>(outer);
 }
 
 antlrcpp::Any rex_ast_build::visitSliceType(RexParser::SliceTypeContext* ctx) {

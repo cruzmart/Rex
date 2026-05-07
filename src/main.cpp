@@ -51,12 +51,15 @@ int main() {
     AliasPass pass_alias(global_scope, debug);
     pass_alias.visit(ast);
     // std::cout << "Alias Check (Passed)" << std::endl;
+    
+   
 
     ////// Expr Pass //////
     auto global_scope_2 = std::make_shared<Scope>();
     ExprPass pass_expr(global_scope_2);
     pass_expr.visit(ast);
     // std::cout << "Expression Check (Passed)" << std::endl;
+
 
     ///// Assign Pass /////
     AssignmentCheckPass pass_assign;
