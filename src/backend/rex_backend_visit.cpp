@@ -941,34 +941,20 @@ void IRGen::visitBreak(std::shared_ptr<BreakStmt> brk) {
 }
 void IRGen::visitPrint(std::shared_ptr<PrintStmt> p) {
     mlir::Value val = visitExp(p->argument);
-
     auto type = p->argument->type;
 
-    switch (type->kind) {
-
-        case TypeKind::Primitive: {
-            prints->printInline(val);
-            break;
-        }
-
-        case TypeKind::Array: {
-            auto arrType = std::static_pointer_cast<ArrayType>(type);
-            prints->printArray(val, arrType);
-            break;
-        }
-
-        case TypeKind::Tuple: {
-            auto tup_t = std::static_pointer_cast<TupleType>(type);
-            auto tup_s = prints->types->createStruct(tup_t->elements);
-            prints->printTuple(val, tup_s, tup_t->elements);
-            break;
-        }
-
-        default:
-            llvm::report_fatal_error("Unsupported type in print");
+    if(type->kind == TypeKind::Primitive){
+        prints->printInline(val);
+    } else if(type->kind == TypeKind::Array){
+        prints->printArray(val, std::static_pointer_cast<ArrayType>(type));
+    } else if(type->kind == TypeKind::Tuple){
+        auto tup_t = std::static_pointer_cast<TupleType>(type);
+        prints->printTuple(val, types->createStruct(tup_t->elements), tup_t->elements);
+    }  else {
+        llvm::report_fatal_error("Unsupported type in print");
     }
 
-    // -----------------------------------
+        // -----------------------------------
     // print '\n'
     // -----------------------------------
     auto close = builder->create<mlir::arith::ConstantIntOp>(loc, '\n', 8);
@@ -976,7 +962,6 @@ void IRGen::visitPrint(std::shared_ptr<PrintStmt> p) {
     builder->create<mlir::LLVM::CallOp>(
         loc, prints->printf_func, mlir::ValueRange{prints->getFmtAddress(prints->fmt_char), close}
     );
-
 
 }
 
