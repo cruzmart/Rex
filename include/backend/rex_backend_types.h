@@ -73,48 +73,88 @@ struct TypesHelper {
         TypesHelper( std::shared_ptr<mlir::OpBuilder> b, mlir::Location l);
 
 
-        mlir::Type getMLIRType(std::shared_ptr<Type> t) {
+    mlir::Type getMLIRType(std::shared_ptr<Type> t) {
 
-     \
-            if(t->kind == TypeKind::Primitive){
-                auto prim = std::static_pointer_cast<PrimType>(t);
-        
-                
-                switch (prim->prim) {
+     // =====================================================
+    // ARRAY
+    // =====================================================
 
-                        case PrimType::Prims::Int:    return builder->getI32Type();
-                        case PrimType::Prims::Real:   return builder->getF32Type();
-                        case PrimType::Prims::Bool:   return builder->getI1Type();
-                        case PrimType::Prims::Char:   return builder->getI8Type();
-                        case PrimType::Prims::String: return mlir::LLVM::LLVMPointerType::get(builder->getContext());
-                        default:
-                            llvm_unreachable("Unsupported type");
-                    }
-            }
+    if (t->kind == TypeKind::Array) {
 
-            if(t->kind == TypeKind::Array){
- 
-                return mlir::LLVM::LLVMPointerType::get(builder->getContext());
+        auto arrTy =
+            std::static_pointer_cast<ArrayType>(t);
 
-            }
+        auto elemTy =
+            getMLIRType(arrTy->elem);
 
-            if(t->kind == TypeKind::Range){
-                llvm::errs() << "bye\n";
-                return mlir::LLVM::LLVMPointerType::get(builder->getContext());
-            }
+        auto [rows, cols] =
+            arrTy->dimensions();
 
-
-            llvm_unreachable("Unsupported type");
-        
+        // matrix -> flattened array
+        if (arrTy->isMatrix()) {
+             auto elemTy =
+            getMLIRType(std::static_pointer_cast<ArrayType>(arrTy->elem)->elem);
+            return mlir::LLVM::LLVMArrayType::get(
+                elemTy,
+                rows * cols
+            );
         }
 
-        mlir::LLVM::LLVMStructType createStruct(std::vector<std::shared_ptr<Type>> types){
-            std::vector<mlir::Type> m_t;
-            for(auto type : types){
-                m_t.push_back(getMLIRType(type));
-            }
-            return mlir::LLVM::LLVMStructType::getLiteral(builder->getContext(), m_t);
+        // normal array
+        return mlir::LLVM::LLVMArrayType::get(
+            elemTy,
+            cols
+        );
+    }
+
+    // =====================================================
+    // RANGE
+    // =====================================================
+
+    if (t->kind == TypeKind::Range) {
+        return builder->getI32Type();
+    }
+
+    // =====================================================
+    // PRIMITIVE
+    // =====================================================
+
+    auto prim =
+        std::static_pointer_cast<PrimType>(t)->prim;
+
+    switch (prim) {
+
+        case PrimType::Prims::Int:
+            return builder->getI32Type();
+
+        case PrimType::Prims::Bool:
+            return builder->getI1Type();
+
+        case PrimType::Prims::Char:
+            return builder->getI8Type();
+
+        case PrimType::Prims::String:
+            return mlir::LLVM::LLVMPointerType::get(
+                builder->getContext()
+            );
+
+        case PrimType::Prims::Real:
+            return builder->getF32Type();
+
+        default:
+            llvm::report_fatal_error(
+                "Unsupported type in MLIR"
+            );
+    }
+}
+
+    mlir::LLVM::LLVMStructType createStruct(std::vector<std::shared_ptr<Type>> types){
+        std::vector<mlir::Type> m_t;
+        for(auto type : types){
+            m_t.push_back(getMLIRType(type));
         }
+        return mlir::LLVM::LLVMStructType::getLiteral(builder->getContext(), m_t);
+    }
 };
 
 } // namespace rex

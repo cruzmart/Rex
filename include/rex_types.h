@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 
-
 namespace rex {
 
 // -------------------------------------------------
@@ -147,14 +146,50 @@ struct ArrayType : Type {
         : Type(TypeKind::Array), elem(std::move(e)), size(s) {}
 
     std::string to_string() const override {
+        if(elem->kind == TypeKind::Array){
+            auto elem_arr = std::static_pointer_cast<ArrayType>(elem);
+            return elem_arr->elem->to_string() + "[" + std::to_string(size) + "]" + "[" + std::to_string(elem_arr->size) +"]";
+        }
         return elem->to_string() + "[" + std::to_string(size) + "]";
     }
 
     bool equals(const std::shared_ptr<Type> other) const override {
+        // Broke For Now.
         if(kind != other->kind) return false;
         auto o = std::static_pointer_cast<ArrayType>(other);
         return size == o->size && elem->equals(o->elem);
     }
+
+    PrimType::Prims matrixType(){
+        if(isMatrix())
+            return std::static_pointer_cast<PrimType>(std::static_pointer_cast<ArrayType>(elem)->elem)->prim;
+        return PrimType::Prims::Null;
+    }
+
+    PrimType::Prims arrayType() {
+        if(isArray())
+            return std::static_pointer_cast<PrimType>(elem)->prim;
+        return PrimType::Prims::Null;
+    }
+    
+    bool isMatrix(){
+        return elem->kind == TypeKind::Array;
+    }
+
+    bool isArray(){
+        return isMatrix() != true;
+    }
+
+    std::pair<int,int> dimensions(){
+     
+        if (isMatrix()) {
+            auto arrElem = std::static_pointer_cast<ArrayType>(elem);
+            return {size, arrElem->size};
+        }
+
+        return {1, size};
+    }
+
 };
 
 struct SliceType : Type {

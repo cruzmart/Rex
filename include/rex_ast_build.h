@@ -7,7 +7,7 @@
 
 using namespace rex;
 
-class rex_ast_build : public RexBaseVisitor {
+class RexAstBuild: public RexBaseVisitor {
 public:
     // ---------------------- TOP LEVEL ----------------------
     std::unique_ptr<FileAst> build(RexParser::FileContext* ctx);

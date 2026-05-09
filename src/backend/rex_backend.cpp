@@ -203,27 +203,3 @@ void BackEnd::loadRuntimeFuncs() {
         stringEqType
     );
 }
-
-
-void BackEnd::example() {
-
-
-    auto int_1 = exps->createInt("234");
-    auto float_1 = exps->createFloat("3.4551");
-    auto bool_1 = exps->createBool("true");
-    auto char_1 = exps->createChar("'\n'");
-    auto string_1 = exps->createString("The Blight");
-
-
-    // Print them
-
-    visitor->prints->printPrimtive(int_1);
-    visitor->prints->printPrimtive(float_1);
-    visitor->prints->printPrimtive(char_1);
-    visitor->prints->printPrimtive(bool_1);
-    visitor->prints->printPrimtive(string_1);
-    
-
-
-    //printer->printValue(strVal);
-}

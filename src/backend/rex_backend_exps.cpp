@@ -921,65 +921,22 @@ bool ExpressionsHelper::isConstArrayExpr(std::shared_ptr<ArrayExpr> arr) {
     return true;
 }
 
-/// Creates a global constant array.
-/// Emits LLVM global and returns pointer.
-mlir::Value ExpressionsHelper::createConstArray(
-    const std::vector<mlir::Value>& elements,
-    PrimType::Prims kind
-) {
-    assert(!elements.empty());
+bool ExpressionsHelper::isCompileTimeValue(mlir::Value v) {
+    if (v.getDefiningOp<mlir::arith::ConstantOp>())
+        return true;
 
-    mlir::Type elemTy;
+    if (v.getDefiningOp<mlir::LLVM::AddressOfOp>())
+        return true;
 
-    switch (kind) {
-        case PrimType::Prims::Int:   elemTy = builder->getIntegerType(32); break;
-        case PrimType::Prims::Real:  elemTy = builder->getF32Type(); break;
-        case PrimType::Prims::Bool:  elemTy = builder->getI1Type(); break;
-        case PrimType::Prims::Char:  elemTy = builder->getIntegerType(8); break;
-        default:
-            elemTy = mlir::LLVM::LLVMPointerType::get(builder->getContext());
-    }
+    if (v.getDefiningOp<mlir::arith::ConstantIntOp>())
+        return true;
 
-    // Extract constant attributes
-    std::vector<mlir::Attribute> attrs;
-    for (auto v : elements) {
-        auto cst = v.getDefiningOp<mlir::arith::ConstantOp>();
-        if (!cst)
-            llvm::report_fatal_error("Non-constant array element");
+    if (v.getDefiningOp<mlir::arith::ConstantFloatOp>())
+        return true;
 
-        attrs.push_back(cst.getValue());
-    }
-
-    // LLVM array type
-    auto arrayTy = mlir::LLVM::LLVMArrayType::get(elemTy, elements.size());
-
-    auto denseAttr = mlir::DenseElementsAttr::get(
-        mlir::RankedTensorType::get({(int64_t)elements.size()}, elemTy),
-        attrs
-    );
-
-    // Create global
-    auto oldIP = builder->saveInsertionPoint();
-    builder->setInsertionPointToStart(module.getBody());
-
-    std::string name = "arr_const_" + std::to_string(globalCounter++);
-
-    auto global = builder->create<mlir::LLVM::GlobalOp>(
-        loc,
-        arrayTy,
-        true,
-        mlir::LLVM::Linkage::Internal,
-        name,
-        denseAttr
-    );
-
-    builder->restoreInsertionPoint(oldIP);
-
-    return builder->create<mlir::LLVM::AddressOfOp>(loc, global);
+    return false;
 }
 
-/// Creates runtime array on stack using alloca.
-/// Stores elements sequentially.
 mlir::Value ExpressionsHelper::createRuntimeArray(
     const std::vector<mlir::Value>& elements,
     PrimType::Prims kind
@@ -987,43 +944,80 @@ mlir::Value ExpressionsHelper::createRuntimeArray(
     mlir::Type elemTy;
 
     switch (kind) {
-        case PrimType::Prims::Int:   elemTy = types->i32; break;
-        case PrimType::Prims::Real:  elemTy = types->f32; break;
-        case PrimType::Prims::Bool:  elemTy = types->b1; break;
-        case PrimType::Prims::Char:  elemTy = types->c8; break;
+        case PrimType::Prims::Int:
+            elemTy = types->i32;
+            break;
+        case PrimType::Prims::Real:
+            elemTy = types->f32;
+            break;
+        case PrimType::Prims::Bool:
+            elemTy = types->b1;
+            break;
+        case PrimType::Prims::Char:
+            elemTy = types->c8;
+            break;
+        case PrimType::Prims::String:
+            elemTy = mlir::LLVM::LLVMPointerType::get(builder->getContext());
+            break;
         default:
             elemTy = mlir::LLVM::LLVMPointerType::get(builder->getContext());
             break;
     }
 
-    auto ptrTy = mlir::LLVM::LLVMPointerType::get(builder->getContext());
 
-    // Allocate N elements
-    auto size = builder->create<mlir::arith::ConstantIntOp>(
-        loc, elements.size(), 32);
+    auto ctx = builder->getContext();
+
+    auto ptrTy = mlir::LLVM::LLVMPointerType::get(ctx);
+
+    // =====================================================
+    // ✅ REAL LLVM ARRAY TYPE
+    // =====================================================
+    auto arrayTy = mlir::LLVM::LLVMArrayType::get(elemTy, elements.size());
+
+    // =====================================================
+    // ✅ ALLOCATE ONE ARRAY OBJECT
+    // =====================================================
+    auto one = builder->create<mlir::arith::ConstantIntOp>(loc, 1, 32);
 
     auto alloca = builder->create<mlir::LLVM::AllocaOp>(
-        loc, ptrTy, elemTy, size);
+        loc,
+        ptrTy,
+        arrayTy,
+        one   // ✅ NOT "size", ALWAYS 1 for array object
+    );
 
-    // Store each element
+    // =====================================================
+    // ZERO INDEX FOR GEP ROOT
+    // =====================================================
+    auto zero = builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32);
+
+    // =====================================================
+    // STORE ELEMENTS
+    // =====================================================
     for (size_t i = 0; i < elements.size(); i++) {
 
         auto idx = builder->create<mlir::arith::ConstantIntOp>(loc, i, 32);
 
+        // =================================================
+        // ✅ CORRECT GEP: (0, i)
+        // =================================================
         auto gep = builder->create<mlir::LLVM::GEPOp>(
             loc,
             ptrTy,
-            elemTy,
+            arrayTy,
             alloca,
-            mlir::ValueRange{idx}
+            mlir::ValueRange{zero, idx}
         );
 
-        builder->create<mlir::LLVM::StoreOp>(loc, elements[i], gep);
+        builder->create<mlir::LLVM::StoreOp>(
+            loc,
+            elements[i],
+            gep
+        );
     }
 
     return alloca;
 }
-
 
 /// =============================================================
 /// Indexing

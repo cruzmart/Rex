@@ -37,7 +37,7 @@ int main() {
 
     RexParser::FileContext* parse_tree = parser.file();
 
-    rex_ast_build builder;
+    RexAstBuild builder;
     auto ast_any = builder.visit(parse_tree);
     auto ast = std::any_cast<std::shared_ptr<FileAst>>(ast_any);
 
@@ -51,12 +51,15 @@ int main() {
     AliasPass pass_alias(global_scope, debug);
     pass_alias.visit(ast);
     // std::cout << "Alias Check (Passed)" << std::endl;
+    
+   
 
     ////// Expr Pass //////
     auto global_scope_2 = std::make_shared<Scope>();
     ExprPass pass_expr(global_scope_2);
     pass_expr.visit(ast);
     // std::cout << "Expression Check (Passed)" << std::endl;
+
 
     ///// Assign Pass /////
     AssignmentCheckPass pass_assign;

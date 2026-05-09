@@ -19,7 +19,7 @@ using namespace rex;
 // ------------------- HELPERS ---------------------
 // ==================================================
 
-SourceLocation rex_ast_build::loc(antlr4::ParserRuleContext* ctx) {
+SourceLocation RexAstBuild::loc(antlr4::ParserRuleContext* ctx) {
     return { ctx->getStart()->getLine(), ctx->getStart()->getCharPositionInLine() };
 }
 
@@ -63,7 +63,7 @@ BinaryOp operationType (size_t op) {
 }
 
 template <typename Ctx>
-static antlrcpp::Any build_binary_expr(rex_ast_build* self, Ctx* ctx) {
+static antlrcpp::Any build_binary_expr(RexAstBuild* self, Ctx* ctx) {
     auto bin = std::make_shared<BinaryExpr>();
     bin->exp_kind = ExprKind::Binary;
     size_t op = ctx->op->getType();
@@ -79,7 +79,7 @@ static antlrcpp::Any build_binary_expr(rex_ast_build* self, Ctx* ctx) {
 // ------------------- TOP LEVEL -------------------
 // ==================================================
 
-antlrcpp::Any rex_ast_build::visitFile(RexParser::FileContext* ctx) {
+antlrcpp::Any RexAstBuild::visitFile(RexParser::FileContext* ctx) {
     auto file = std::make_shared<FileAst>();
     file->loc = loc(ctx);
     for (auto item : ctx->item())
@@ -87,7 +87,7 @@ antlrcpp::Any rex_ast_build::visitFile(RexParser::FileContext* ctx) {
     return file;
 }
 
-antlrcpp::Any rex_ast_build::visitItem(RexParser::ItemContext* ctx) {
+antlrcpp::Any RexAstBuild::visitItem(RexParser::ItemContext* ctx) {
     if (ctx->functionDef()) return visit(ctx->functionDef());
     return visit(ctx->statement());
 }
@@ -96,7 +96,7 @@ antlrcpp::Any rex_ast_build::visitItem(RexParser::ItemContext* ctx) {
 // ---------------------- TYPES --------------------
 // ==================================================
 
-antlrcpp::Any rex_ast_build::visitTypeDef(RexParser::TypeDefContext* ctx) {
+antlrcpp::Any RexAstBuild::visitTypeDef(RexParser::TypeDefContext* ctx) {
     auto td = std::make_shared<TypeDecl>();
     td->name = ctx->ID()->getText();
     td->loc = loc(ctx);
@@ -104,11 +104,11 @@ antlrcpp::Any rex_ast_build::visitTypeDef(RexParser::TypeDefContext* ctx) {
     return std::static_pointer_cast<Stmt>(td);
 }
 
-antlrcpp::Any rex_ast_build::visitPrimeType(RexParser::PrimeTypeContext* ctx) { 
+antlrcpp::Any RexAstBuild::visitPrimeType(RexParser::PrimeTypeContext* ctx) { 
     return visit(ctx->primitiveType());
 }
 
-antlrcpp::Any rex_ast_build::visitPrimitiveType(RexParser::PrimitiveTypeContext *ctx) {
+antlrcpp::Any RexAstBuild::visitPrimitiveType(RexParser::PrimitiveTypeContext *ctx) {
     std::shared_ptr<PrimType> pt;
 
     if(ctx->BOOL()) pt  = std::make_shared<PrimType>(PrimType::Prims::Bool);
@@ -123,28 +123,62 @@ antlrcpp::Any rex_ast_build::visitPrimitiveType(RexParser::PrimitiveTypeContext 
     return std::static_pointer_cast<Type>(pt);
 }
 
-antlrcpp::Any rex_ast_build::visitNamedType(RexParser::NamedTypeContext* ctx) {
+antlrcpp::Any RexAstBuild::visitNamedType(RexParser::NamedTypeContext* ctx) {
     auto nt = std::make_shared<NamedType>(ctx->ID()->getText());
     nt->loc = loc(ctx);
     return std::static_pointer_cast<Type>(nt);
 }
 
-antlrcpp::Any rex_ast_build::visitArrayType(RexParser::ArrayTypeContext* ctx) {
-    auto array_size = std::stoi(ctx->INT_LITERAL()->getText());
-    auto array_type = as_type<Type>(visit(ctx->type()));
-    auto at = std::make_shared<ArrayType>(array_type, array_size);
-    at->loc = loc(ctx);
-    return std::static_pointer_cast<Type>(at);
+antlrcpp::Any RexAstBuild::visitArrayType(RexParser::ArrayTypeContext* ctx) {
+
+    auto size = std::stoi(ctx->INT_LITERAL()->getText());
+
+    auto inner = as_type<Type>(visit(ctx->type()));
+
+    // Case 1:
+    // Primitive or non-array type
+    //
+    // String[2]
+    //
+    if (!std::dynamic_pointer_cast<ArrayType>(inner)) {
+
+        auto arr = std::make_shared<ArrayType>(inner, size);
+        arr->loc = loc(ctx);
+
+        return std::static_pointer_cast<Type>(arr);
+    }
+
+    // Case 2:
+    // Existing array => matrix construction
+    //
+    // String[2][3]
+    //
+    auto innerArr = std::dynamic_pointer_cast<ArrayType>(inner);
+    int innerSize = innerArr->size;
+    innerArr->size = size;
+    
+    auto outer =
+        std::make_shared<ArrayType>(
+            innerArr,
+            innerSize
+        );
+
+    outer->loc = loc(ctx);
+
+    std::cout << outer->to_string() <<  "sdasdasdsadasdasd" << std::endl;
+
+
+    return std::static_pointer_cast<Type>(outer);
 }
 
-antlrcpp::Any rex_ast_build::visitSliceType(RexParser::SliceTypeContext* ctx) {
+antlrcpp::Any RexAstBuild::visitSliceType(RexParser::SliceTypeContext* ctx) {
     auto slice_type = as_type<Type>(visit(ctx->type()));
     auto st = std::make_shared<SliceType>(slice_type);
     st->loc = loc(ctx);
     return std::static_pointer_cast<Type>(st);
 }
 
-antlrcpp::Any rex_ast_build::visitTupleType(RexParser::TupleTypeContext* ctx) {
+antlrcpp::Any RexAstBuild::visitTupleType(RexParser::TupleTypeContext* ctx) {
     auto tt = std::make_shared<TupleType>();
     for(auto type : ctx->type())
         tt->elements.push_back(as_type<Type>(visit(type)));
@@ -157,7 +191,7 @@ antlrcpp::Any rex_ast_build::visitTupleType(RexParser::TupleTypeContext* ctx) {
 // -------------------- FUNCTIONS ------------------
 // ==================================================
 
-antlrcpp::Any rex_ast_build::visitFunctionDef(RexParser::FunctionDefContext* ctx) {
+antlrcpp::Any RexAstBuild::visitFunctionDef(RexParser::FunctionDefContext* ctx) {
     auto fn = std::make_shared<FunctionDecl>();
     auto fn_type = std::make_shared<FunctionType>();
     fn->func_type = fn_type;
@@ -176,17 +210,17 @@ antlrcpp::Any rex_ast_build::visitFunctionDef(RexParser::FunctionDefContext* ctx
     return fn;
 }
 
-antlrcpp::Any rex_ast_build::visitParam(RexParser::ParamContext* ctx) {
+antlrcpp::Any RexAstBuild::visitParam(RexParser::ParamContext* ctx) {
     return std::make_shared<Parameter>(ctx->ID()->getText(), as_type<Type>(visit(ctx->type())));
 }
 
-antlrcpp::Any rex_ast_build::visitParamList(RexParser::ParamListContext* ctx) {
+antlrcpp::Any RexAstBuild::visitParamList(RexParser::ParamListContext* ctx) {
     std::vector<std::shared_ptr<Parameter>> params;
     for (auto p : ctx->param()) params.push_back(std::any_cast<std::shared_ptr<Parameter>>(visit(p)));
     return params;
 }
 
-antlrcpp::Any rex_ast_build::visitReturnType(RexParser::ReturnTypeContext* ctx) {
+antlrcpp::Any RexAstBuild::visitReturnType(RexParser::ReturnTypeContext* ctx) {
     return visit(ctx->type());
 }
 
@@ -194,7 +228,7 @@ antlrcpp::Any rex_ast_build::visitReturnType(RexParser::ReturnTypeContext* ctx) 
 // -------------------- STATEMENTS -----------------
 // ==================================================
 
-antlrcpp::Any rex_ast_build::visitStatement(RexParser::StatementContext* ctx) {
+antlrcpp::Any RexAstBuild::visitStatement(RexParser::StatementContext* ctx) {
     if (ctx->letStmt()) return visit(ctx->letStmt());
     if (ctx->exprStmt()) return visit(ctx->exprStmt());
     if (ctx->loopStmt()) return visit(ctx->loopStmt());
@@ -208,7 +242,7 @@ antlrcpp::Any rex_ast_build::visitStatement(RexParser::StatementContext* ctx) {
     throw std::runtime_error("Unknown statement type");
 }
 
-antlrcpp::Any rex_ast_build::visitLetStmt(RexParser::LetStmtContext* ctx) {
+antlrcpp::Any RexAstBuild::visitLetStmt(RexParser::LetStmtContext* ctx) {
     auto l = std::make_shared<LetStmt>();
     l->id_pattern = std::any_cast<std::shared_ptr<Pattern>>(visit(ctx->pattern()));
     if(ctx->type()) l->type = as_type<Type>(visit(ctx->type()));
@@ -216,7 +250,7 @@ antlrcpp::Any rex_ast_build::visitLetStmt(RexParser::LetStmtContext* ctx) {
     l->loc = loc(ctx);
     return std::static_pointer_cast<Stmt>(l);
 }
-antlrcpp::Any rex_ast_build::visitPrintStmt(RexParser::PrintStmtContext * ctx){
+antlrcpp::Any RexAstBuild::visitPrintStmt(RexParser::PrintStmtContext * ctx){
     auto p = std::make_shared<PrintStmt>();
     if(ctx->expr())
         p->argument = as_expr<Expr>(visit(ctx->expr()));
@@ -228,7 +262,7 @@ antlrcpp::Any rex_ast_build::visitPrintStmt(RexParser::PrintStmtContext * ctx){
 // -------------------- PATTERNS -------------------
 // ==================================================
 
-antlrcpp::Any rex_ast_build::visitPattern(RexParser::PatternContext* ctx) {
+antlrcpp::Any RexAstBuild::visitPattern(RexParser::PatternContext* ctx) {
     if(ctx->ID().size() > 1){
         auto pattern_ids = std::make_shared<PatternIds>();
         for(auto id : ctx->ID()){
@@ -245,21 +279,21 @@ antlrcpp::Any rex_ast_build::visitPattern(RexParser::PatternContext* ctx) {
 // -------------------- LOOPS & IF -----------------
 // ==================================================
 
-antlrcpp::Any rex_ast_build::visitReturnStmt(RexParser::ReturnStmtContext* ctx) {
+antlrcpp::Any RexAstBuild::visitReturnStmt(RexParser::ReturnStmtContext* ctx) {
     auto ret = std::make_shared<ReturnStmt>();
     ret->loc = loc(ctx);
     if(ctx->expr()) ret->value = as_expr<Expr>(visit(ctx->expr()));
     return std::static_pointer_cast<Stmt>(ret);
 }
 
-antlrcpp::Any rex_ast_build::visitExprStmt(RexParser::ExprStmtContext* ctx) {
+antlrcpp::Any RexAstBuild::visitExprStmt(RexParser::ExprStmtContext* ctx) {
     auto es = std::make_shared<ExprStmt>();
     es->loc = loc(ctx);
     if(ctx->expr()) es->value = as_expr<Expr>(visit(ctx->expr()));
     return std::static_pointer_cast<Stmt>(es);
 }
 
-antlrcpp::Any rex_ast_build::visitAssignStmt(RexParser::AssignStmtContext *ctx) {
+antlrcpp::Any RexAstBuild::visitAssignStmt(RexParser::AssignStmtContext *ctx) {
     auto asg = std::make_shared<AssignStmt>();
     asg->target = as_expr<Expr>(visit(ctx->expr(0)));
     asg->value = as_expr<Expr>(visit(ctx->expr(1)));
@@ -267,7 +301,7 @@ antlrcpp::Any rex_ast_build::visitAssignStmt(RexParser::AssignStmtContext *ctx) 
     return std::static_pointer_cast<Stmt>(asg);
 }
 
-antlrcpp::Any rex_ast_build::visitLoopStmt(RexParser::LoopStmtContext* ctx) {
+antlrcpp::Any RexAstBuild::visitLoopStmt(RexParser::LoopStmtContext* ctx) {
     if(ctx->WHILE()) {
         auto w = std::make_shared<WhileStmt>();
         w->loc = loc(ctx);
@@ -293,7 +327,7 @@ antlrcpp::Any rex_ast_build::visitLoopStmt(RexParser::LoopStmtContext* ctx) {
     throw std::runtime_error("Unknown loop kind");
 }
 
-antlrcpp::Any rex_ast_build::visitIfStmt(RexParser::IfStmtContext *ctx){
+antlrcpp::Any RexAstBuild::visitIfStmt(RexParser::IfStmtContext *ctx){
     auto if_ = std::make_shared<IfStmt>();
     if_->loc = loc(ctx);
     if_->condition = as_expr<Expr>(visit(ctx->expr()));
@@ -318,7 +352,7 @@ antlrcpp::Any rex_ast_build::visitIfStmt(RexParser::IfStmtContext *ctx){
 }
 
 
-antlrcpp::Any rex_ast_build::visitBreakStmt(RexParser::BreakStmtContext * ctx) {
+antlrcpp::Any RexAstBuild::visitBreakStmt(RexParser::BreakStmtContext * ctx) {
 
     auto brs = std::make_shared<BreakStmt>();
     brs->loc = loc(ctx);
@@ -330,7 +364,7 @@ antlrcpp::Any rex_ast_build::visitBreakStmt(RexParser::BreakStmtContext * ctx) {
 // ---------------------- BLOCKS -------------------
 // ==================================================
 
-antlrcpp::Any rex_ast_build::visitBlock(RexParser::BlockContext* ctx) {
+antlrcpp::Any RexAstBuild::visitBlock(RexParser::BlockContext* ctx) {
     auto block = std::make_shared<BlockExpr>();
     block->loc = loc(ctx);
     block->exp_kind = ExprKind::Block;
@@ -345,7 +379,7 @@ antlrcpp::Any rex_ast_build::visitBlock(RexParser::BlockContext* ctx) {
 // ------------------- EXPRESSIONS -----------------
 // ==================================================
 
-antlrcpp::Any rex_ast_build::visitIdExpr(RexParser::IdExprContext* ctx) {
+antlrcpp::Any RexAstBuild::visitIdExpr(RexParser::IdExprContext* ctx) {
     auto id = std::make_shared<IdExpr>();
     id->name = ctx->ID()->getText();
     id->loc = loc(ctx);
@@ -354,11 +388,11 @@ antlrcpp::Any rex_ast_build::visitIdExpr(RexParser::IdExprContext* ctx) {
     return std::static_pointer_cast<Expr>(id);
 }
 
-antlrcpp::Any rex_ast_build::visitLiteralExpr(RexParser::LiteralExprContext* ctx) {
+antlrcpp::Any RexAstBuild::visitLiteralExpr(RexParser::LiteralExprContext* ctx) {
     return visit(ctx->literal());
 }
 
-antlrcpp::Any rex_ast_build::visitLiteral(RexParser::LiteralContext* ctx) {
+antlrcpp::Any RexAstBuild::visitLiteral(RexParser::LiteralContext* ctx) {
     auto lit = std::make_shared<LiteralExpr>();
     lit->exp_kind = ExprKind::Literal;
     lit->value = ctx->getText();
@@ -378,14 +412,14 @@ antlrcpp::Any rex_ast_build::visitLiteral(RexParser::LiteralContext* ctx) {
 
 // ---------------- BINARY EXPRESSIONS ----------------
 
-antlrcpp::Any rex_ast_build::visitAddExpr(RexParser::AddExprContext* ctx) { return build_binary_expr(this, ctx); }
-antlrcpp::Any rex_ast_build::visitMulExpr(RexParser::MulExprContext* ctx) { return build_binary_expr(this, ctx); }
-antlrcpp::Any rex_ast_build::visitAndExpr(RexParser::AndExprContext* ctx) { return build_binary_expr(this, ctx); }
-antlrcpp::Any rex_ast_build::visitOrExpr(RexParser::OrExprContext* ctx) { return build_binary_expr(this, ctx); }
-antlrcpp::Any rex_ast_build::visitCompareExpr(RexParser::CompareExprContext *ctx) { return build_binary_expr(this, ctx); }
-antlrcpp::Any rex_ast_build::visitEqualityExpr(RexParser::EqualityExprContext* ctx) { return build_binary_expr(this, ctx); }
+antlrcpp::Any RexAstBuild::visitAddExpr(RexParser::AddExprContext* ctx) { return build_binary_expr(this, ctx); }
+antlrcpp::Any RexAstBuild::visitMulExpr(RexParser::MulExprContext* ctx) { return build_binary_expr(this, ctx); }
+antlrcpp::Any RexAstBuild::visitAndExpr(RexParser::AndExprContext* ctx) { return build_binary_expr(this, ctx); }
+antlrcpp::Any RexAstBuild::visitOrExpr(RexParser::OrExprContext* ctx) { return build_binary_expr(this, ctx); }
+antlrcpp::Any RexAstBuild::visitCompareExpr(RexParser::CompareExprContext *ctx) { return build_binary_expr(this, ctx); }
+antlrcpp::Any RexAstBuild::visitEqualityExpr(RexParser::EqualityExprContext* ctx) { return build_binary_expr(this, ctx); }
 
-antlrcpp::Any rex_ast_build::visitPipeExpr(RexParser::PipeExprContext* ctx) {
+antlrcpp::Any RexAstBuild::visitPipeExpr(RexParser::PipeExprContext* ctx) {
     auto pip = std::make_shared<PipeExpr>();
     pip->loc = loc(ctx);
     pip->operation = BinaryOp::PIPE;
@@ -396,7 +430,7 @@ antlrcpp::Any rex_ast_build::visitPipeExpr(RexParser::PipeExprContext* ctx) {
     return std::static_pointer_cast<Expr>(pip);
 }
 
-antlrcpp::Any rex_ast_build::visitRangeExpr(RexParser::RangeExprContext* ctx) {
+antlrcpp::Any RexAstBuild::visitRangeExpr(RexParser::RangeExprContext* ctx) {
     auto rng = std::make_shared<RangeExpr>();
     rng->loc = loc(ctx);
     rng->operation = BinaryOp::RANGE;
@@ -409,7 +443,7 @@ antlrcpp::Any rex_ast_build::visitRangeExpr(RexParser::RangeExprContext* ctx) {
 
 // ---------------- OTHER EXPRESSIONS ----------------
 
-antlrcpp::Any rex_ast_build::visitIndexExpr(RexParser::IndexExprContext* ctx) {
+antlrcpp::Any RexAstBuild::visitIndexExpr(RexParser::IndexExprContext* ctx) {
     auto idx = std::make_shared<IndexExpr>();
     idx->exp_kind = ExprKind::Index;
     idx->loc = loc(ctx);
@@ -419,7 +453,7 @@ antlrcpp::Any rex_ast_build::visitIndexExpr(RexParser::IndexExprContext* ctx) {
     return std::static_pointer_cast<Expr>(idx);
 }
 
-antlrcpp::Any rex_ast_build::visitIndexTupleExpr(RexParser::IndexTupleExprContext *ctx) {
+antlrcpp::Any RexAstBuild::visitIndexTupleExpr(RexParser::IndexTupleExprContext *ctx) {
     auto idx = std::make_shared<IndexTupleExpr>();
     idx->exp_kind = ExprKind::TupleIndex;
     idx->loc = loc(ctx);
@@ -429,7 +463,7 @@ antlrcpp::Any rex_ast_build::visitIndexTupleExpr(RexParser::IndexTupleExprContex
     return std::static_pointer_cast<Expr>(idx);
 }
 
-antlrcpp::Any rex_ast_build::visitTupleExpr(RexParser::TupleExprContext* ctx) {
+antlrcpp::Any RexAstBuild::visitTupleExpr(RexParser::TupleExprContext* ctx) {
     auto t = std::make_shared<TupleExpr>();
     t->exp_kind = ExprKind::Tuple;
     t->loc = loc(ctx);
@@ -438,7 +472,7 @@ antlrcpp::Any rex_ast_build::visitTupleExpr(RexParser::TupleExprContext* ctx) {
     return std::static_pointer_cast<Expr>(t);
 }
 
-antlrcpp::Any rex_ast_build::visitArrayExpr(RexParser::ArrayExprContext *ctx) {
+antlrcpp::Any RexAstBuild::visitArrayExpr(RexParser::ArrayExprContext *ctx) {
     auto a = std::make_shared<ArrayExpr>();
     a->loc = loc(ctx);
     for(auto e : ctx->expr()) a->elements.push_back(as_expr<Expr>(visit(e)));
@@ -446,7 +480,7 @@ antlrcpp::Any rex_ast_build::visitArrayExpr(RexParser::ArrayExprContext *ctx) {
     return std::static_pointer_cast<Expr>(a);
 }
 
-antlrcpp::Any rex_ast_build::visitCallExpr(RexParser::CallExprContext* ctx) {
+antlrcpp::Any RexAstBuild::visitCallExpr(RexParser::CallExprContext* ctx) {
     auto call = std::make_shared<CallExpr>();
     call->loc = loc(ctx);
     call->callee = ctx->ID()->getText();
@@ -456,11 +490,11 @@ antlrcpp::Any rex_ast_build::visitCallExpr(RexParser::CallExprContext* ctx) {
     return std::static_pointer_cast<Expr>(call);
 }
 
-antlrcpp::Any rex_ast_build::visitParenExpr(RexParser::ParenExprContext* ctx) {
+antlrcpp::Any RexAstBuild::visitParenExpr(RexParser::ParenExprContext* ctx) {
     return visit(ctx->expr());
 }
 
-antlrcpp::Any rex_ast_build::visitUnaryExpr(RexParser::UnaryExprContext *ctx) {
+antlrcpp::Any RexAstBuild::visitUnaryExpr(RexParser::UnaryExprContext *ctx) {
     auto unary_exp = std::make_shared<UnaryExpr>();
     unary_exp->exp_kind = ExprKind::Unary;
     unary_exp->loc = loc(ctx);
