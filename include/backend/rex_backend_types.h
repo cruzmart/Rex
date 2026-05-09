@@ -75,32 +75,77 @@ struct TypesHelper {
 
     mlir::Type getMLIRType(std::shared_ptr<Type> t) {
 
-        PrimType::Prims prim;
-        if(t->kind == TypeKind::Array){
-            auto arr_t  = std::static_pointer_cast<ArrayType>(t);
-            if(arr_t->isMatrix())
-                prim = arr_t->matrixType();
-            else
-                prim = arr_t->arrayType();
-        } else if (t->kind == TypeKind::Range){
-            prim = PrimType::Prims::Int;
-            
-        } else {
-                prim = std::static_pointer_cast<PrimType>(t)->prim;
+     // =====================================================
+    // ARRAY
+    // =====================================================
+
+    if (t->kind == TypeKind::Array) {
+
+        auto arrTy =
+            std::static_pointer_cast<ArrayType>(t);
+
+        auto elemTy =
+            getMLIRType(arrTy->elem);
+
+        auto [rows, cols] =
+            arrTy->dimensions();
+
+        // matrix -> flattened array
+        if (arrTy->isMatrix()) {
+
+            return mlir::LLVM::LLVMArrayType::get(
+                elemTy,
+                rows * cols
+            );
         }
 
-        switch(prim){
-            case PrimType::Prims::Int: return builder->getI32Type();
-            case PrimType::Prims::Bool: return builder->getI1Type();
-            case PrimType::Prims::Char: return builder->getI8Type();
-            case PrimType::Prims::String: return mlir::LLVM::LLVMPointerType::get(builder->getContext());
-                case PrimType::Prims::Real: return builder->getF32Type();  // For 32-bit float
-
-            default:
-                llvm::report_fatal_error("Unsupported type in MLIR");
-
-        }
+        // normal array
+        return mlir::LLVM::LLVMArrayType::get(
+            elemTy,
+            cols
+        );
     }
+
+    // =====================================================
+    // RANGE
+    // =====================================================
+
+    if (t->kind == TypeKind::Range) {
+        return builder->getI32Type();
+    }
+
+    // =====================================================
+    // PRIMITIVE
+    // =====================================================
+
+    auto prim =
+        std::static_pointer_cast<PrimType>(t)->prim;
+
+    switch (prim) {
+
+        case PrimType::Prims::Int:
+            return builder->getI32Type();
+
+        case PrimType::Prims::Bool:
+            return builder->getI1Type();
+
+        case PrimType::Prims::Char:
+            return builder->getI8Type();
+
+        case PrimType::Prims::String:
+            return mlir::LLVM::LLVMPointerType::get(
+                builder->getContext()
+            );
+
+        case PrimType::Prims::Real:
+            return builder->getF32Type();
+
+        default:
+            llvm::report_fatal_error(
+                "Unsupported type in MLIR"
+            );
+    }
+}
 
     mlir::LLVM::LLVMStructType createStruct(std::vector<std::shared_ptr<Type>> types){
         std::vector<mlir::Type> m_t;

@@ -178,7 +178,7 @@ struct ArrayType : Type {
     }
 
     bool isArray(){
-        return !isMatrix();
+        return isMatrix() != true;
     }
 
     std::pair<int,int> dimensions(){

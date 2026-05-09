@@ -117,9 +117,9 @@ void PrintHelper::printFlatArray(mlir::Value arrayPtr, std::shared_ptr<ArrayType
     auto elemPtr = builder->create<mlir::LLVM::GEPOp>(
         loc,
         mlir::LLVM::LLVMPointerType::get(ctx),
-        arrayTy,
+        elemTy,
         arrayPtr,
-        mlir::ValueRange{zero, i}
+        mlir::ValueRange{i}
     );
 
     auto elemVal = builder->create<mlir::LLVM::LoadOp>(
@@ -470,6 +470,70 @@ void PrintHelper::printMatrix(mlir::Value arrayPtr, std::shared_ptr<ArrayType> a
     );
 }
 
+void PrintHelper::printIndexed(
+    mlir::Value value,
+    std::shared_ptr<IndexExpr> idx
+) {
+
+    auto resultTy = idx->type;
+
+    // =====================================================
+    // PRIMITIVE RESULT
+    //
+    // Example:
+    //   matrix[0][1]
+    //   arr[5]
+    // =====================================================
+
+    if (resultTy->kind == TypeKind::Primitive) {
+
+        printInline(value);
+        return;
+    }
+
+    // =====================================================
+    // ARRAY RESULT
+    //
+    // Example:
+    //   matrix[0]
+    //
+    // visitIndex() should return:
+    //   pointer to first element of row
+    // =====================================================
+
+    if (resultTy->kind == TypeKind::Array) {
+
+        auto arrType =
+            std::static_pointer_cast<ArrayType>(resultTy);
+
+        // -----------------------------------------
+        // MATRIX
+        // -----------------------------------------
+
+
+        // Finish add the proper steps
+        if (arrType->isMatrix()) {
+
+            // matrix indexing returns row pointer
+            auto rowType = std::make_shared<ArrayType>(arrType->elem, arrType->dimensions().second);
+
+
+            printFlatArray(value, rowType);
+            return;
+        }
+
+        // -----------------------------------------
+        // NORMAL ARRAY / ROW SLICE
+        // -----------------------------------------
+
+        printFlatArray(value, arrType);
+        return;
+    }
+
+    llvm::report_fatal_error(
+        "Unsupported indexed type in printIndexed"
+    );
+}
 
 
 /// =============================================================

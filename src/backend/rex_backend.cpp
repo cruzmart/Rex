@@ -215,15 +215,6 @@ void BackEnd::example() {
     auto string_1 = exps->createString("The Blight");
 
 
-    // Print them
-
-    visitor->prints->printPrimtive(int_1);
-    visitor->prints->printPrimtive(float_1);
-    visitor->prints->printPrimtive(char_1);
-    visitor->prints->printPrimtive(bool_1);
-    visitor->prints->printPrimtive(string_1);
-    
-
 
     //printer->printValue(strVal);
 }

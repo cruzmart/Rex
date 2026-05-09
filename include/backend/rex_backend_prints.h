@@ -82,6 +82,7 @@ struct PrintHelper {
         void printInline(mlir::Value val);
         
         
+        void printIndexed(mlir::Value arrPtr, std::shared_ptr<IndexExpr> arrayType);
         void printFlatArray(mlir::Value arrayPtr, std::shared_ptr<ArrayType> arrayType);
         void printMatrix(mlir::Value arrayPtr, std::shared_ptr<ArrayType> arrayType);
         void printArray( mlir::Value arrayPtr, std::shared_ptr<ArrayType> arrType);

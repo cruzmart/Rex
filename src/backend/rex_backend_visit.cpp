@@ -222,16 +222,107 @@ mlir::Value IRGen::visitTuple(std::shared_ptr<TupleExpr> tup){
 /// Array indexing:
 ///  - evaluate base pointer
 ///  - compute index
-///  - load element
+///  - either:
+///      * load scalar element
+///      * return row pointer for matrix row access
 mlir::Value IRGen::visitIndex(std::shared_ptr<IndexExpr> i) {
 
-    mlir::Value arr_p = visitExp(i->base);
-    mlir::Value index = visitExp(i->index);
+    mlir::Value arrPtr = visitExp(i->base);
+    mlir::Value index  = visitExp(i->index);
 
     auto arrTy = std::static_pointer_cast<ArrayType>(i->base->type);
-    mlir::Type elemTy = prints->types->getMLIRType(arrTy->elem);
 
-    return exps->index(arr_p, index, elemTy);
+    auto ctx   = builder->getContext();
+    auto ptrTy = mlir::LLVM::LLVMPointerType::get(ctx);
+
+    // =====================================================
+    // MATRIX CASE
+    // =====================================================
+    //
+    // matrix[row]
+    //
+    // We DO NOT load.
+    // We return pointer to start of row.
+    //
+    // Since matrix is flattened:
+    //
+    // linear_index = row * cols
+    //
+    // Then GEP to that offset.
+    //
+    // Example:
+    //
+    // [[1,2,3],
+    //  [4,5,6]]
+    //
+    // stored as:
+    //
+    // [1,2,3,4,5,6]
+    //
+    // matrix[1]
+    // -> pointer to element 3
+    // -> [4,5,6]
+    //
+    // =====================================================
+
+    if (arrTy->isMatrix()) {
+
+        auto [rows, cols] = arrTy->dimensions();
+
+        auto colsVal = builder->create<mlir::arith::ConstantIntOp>(
+            loc,
+            cols,
+            32
+        );
+
+        // rowStart = index * cols
+        auto rowStart = builder->create<mlir::arith::MulIOp>(
+            loc,
+            index,
+            colsVal
+        );
+
+        mlir::Type elemTy = prints->types->getMLIRType(arrTy->elem);
+
+        auto rowPtr = builder->create<mlir::LLVM::GEPOp>(
+            loc,
+            ptrTy,
+            elemTy,
+            arrPtr,
+            mlir::ValueRange{
+                builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32),
+                rowStart
+            }
+        );
+
+        return rowPtr;
+    }
+
+    // =====================================================
+    // NORMAL ARRAY CASE
+    // =====================================================
+
+  
+    mlir::Type elemTy = prints->types->getMLIRType(arrTy);
+
+
+    auto elemPtr = builder->create<mlir::LLVM::GEPOp>(
+        loc,
+        ptrTy,
+        elemTy,
+        arrPtr,
+        mlir::ValueRange{
+            builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32),
+            index
+        }
+    );
+
+     mlir::Type elemTya = prints->types->getMLIRType(arrTy->elem);
+    return builder->create<mlir::LLVM::LoadOp>(
+        loc,
+        elemTya,
+        elemPtr
+    );
 }
 
 /// Variable access:
@@ -940,29 +1031,85 @@ void IRGen::visitBreak(std::shared_ptr<BreakStmt> brk) {
     builder->create<mlir::LLVM::BrOp>(loc, currentBreak());
 }
 void IRGen::visitPrint(std::shared_ptr<PrintStmt> p) {
-    mlir::Value val = visitExp(p->argument);
-    auto type = p->argument->type;
 
-    if(type->kind == TypeKind::Primitive){
-        prints->printInline(val);
-    } else if(type->kind == TypeKind::Array){
-        prints->printArray(val, std::static_pointer_cast<ArrayType>(type));
-    } else if(type->kind == TypeKind::Tuple){
-        auto tup_t = std::static_pointer_cast<TupleType>(type);
-        prints->printTuple(val, types->createStruct(tup_t->elements), tup_t->elements);
-    }  else {
-        llvm::report_fatal_error("Unsupported type in print");
+    // =====================================================
+    // SPECIAL CASE:
+    // matrix[row]
+    //
+    // visitIndex() now returns:
+    //   - scalar value for normal arrays
+    //   - row pointer for matrix row access
+    //
+    // so we must detect that BEFORE generic printing.
+    // =====================================================
+
+    if (p->argument->exp_kind == ExprKind::Index) {
+
+        
+        auto idx = std::static_pointer_cast<IndexExpr>(p->argument);
+
+        prints->printIndexed(visitExp(p->argument), idx);
+
+        return;
     }
 
-        // -----------------------------------
-    // print '\n'
-    // -----------------------------------
-    auto close = builder->create<mlir::arith::ConstantIntOp>(loc, '\n', 8);
+    // =====================================================
+    // NORMAL PRINT PATH
+    // =====================================================
 
-    builder->create<mlir::LLVM::CallOp>(
-        loc, prints->printf_func, mlir::ValueRange{prints->getFmtAddress(prints->fmt_char), close}
+    {
+        mlir::Value val = visitExp(p->argument);
+        auto type = p->argument->type;
+
+        if (type->kind == TypeKind::Primitive) {
+
+            prints->printInline(val);
+
+        } else if (type->kind == TypeKind::Array) {
+
+            exit(0);
+            prints->printArray(
+                val,
+                std::static_pointer_cast<ArrayType>(type)
+            );
+
+        } else if (type->kind == TypeKind::Tuple) {
+
+            auto tup_t =
+                std::static_pointer_cast<TupleType>(type);
+
+            prints->printTuple(
+                val,
+                types->createStruct(tup_t->elements),
+                tup_t->elements
+            );
+
+        } else {
+
+            llvm::report_fatal_error(
+                "Unsupported type in print"
+            );
+        }
+    }
+
+    // =====================================================
+    // print '\n'
+    // =====================================================
+
+    auto nl = builder->create<mlir::arith::ConstantIntOp>(
+        loc,
+        '\n',
+        8
     );
 
+    builder->create<mlir::LLVM::CallOp>(
+        loc,
+        prints->printf_func,
+        mlir::ValueRange{
+            prints->getFmtAddress(prints->fmt_char),
+            nl
+        }
+    );
 }
 
 }
