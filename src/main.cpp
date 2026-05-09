@@ -37,7 +37,7 @@ int main() {
 
     RexParser::FileContext* parse_tree = parser.file();
 
-    rex_ast_build builder;
+    RexAstBuild builder;
     auto ast_any = builder.visit(parse_tree);
     auto ast = std::any_cast<std::shared_ptr<FileAst>>(ast_any);
 

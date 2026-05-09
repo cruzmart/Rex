@@ -206,7 +206,6 @@ void PrintHelper::printMatrix(mlir::Value arrayPtr, std::shared_ptr<ArrayType> a
     auto zero = builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32);
     auto one  = builder->create<mlir::arith::ConstantIntOp>(loc, 1, 32);
 
-    auto elemTy = types->getMLIRType(arrType->elem);
     auto mrtxTy = types->getMLIRType(arrType);
     auto elemTya = types->getMLIRType(std::static_pointer_cast<ArrayType>(arrType->elem)->elem);
 

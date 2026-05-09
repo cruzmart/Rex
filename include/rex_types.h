@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 
-
 namespace rex {
 
 // -------------------------------------------------
@@ -190,6 +189,7 @@ struct ArrayType : Type {
 
         return {1, size};
     }
+
 };
 
 struct SliceType : Type {
