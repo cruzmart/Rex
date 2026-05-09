@@ -81,7 +81,6 @@ void PrintHelper::printFlatArray(mlir::Value arrayPtr, std::shared_ptr<ArrayType
 
     auto fmtChar = getFmtAddress(fmt_char);
 
-    auto arrayTy = mlir::LLVM::LLVMArrayType::get(elemTy, total);
 
     // =====================================================
     // '['
@@ -208,6 +207,8 @@ void PrintHelper::printMatrix(mlir::Value arrayPtr, std::shared_ptr<ArrayType> a
     auto one  = builder->create<mlir::arith::ConstantIntOp>(loc, 1, 32);
 
     auto elemTy = types->getMLIRType(arrType->elem);
+    auto mrtxTy = types->getMLIRType(arrType);
+    auto elemTya = types->getMLIRType(std::static_pointer_cast<ArrayType>(arrType->elem)->elem);
 
     auto [rows, cols] = arrType->dimensions();
 
@@ -223,12 +224,6 @@ void PrintHelper::printMatrix(mlir::Value arrayPtr, std::shared_ptr<ArrayType> a
         32
     );
 
-    auto total = rows * cols;
-
-    auto arrayTy = mlir::LLVM::LLVMArrayType::get(
-        elemTy,
-        total
-    );
 
     auto fmtChar = getFmtAddress(fmt_char);
 
@@ -314,14 +309,14 @@ void PrintHelper::printMatrix(mlir::Value arrayPtr, std::shared_ptr<ArrayType> a
     auto elemPtr = builder->create<mlir::LLVM::GEPOp>(
         loc,
         mlir::LLVM::LLVMPointerType::get(ctx),
-        arrayTy,
+        mrtxTy,
         arrayPtr,
         mlir::ValueRange{zero, linearIndex}
     );
 
     auto elemVal = builder->create<mlir::LLVM::LoadOp>(
         loc,
-        elemTy,
+        elemTya,
         elemPtr
     );
 
@@ -469,7 +464,6 @@ void PrintHelper::printMatrix(mlir::Value arrayPtr, std::shared_ptr<ArrayType> a
         mlir::ValueRange{fmtChar, close}
     );
 }
-
 void PrintHelper::printIndexed(
     mlir::Value value,
     std::shared_ptr<IndexExpr> idx

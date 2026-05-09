@@ -92,7 +92,8 @@ struct TypesHelper {
 
         // matrix -> flattened array
         if (arrTy->isMatrix()) {
-
+             auto elemTy =
+            getMLIRType(std::static_pointer_cast<ArrayType>(arrTy->elem)->elem);
             return mlir::LLVM::LLVMArrayType::get(
                 elemTy,
                 rows * cols

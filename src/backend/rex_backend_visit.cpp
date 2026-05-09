@@ -265,6 +265,8 @@ mlir::Value IRGen::visitIndex(std::shared_ptr<IndexExpr> i) {
     //
     // =====================================================
 
+    // edit this and put it in expressions struct helper instead for cleaning.
+
     if (arrTy->isMatrix()) {
 
         auto [rows, cols] = arrTy->dimensions();
@@ -303,7 +305,7 @@ mlir::Value IRGen::visitIndex(std::shared_ptr<IndexExpr> i) {
     // =====================================================
 
   
-    mlir::Type elemTy = prints->types->getMLIRType(arrTy);
+    mlir::Type elemTy = types->getMLIRType(arrTy);
 
 
     auto elemPtr = builder->create<mlir::LLVM::GEPOp>(
@@ -324,6 +326,31 @@ mlir::Value IRGen::visitIndex(std::shared_ptr<IndexExpr> i) {
         elemPtr
     );
 }
+
+/// Tuple indexing:
+/// Uses struct layout + GEP
+mlir::Value IRGen::visitIndexTuple(std::shared_ptr<IndexTupleExpr> it){
+
+    mlir::Value tup_ptr = visitExp(it->base);
+    mlir::Value field_val = visitExp(it->field);
+
+    std::vector<mlir::Type> typs;
+
+    if(it->base->exp_kind == ExprKind::Tuple){
+
+        for(auto type : std::static_pointer_cast<TupleType>(it->base->type)->elements){
+            typs.push_back(prints->types->getMLIRType(type));
+        }
+
+        auto struc_t = mlir::LLVM::LLVMStructType::getLiteral(
+            builder->getContext(), typs);
+
+        return exps->index(tup_ptr, struc_t, typs[it->field_index], field_val);
+    }
+    
+    return mlir::Value();
+}
+
 
 /// Variable access:
 ///  - arrays → return pointer
@@ -353,30 +380,6 @@ mlir::Value IRGen::visitId(std::shared_ptr<IdExpr> id) {
         types->getMLIRType(ty),
         var->ptr
     );
-}
-
-/// Tuple indexing:
-/// Uses struct layout + GEP
-mlir::Value IRGen::visitIndexTuple(std::shared_ptr<IndexTupleExpr> it){
-
-    mlir::Value tup_ptr = visitExp(it->base);
-    mlir::Value field_val = visitExp(it->field);
-
-    std::vector<mlir::Type> typs;
-
-    if(it->base->exp_kind == ExprKind::Tuple){
-
-        for(auto type : std::static_pointer_cast<TupleType>(it->base->type)->elements){
-            typs.push_back(prints->types->getMLIRType(type));
-        }
-
-        auto struc_t = mlir::LLVM::LLVMStructType::getLiteral(
-            builder->getContext(), typs);
-
-        return exps->index(tup_ptr, struc_t, typs[it->field_index], field_val);
-    }
-    
-    return mlir::Value();
 }
 
 
@@ -418,7 +421,7 @@ void IRGen::visitStmt(std::shared_ptr<Stmt> stmt){
 /// =============================================================
 /// VARIABLE STORAGE
 /// =============================================================
-
+// Have to visit this back lowkey.
 /// Allocates stack storage for a variable (LLVM alloca)
 mlir::Value IRGen::allocateStorage(std::shared_ptr<Type> type,
                                    mlir::Type ptr_t,
@@ -484,6 +487,8 @@ void IRGen::initializeStorage(mlir::Value dst,
 // =====================================================
 // VARIABLE DECLERATION 
 // =====================================================
+// This needs to be fixed and updated.
+
 void IRGen::visitDelc(std::shared_ptr<LetStmt> var) {
     auto ctx = builder->getContext();
 
@@ -1067,7 +1072,6 @@ void IRGen::visitPrint(std::shared_ptr<PrintStmt> p) {
 
         } else if (type->kind == TypeKind::Array) {
 
-            exit(0);
             prints->printArray(
                 val,
                 std::static_pointer_cast<ArrayType>(type)
