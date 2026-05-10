@@ -955,7 +955,8 @@ void ExpressionsHelper::copyArray(
     auto [rows, cols] =
         arrTy->dimensions();
 
-    int total = rows * cols;
+    int total =
+        rows * cols;
 
     auto zero =
         builder->create<mlir::arith::ConstantIntOp>(
@@ -990,17 +991,20 @@ void ExpressionsHelper::copyArray(
         loop.getBody()
     );
 
-    auto i = loop.getInductionVar();
+    auto i =
+        loop.getInductionVar();
 
-    // src[i]
+    // =========================================
+    // SOURCE ELEMENT
+    // =========================================
 
     auto srcElemPtr =
         builder->create<mlir::LLVM::GEPOp>(
             loc,
             ptrTy,
-            types->getMLIRType(arrTy),
+            elemTy,
             srcPtr,
-            mlir::ValueRange{zero, i}
+            mlir::ValueRange{i}
         );
 
     auto srcElem =
@@ -1010,7 +1014,9 @@ void ExpressionsHelper::copyArray(
             srcElemPtr
         );
 
-    // dst[i]
+    // =========================================
+    // DEST ELEMENT
+    // =========================================
 
     auto dstElemPtr =
         builder->create<mlir::LLVM::GEPOp>(
