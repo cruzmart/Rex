@@ -319,12 +319,14 @@ mlir::Value IRGen::visitIndex(std::shared_ptr<IndexExpr> i) {
         }
     );
 
-     mlir::Type elemTya = prints->types->getMLIRType(arrTy->elem);
-    return builder->create<mlir::LLVM::LoadOp>(
-        loc,
-        elemTya,
-        elemPtr
-    );
+    return elemPtr;
+
+    //  mlir::Type elemTya = prints->types->getMLIRType(arrTy->elem);
+    // return builder->create<mlir::LLVM::LoadOp>(
+    //     loc,
+    //     elemTya,
+    //     elemPtr
+    // );
 }
 
 /// Tuple indexing:

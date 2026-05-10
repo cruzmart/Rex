@@ -479,7 +479,12 @@ void PrintHelper::printIndexed(
     // =====================================================
 
     if (resultTy->kind == TypeKind::Primitive) {
-
+        auto t = types->getMLIRType(resultTy);
+        value = builder->create<mlir::LLVM::LoadOp>(
+            loc,
+            t,
+            value
+        );
         printInline(value);
         return;
     }
