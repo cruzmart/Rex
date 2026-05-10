@@ -370,9 +370,9 @@ mlir::Value IRGen::visitIndex(std::shared_ptr<IndexExpr> i) {
         return exps->matrixRowPtr(arrPtr, index, arrTy);
 
     // =====================================================
-    // NORMAL ARRAY CASE
+    // NORMAL ARRAY CASE 
     // =====================================================
-  
+
     return exps->arrayElementPtr(arrPtr, index, arrTy);
 
 }
@@ -437,16 +437,19 @@ mlir::Value IRGen::visitId(
     if (!var->ptr)
         llvm_unreachable("Missing storage");
 
+
+    
     if (sym->type->kind ==
         TypeKind::Array) {
         return var->ptr;
     }
 
+
     return builder->create<mlir::LLVM::LoadOp>(
         loc,
         types->getMLIRType(sym->type),
         var->ptr
-    );
+   );
 }
 
 
@@ -516,10 +519,11 @@ mlir::Value IRGen::allocateStorage(
     mlir::Type ptrTy,
     mlir::Value size
 ) {
+    auto elemTy = types->getMLIRType(type);
     return builder->create<mlir::LLVM::AllocaOp>(
         loc,
         ptrTy,
-        types->getMLIRType(type),
+        elemTy,
         size
     );
 }
@@ -553,6 +557,43 @@ void IRGen::initializeStorage(
         arr
     );
 }
+
+mlir::Value IRGen::materializeValueForStorage(
+    std::shared_ptr<Expr> expr,
+    mlir::Value value
+) {
+    // Index expressions can produce either:
+    //   - a scalar pointer that must be loaded
+    //   - a row pointer from matrix indexing that should stay a pointer
+    //
+    // Matrix row indexing:
+    //     matrix[i]
+    // returns a row pointer.
+    //
+    // Nested indexing:
+    //     matrix[i][j]
+    // returns a scalar pointer and must be loaded.
+
+    if (expr->exp_kind != ExprKind::Index)
+        return value;
+
+    auto indexExpr =
+        cast<IndexExpr>(expr);
+
+    bool isNestedIndex =
+        indexExpr->base->exp_kind ==
+        ExprKind::Index;
+
+    if (!isNestedIndex)
+        return value;
+
+    return builder->create<mlir::LLVM::LoadOp>(
+        loc,
+        types->getMLIRType(indexExpr->type),
+        value
+    );
+}
+
 // =====================================================
 // VARIABLE DECLERATION 
 // =====================================================
@@ -561,7 +602,6 @@ void IRGen::initializeStorage(
 void IRGen::visitDelc(
     std::shared_ptr<LetStmt> stmt
 ) {
-
     auto ptrTy =
         mlir::LLVM::LLVMPointerType::get(
             builder->getContext()
@@ -583,6 +623,11 @@ void IRGen::visitDelc(
 
         auto value =
             visitExp(stmt->exp);
+
+        value = materializeValueForStorage(
+            stmt->exp,
+            value
+        );
 
         auto storage =
             allocateStorage(
@@ -617,21 +662,21 @@ void IRGen::visitDelc(
             stmt->id_pattern
         )->ids;
 
-    auto tuple =
+    auto tupleExpr =
         cast<TupleExpr>(stmt->exp);
 
     auto tupleTy =
-        cast<TupleType>(tuple->type);
-
-    std::vector<mlir::Value> values;
-
-    for (auto &elem : tuple->elements) {
-        values.push_back(
-            visitExp(elem)
-        );
-    }
+        cast<TupleType>(tupleExpr->type);
 
     for (size_t i = 0; i < ids.size(); ++i) {
+
+        auto value =
+            visitExp(tupleExpr->elements[i]);
+
+        value = materializeValueForStorage(
+            tupleExpr->elements[i],
+            value
+        );
 
         auto storage =
             allocateStorage(
@@ -642,7 +687,7 @@ void IRGen::visitDelc(
 
         initializeStorage(
             storage,
-            values[i],
+            value,
             tupleTy->elements[i]
         );
 
@@ -706,6 +751,7 @@ void IRGen::visitAssign(
             return;
         }
 
+
         builder->create<mlir::LLVM::StoreOp>(
             loc,
             value,
@@ -741,6 +787,26 @@ void IRGen::visitAssign(
 
             return;
         }
+
+        if (stmt->value->exp_kind ==
+            ExprKind::Index) {
+
+            auto loaded =
+                builder->create<mlir::LLVM::LoadOp>(
+                    loc,
+                    types->getMLIRType(stmt->value->type),
+                    value
+                );
+            llvm::errs() << types->getMLIRType(stmt->value->type) << "\n";
+            builder->create<mlir::LLVM::StoreOp>(
+                loc,
+                loaded,
+                ptr
+            );
+
+            return;
+        }
+
 
         builder->create<mlir::LLVM::StoreOp>(
             loc,
@@ -977,8 +1043,35 @@ void IRGen::visitFor(
     auto iterable =
         visitExp(stmt->iterable);
 
+    auto iterableTy =
+        std::static_pointer_cast<ArrayType>(
+            stmt->iterable->type
+        );
+
+    // =====================================================
+    // ITERATION COUNT
+    // =====================================================
+    //
+    // arrays  -> element count
+    // matrices -> row count
+    //
+    // =====================================================
+
+    int iterationCount;
+
+    if (iterableTy->isMatrix()) {
+
+        iterationCount =
+            iterableTy->dimensions().first;
+
+    } else {
+
+        iterationCount =
+            iterableTy->dimensions().second;
+    }
+
     auto size =
-        getIterableSize(stmt->iterable);
+        i32(iterationCount);
 
     // =====================================================
     // INDEX STORAGE
@@ -986,7 +1079,9 @@ void IRGen::visitFor(
 
     auto indexPtr =
         allocateStorage(
-            stmt->iter_var->type,
+            std::make_shared<PrimType>(
+                PrimType::Prims::Int
+            ),
             ptrTy,
             one
         );
@@ -1073,48 +1168,95 @@ void IRGen::visitFor(
     // LOAD ITERATION VALUE
     // =====================================================
 
-    switch (stmt->iterable->exp_kind) {
+    if (iterableTy->isMatrix()) {
 
-        case ExprKind::Array: {
+        // =========================================
+        // MATRIX ITERATION
+        // =========================================
+        //
+        // for row in matrix
+        //
+        // row is an array
+        //
+        // matrix is flattened:
+        //
+        // [1,2,3,4,5,6]
+        //
+        // rowStart = rowIndex * cols
+        //
+        // =========================================
 
-            auto valueTy =
-                types->getMLIRType(
-                    iterSym->type
-                );
+        auto cols =
+            iterableTy->dimensions().second;
 
-            auto elemPtr =
-                builder->create<mlir::LLVM::GEPOp>(
-                    loc,
-                    ptrTy,
-                    valueTy,
-                    iterable,
-                    mlir::ValueRange{index}
-                );
+        auto rowTy =
+            std::static_pointer_cast<ArrayType>(
+                iterSym->type
+            );
 
-            auto loaded =
-                builder->create<mlir::LLVM::LoadOp>(
-                    loc,
-                    valueTy,
-                    elemPtr
-                );
+        auto elemTy =
+            types->getMLIRType(
+                rowTy->elem
+            );
 
-            builder->create<mlir::LLVM::StoreOp>(
+        auto rowStart =
+            builder->create<mlir::arith::MulIOp>(
                 loc,
-                loaded,
-                valuePtr
+                index,
+                i32(cols)
             );
 
-            break;
-        }
-
-        default:
-            llvm_unreachable(
-                "Unsupported iterable in for loop"
+        auto rowPtr =
+            builder->create<mlir::LLVM::GEPOp>(
+                loc,
+                ptrTy,
+                elemTy,
+                iterable,
+                mlir::ValueRange{rowStart}
             );
+
+        exps->copyArray(
+            valuePtr,
+            rowPtr,
+            rowTy
+        );
+
+    } else {
+
+        // =========================================
+        // NORMAL ARRAY ITERATION
+        // =========================================
+
+        auto valueTy =
+            types->getMLIRType(
+                iterSym->type
+            );
+
+        auto elemPtr =
+            builder->create<mlir::LLVM::GEPOp>(
+                loc,
+                ptrTy,
+                valueTy,
+                iterable,
+                mlir::ValueRange{index}
+            );
+
+        auto loaded =
+            builder->create<mlir::LLVM::LoadOp>(
+                loc,
+                valueTy,
+                elemPtr
+            );
+
+        builder->create<mlir::LLVM::StoreOp>(
+            loc,
+            loaded,
+            valuePtr
+        );
     }
 
     // =====================================================
-    // INCREMENT INDEX
+    // INCREMENT INDEX FOR NEXT ITERATION
     // =====================================================
 
     auto current =
@@ -1142,6 +1284,7 @@ void IRGen::visitFor(
     // =====================================================
 
     visitBlock(stmt->body);
+
 
     breakStack.pop_back();
     contStack.pop_back();

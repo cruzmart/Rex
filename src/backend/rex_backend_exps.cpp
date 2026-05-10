@@ -1546,7 +1546,8 @@ void ExpressionsHelper::copyArray(
         mlir::LLVM::LLVMPointerType::get(ctx);
 
     auto elemTy =
-        types->getMLIRType(arrTy->elem);
+        types->getMLIRType(arrTy);
+    elemTy = mlir::cast<mlir::LLVM::LLVMArrayType>(elemTy).getElementType();
 
     auto [rows, cols] =
         arrTy->dimensions();
@@ -1684,6 +1685,8 @@ ExpressionsHelper::matrixRowPtr(mlir::Value arrPtr, mlir::Value index, std::shar
             index
         }
     );
+
+    
 
     return elemPtr;
  }

@@ -294,6 +294,11 @@ public:
         std::shared_ptr<Type> type
     );
 
+    mlir::Value materializeValueForStorage(
+        std::shared_ptr<Expr> expr,
+        mlir::Value value
+    );
+
     void visitDelc(
         std::shared_ptr<LetStmt> stmt
     );
