@@ -102,6 +102,7 @@ mlir::Value IRGen::visitLiteral(std::shared_ptr<LiteralExpr> l){
 /// Includes:
 ///  - constant string folding
 ///  - primitive arithmetic
+///  - automatic index loads
 ///  - (future) array operations
 mlir::Value IRGen::visitBinary(std::shared_ptr<BinaryExpr> bi){
 
@@ -115,9 +116,54 @@ mlir::Value IRGen::visitBinary(std::shared_ptr<BinaryExpr> bi){
         return exps->createString(folded);
     }
 
+    // -----------------------------------
     // Evaluate operands
+    // -----------------------------------
+
     mlir::Value lhs = visitExp(bi->lhs);
     mlir::Value rhs = visitExp(bi->rhs);
+
+    // ===================================
+    // LOAD INDEX EXPRESSIONS
+    // ===================================
+    //
+    // visitIndex() now returns pointers.
+    //
+    // Binary arithmetic/comparisons need
+    // actual scalar values.
+    //
+    // So:
+    //
+    // a[0] + 1
+    //
+    // becomes:
+    //
+    // load(a[0]) + 1
+    //
+    // ===================================
+
+    auto loadIfPointer =
+        [&](mlir::Value v,
+            std::shared_ptr<Type> t) -> mlir::Value {
+
+        if (!v.getType().isa<mlir::LLVM::LLVMPointerType>())
+            return v;
+
+        // Arrays themselves remain pointers
+        if (t->kind == TypeKind::Array)
+            return v;
+
+        auto loadTy = types->getMLIRType(t);
+
+        return builder->create<mlir::LLVM::LoadOp>(
+            loc,
+            loadTy,
+            v
+        );
+    };
+
+    lhs = loadIfPointer(lhs, bi->lhs->type);
+    rhs = loadIfPointer(rhs, bi->rhs->type);
 
     TypeKind exp_t = bi->type->kind;
 
@@ -126,26 +172,37 @@ mlir::Value IRGen::visitBinary(std::shared_ptr<BinaryExpr> bi){
         // =========================
         // PRIMITIVE TYPES
         // =========================
-        case TypeKind::Primitive:{
-            auto primt_t = std::static_pointer_cast<PrimType>(bi->type);
+        case TypeKind::Primitive: {
+
+            auto primt_t =
+                std::static_pointer_cast<PrimType>(bi->type);
 
             switch(primt_t->prim){
 
                 case PrimType::Prims::String:
-                    // Runtime string concat not implemented
-                    llvm::report_fatal_error("Runtime string concatenation not implemented yet");
+
+                    // Runtime concat later
+                    llvm::report_fatal_error(
+                        "Runtime string concatenation not implemented yet"
+                    );
 
                 default:
-                    // Delegate arithmetic/comparison
-                    return exps->createBinaryExp(lhs, rhs, primt_t->prim, op);
+
+                    return exps->createBinaryExp(
+                        lhs,
+                        rhs,
+                        primt_t->prim,
+                        op
+                    );
             }
         }
 
         // =========================
-        // ARRAY TYPES (NOT IMPLEMENTED)
+        // ARRAY TYPES
         // =========================
-        case TypeKind::Array:{
-            // Placeholder for future array operations
+        case TypeKind::Array: {
+
+            // future array ops
             break;
         }
 
@@ -303,7 +360,6 @@ mlir::Value IRGen::visitIndex(std::shared_ptr<IndexExpr> i) {
     // =====================================================
     // NORMAL ARRAY CASE
     // =====================================================
-
   
     mlir::Type elemTy = types->getMLIRType(arrTy);
 
@@ -321,12 +377,6 @@ mlir::Value IRGen::visitIndex(std::shared_ptr<IndexExpr> i) {
 
     return elemPtr;
 
-    //  mlir::Type elemTya = prints->types->getMLIRType(arrTy->elem);
-    // return builder->create<mlir::LLVM::LoadOp>(
-    //     loc,
-    //     elemTya,
-    //     elemPtr
-    // );
 }
 
 /// Tuple indexing:
@@ -555,66 +605,101 @@ void IRGen::visitDelc(std::shared_ptr<LetStmt> var) {
     }
 }
 // =====================================================
-// VARIABLE REASSINGMENT
+// VARIABLE REASSIGNMENT
 // =====================================================
-void IRGen:: visitAssign(std::shared_ptr<AssignStmt> var){
-auto ptr_t = mlir::LLVM::LLVMPointerType::get(builder->getContext());
-   auto zero = builder->create<mlir::arith::ConstantOp>(
-        loc, builder->getI32IntegerAttr(0));
 
-    // if ID exp
-    if(var->target->exp_kind == ExprKind::Id){
-        auto id = std::static_pointer_cast<IdExpr>(var->target);
-        auto symbol = currentScope->resolve(id->name);
-        if(!(symbol->kind == SymbolType::Variable))
-             llvm_unreachable("Variable ID is undefined or unknown");
-        auto symbol_variable = std::static_pointer_cast<VariableSymbol>(symbol);
-        builder->create<mlir::LLVM::StoreOp>(loc, visitExp(var->value) , symbol_variable->ptr);
+void IRGen::visitAssign(std::shared_ptr<AssignStmt> stmt) {
 
-    }
+    auto value = visitExp(stmt->value);
 
-    // if it is a index base[index]
+    // =====================================================
+    // VARIABLE ASSIGNMENT
+    // =====================================================
 
-    if(var->target->exp_kind == ExprKind::Index){
-        // array[value] = exp
-        auto index = std::static_pointer_cast<IndexExpr>(var->target);
+    if (stmt->target->exp_kind == ExprKind::Id) {
 
-        // if the base is a id (i.e the base is a array)
-        if(index->base->exp_kind == ExprKind::Id){
-            
-            auto arr_id = std::static_pointer_cast<IdExpr>(index->base);
-        
+        auto id =
+            std::static_pointer_cast<IdExpr>(
+                stmt->target
+            );
 
-            if(arr_id->type->kind == TypeKind::Array){
+        auto sym =
+            currentScope->resolve(id->name);
 
-                auto arr_t = std::static_pointer_cast<ArrayType>(arr_id->type);
-                auto arr_elem = types->getMLIRType(arr_t->elem);
-                auto base = visitExp(index->base);
-                auto value = visitExp(var->value);
+        if (!sym || sym->kind != SymbolType::Variable)
+            llvm_unreachable("Invalid assignment target");
 
-                auto idx = visitExp(index->index);
+        auto var =
+            std::static_pointer_cast<VariableSymbol>(
+                sym
+            );
 
-                auto arrayTy = mlir::LLVM::LLVMArrayType::get(arr_elem, arr_t->size);
+        // array/matrix copy
 
+        if (sym->type->kind == TypeKind::Array) {
 
-                auto elemPtr = builder->create<mlir::LLVM::GEPOp>(
-                    loc,
-                    ptr_t,
-                    arrayTy,
-                    base,
-                    mlir::ValueRange{zero, idx}   // ✅ FIX
-                );
+            exps->copyArray(
+                var->ptr,
+                value,
+                std::static_pointer_cast<ArrayType>(
+                    sym->type
+                )
+            );
 
-
-                 builder->create<mlir::LLVM::StoreOp>(loc, value, elemPtr);
-
-            }
+            return;
         }
-        
+
+        // scalar store
+
+        builder->create<mlir::LLVM::StoreOp>(
+            loc,
+            value,
+            var->ptr
+        );
+
+        return;
     }
 
-    // the rest will be impliemented later
-    return;
+    // =====================================================
+    // INDEX ASSIGNMENT
+    // =====================================================
+
+    if (stmt->target->exp_kind == ExprKind::Index) {
+
+        auto idx =
+            std::static_pointer_cast<IndexExpr>(
+                stmt->target
+            );
+
+        auto ptr = visitIndex(idx);
+
+        // matrix row assignment
+
+        if (idx->type->kind == TypeKind::Array) {
+
+            exps->copyArray(
+                ptr,
+                value,
+                std::static_pointer_cast<ArrayType>(
+                    idx->type
+                )
+            );
+
+            return;
+        }
+
+        // scalar element assignment
+
+        builder->create<mlir::LLVM::StoreOp>(
+            loc,
+            value,
+            ptr
+        );
+
+        return;
+    }
+
+    llvm_unreachable("Unsupported assignment target");
 }
 
 // =====================================================

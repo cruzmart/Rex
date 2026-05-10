@@ -937,6 +937,99 @@ bool ExpressionsHelper::isCompileTimeValue(mlir::Value v) {
     return false;
 }
 
+void ExpressionsHelper::copyArray(
+    mlir::Value dstPtr,
+    mlir::Value srcPtr,
+    std::shared_ptr<ArrayType> arrTy
+) {
+
+    auto ctx =
+        builder->getContext();
+
+    auto ptrTy =
+        mlir::LLVM::LLVMPointerType::get(ctx);
+
+    auto elemTy =
+        types->getMLIRType(arrTy->elem);
+
+    auto [rows, cols] =
+        arrTy->dimensions();
+
+    int total = rows * cols;
+
+    auto zero =
+        builder->create<mlir::arith::ConstantIntOp>(
+            loc,
+            0,
+            32
+        );
+
+    auto one =
+        builder->create<mlir::arith::ConstantIntOp>(
+            loc,
+            1,
+            32
+        );
+
+    auto size =
+        builder->create<mlir::arith::ConstantIntOp>(
+            loc,
+            total,
+            32
+        );
+
+    auto loop =
+        builder->create<mlir::scf::ForOp>(
+            loc,
+            zero,
+            size,
+            one
+        );
+
+    builder->setInsertionPointToStart(
+        loop.getBody()
+    );
+
+    auto i = loop.getInductionVar();
+
+    // src[i]
+
+    auto srcElemPtr =
+        builder->create<mlir::LLVM::GEPOp>(
+            loc,
+            ptrTy,
+            types->getMLIRType(arrTy),
+            srcPtr,
+            mlir::ValueRange{zero, i}
+        );
+
+    auto srcElem =
+        builder->create<mlir::LLVM::LoadOp>(
+            loc,
+            elemTy,
+            srcElemPtr
+        );
+
+    // dst[i]
+
+    auto dstElemPtr =
+        builder->create<mlir::LLVM::GEPOp>(
+            loc,
+            ptrTy,
+            elemTy,
+            dstPtr,
+            mlir::ValueRange{i}
+        );
+
+    builder->create<mlir::LLVM::StoreOp>(
+        loc,
+        srcElem,
+        dstElemPtr
+    );
+
+    builder->setInsertionPointAfter(loop);
+}
+
 mlir::Value ExpressionsHelper::createRuntimeArray(
     const std::vector<mlir::Value>& elements,
     PrimType::Prims kind

@@ -165,6 +165,8 @@ class ExpressionsHelper {
 
     bool isCompileTimeValue(mlir::Value v);  
 
+    void copyArray(mlir::Value dstPtr, mlir::Value srcPtr, std::shared_ptr<ArrayType> arrTy);
+
     // Array Runtime Creation
     mlir::Value createRuntimeArray(const std::vector<mlir::Value>& elements, PrimType::Prims kind);
 

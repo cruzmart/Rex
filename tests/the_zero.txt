@@ -310,7 +310,8 @@ while(k > 2){
 
 */
 
-//let x : String[2][3] = [["hello", "world", "death"],["goodbye", "life", "pain"]];
+/*
+let x : String[2][3] = [["hello", "world", "death"],["goodbye", "life", "pain"]];
 print([["hello", "world", "death"],["goodbye", "life", "pain"]]);
 print([["hello", "world", "death"],["goodbye", "life", "pain"]][1]);
 print([["hello", "world", "death"],["goodbye", "life", "pain"]][1][0]);
@@ -318,6 +319,27 @@ print([1,2,3,4,5,6]);
 print([[1,2,7],[3,7,8],[5,9,10]]);
 print([1,2,3,4,5,6][3]);
 print([[1,2,7],[3,7,8],[5,9,10]][1][2]);
+*/
+
+// Basic Array
+let s : Int[3] = [1,2,3];
+let a : Int = 9;
+print(s);
+s[2] = a;
+print(s);
+print((s[2] + 9)*s[1]);
+
+// Matrix
+let o : Int[2][3] = [[4,7,9],[10,1,6]];
+print(o);
+o[1][2] = 88;
+print(o);
+o[1] = [8,7,1];
+print(o);
+print(o);
+
+
+
 
 //let z : String[4] = ["hello", "world", "goodbye", "life"];
 
