@@ -153,7 +153,7 @@ if (5 < 3) {
 }
 */
 
-/*
+
 
 // While Loop Examples
 
@@ -253,29 +253,13 @@ while(r < 3){
     break;
 }
 
-
+/*
 let o : Int = 0;
 while(o < 5){
     print(o);
     o = o + 1;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 */
-
 
 
 
@@ -291,7 +275,7 @@ while(true){
 /// For Loop Examples
 
 
-// let k : Int = 1;
+let k : Int = 1;
 
 /*
 let m : Int[3] = [1,2,3];
@@ -300,7 +284,7 @@ let s : Int[2] = [2, 4];
 print(s);
 s[0] = 99;
 print(s);
-
+*/
 
 
 while(k > 2){
@@ -310,7 +294,9 @@ while(k > 2){
 
 */
 
-/*
+if(false){
+    print("nothing");
+} else {
 let x : String[2][3] = [["hello", "world", "death"],["goodbye", "life", "pain"]];
 print([["hello", "world", "death"],["goodbye", "life", "pain"]]);
 print([["hello", "world", "death"],["goodbye", "life", "pain"]][1]);
@@ -319,10 +305,10 @@ print([1,2,3,4,5,6]);
 print([[1,2,7],[3,7,8],[5,9,10]]);
 print([1,2,3,4,5,6][3]);
 print([[1,2,7],[3,7,8],[5,9,10]][1][2]);
-*/
+}
 
 // Basic Array
-/*
+
 let s : Int[3] = [1,2,3];
 let a : Int = 9;
 print(s);
@@ -332,10 +318,10 @@ print((s[2] + 9)*s[1]);
 print(s);
 s = [10,11,12];
 print(s);
-*/
+
 
 // Matrix
-/*
+
 let o : Int[2][3] = [[4,7,9],[10,1,6]];
 
 print(o);
@@ -349,9 +335,9 @@ print(o);
 o = [[27,183,17],[13,9,6]];
 print(o);
 print(o[0][1]);
-*/
 
-/*
+
+
 type WordsOfPain = String[4];
 
 
@@ -366,8 +352,34 @@ print(z);
 print(z_m);
 z_m = ["nothing", "matters", "this", "day"];
 print(z_m);
-*/
+
 
     
-  
+print(1 < 4.9);
+print('d' == 'c');
+print(2.5 == 3);
+print(true == 'c');
+
+print("hello" + "world");
+print("hello" + "world");
+print("hello");
+print("world");
+
+print('c' == 'd');
+print(false or true);
+
+//print("hello" != "world");
+print("hello" + "hello");
+print("hello" + 'c');
+//print("no" != "yes");
+//print(("yes" == "yes") + 1);
+
+print([2 + 3,3]);
+print([3.231,9.4151]);
+print(["hello", "dying","world"]);
+print([[3,4],[1,2]]);
+print([["hello","world"], ["hi", "hey"]][0][1]);
+
+print(["hello", "dying","world"]);
+print([1,2,3][1]);
 

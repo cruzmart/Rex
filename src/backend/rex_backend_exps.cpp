@@ -1036,6 +1036,62 @@ void ExpressionsHelper::copyArray(
     builder->setInsertionPointAfter(loop);
 }
 
+mlir::Value 
+ExpressionsHelper::matrixRowPtr(mlir::Value arrPtr, mlir::Value index, std::shared_ptr<ArrayType> arrTy)
+{
+        auto [rows, cols] = arrTy->dimensions();
+        auto ptrTy = mlir::LLVM::LLVMPointerType::get( builder->getContext());
+
+        auto colsVal = builder->create<mlir::arith::ConstantIntOp>(
+            loc,
+            cols,
+            32
+        );
+
+        // rowStart = index * cols
+        auto rowStart = builder->create<mlir::arith::MulIOp>(
+            loc,
+            index,
+            colsVal
+        );
+
+        mlir::Type elemTy = types->getMLIRType(arrTy->elem);
+
+        auto rowPtr = builder->create<mlir::LLVM::GEPOp>(
+            loc,
+            ptrTy,
+            elemTy,
+            arrPtr,
+            mlir::ValueRange{
+                builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32),
+                rowStart
+            }
+        );
+
+        return rowPtr;
+}
+
+ mlir::Value 
+ ExpressionsHelper::arrayElementPtr(mlir::Value arrPtr, mlir::Value index, std::shared_ptr<ArrayType> arrTy){
+  
+    auto ptrTy = mlir::LLVM::LLVMPointerType::get( builder->getContext());
+    mlir::Type elemTy = types->getMLIRType(arrTy);
+
+
+    auto elemPtr = builder->create<mlir::LLVM::GEPOp>(
+        loc,
+        ptrTy,
+        elemTy,
+        arrPtr,
+        mlir::ValueRange{
+            builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32),
+            index
+        }
+    );
+
+    return elemPtr;
+ }
+
 mlir::Value ExpressionsHelper::createRuntimeArray(
     const std::vector<mlir::Value>& elements,
     PrimType::Prims kind
