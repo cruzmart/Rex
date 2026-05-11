@@ -345,7 +345,16 @@ void PrintHelper::printIndexed(
     auto resultTy = idx->type;
 
     if (resultTy->kind == TypeKind::Primitive) {
+        llvm::errs() << "in print index primitive\n";
+        llvm::errs() << value.getType() << "\n";
+        value =
+            builder->create<mlir::LLVM::LoadOp>(
+                loc,
+                types->getMLIRType(resultTy),
+                value
+            );
         
+
         printInline(value);
         return;
     }
