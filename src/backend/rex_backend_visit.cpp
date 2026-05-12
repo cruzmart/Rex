@@ -199,6 +199,7 @@ mlir::Value IRGen::visitBinary(
         );
     }
 
+
     auto lhs = loadIfPointer(
         visitExp(expr->lhs),
         expr->lhs->type
@@ -208,6 +209,41 @@ mlir::Value IRGen::visitBinary(
         visitExp(expr->rhs),
         expr->rhs->type
     );
+
+    // For this step, lhs will give you what you need, if you are doing 2 + 2 = 4, if it is a index + index in which both are scalars is good, 
+    // when we get to vector + scalar and etc. We have to do extra things.
+
+    // =====================================================
+    // Matrix Exp Operation
+    // =====================================================
+
+    // Todo: Find out which lhs or rhs is the matrix, and whatever values is on the the opposite, and do the operation accorgly. List
+    // Matrix + Scalar
+    // Matrix + Matrix (Must be same dimensions)
+    // Matrix + Index (Must load the value to be scalar, and got to check if the index is a vector or a scalar).
+
+
+    // =====================================================
+    // Vector Exp Operation
+    // =====================================================
+
+    // Todo: Find out which lhs or rhs is the matrix, and whatever values is on the the opposite, and do the operation accorgly. List
+    // Vector + Scalar
+    // Vector + Vector (Must be same dimensions)
+    // Vector + Index (Must load the value to be scalar, and got to check if the index is a vector or a scalar).
+
+    /*
+        Key Notes:
+            - ALL VECTORS AND MATRICIES ARE FLATTEN (1D), I DID EXP PASSES BEFORE, SO WE DON'T NEED TO DUPLICATE CODE, WE ALREADY DEAL WITH INCORRECT TYPES OPERATING ON EACH OTHER
+    
+    */
+
+
+    
+    // =====================================================
+    // Regular Operation
+    // =====================================================
+
 
     switch (expr->type->kind) {
 

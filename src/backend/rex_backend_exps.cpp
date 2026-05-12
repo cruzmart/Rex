@@ -410,6 +410,7 @@ mlir::Value ExpressionsHelper::createBinaryExp(
         return concatString(lhs, rhs);
     }
 
+
     mlir::Type resultTy;
 
     switch (prim) {
