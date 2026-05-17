@@ -203,6 +203,7 @@ public:
         std::vector<mlir::Value> values
     );
 
+
     /// =========================================================
     /// Binary Expressions
     /// =========================================================
@@ -213,6 +214,13 @@ public:
         PrimType::Prims prim_t,
         BinaryOp op
     );
+
+    /// =========================================================
+    /// Array Operation TO (Something)
+    /// =========================================================
+    mlir::Value vectorVectorOp(mlir::Value lhs, std::shared_ptr<Type> lhs_t, mlir::Value rhs, std::shared_ptr<Type> rhs_t, BinaryOp op, std::shared_ptr<ArrayType> res_t);
+    mlir::Value vectorScalarOp(mlir::Value lhs, std::shared_ptr<Type> lhs_t, mlir::Value rhs, std::shared_ptr<Type> rhs_t, BinaryOp op, bool vectorIsLHS, std::shared_ptr<ArrayType> res_t);
+
 
     /// =========================================================
     /// Arithmetic

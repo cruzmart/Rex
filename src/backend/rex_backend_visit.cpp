@@ -187,6 +187,7 @@ mlir::Value IRGen::visitBinary(
 
     auto op = expr->operation;
 
+
     // =========================================================
     // Constant string folding
     // =========================================================
@@ -210,24 +211,64 @@ mlir::Value IRGen::visitBinary(
         expr->rhs->type
     );
 
+
+    auto lhs_t = expr->lhs->type;
+    auto rhs_t = expr->rhs->type;
+    
+
     // For this step, lhs will give you what you need, if you are doing 2 + 2 = 4, if it is a index + index in which both are scalars is good, 
     // when we get to vector + scalar and etc. We have to do extra things.
-
-    // =====================================================
-    // Matrix Exp Operation
-    // =====================================================
-
-    // Todo: Find out which lhs or rhs is the matrix, and whatever values is on the the opposite, and do the operation accorgly. List
-    // Matrix + Scalar
-    // Matrix + Matrix (Must be same dimensions)
-    // Matrix + Index (Must load the value to be scalar, and got to check if the index is a vector or a scalar).
 
 
     // =====================================================
     // Vector Exp Operation
     // =====================================================
+    // GOt to fix this
+    if(expr->type->kind == TypeKind::Array){
 
+        auto bi_t = cast<ArrayType>(expr->type);
+
+        bool lhsIsArray = lhs_t->kind == TypeKind::Array;
+        bool rhsIsArray = rhs_t->kind == TypeKind::Array;
+
+        bool lhsIsVector = false;
+        bool rhsIsVector = false;
+
+        if (lhsIsArray)
+            lhsIsVector = cast<ArrayType>(lhs_t)->isVector();
+
+        if (rhsIsArray)
+            rhsIsVector = cast<ArrayType>(rhs_t)->isVector();
+
+        // -----------------------------------------------------
+        // Vector + Scalar
+        // -----------------------------------------------------
+        // (lhs = vector and rhs = scalar)
+        if (lhsIsVector && !rhsIsArray) 
+            return exps->vectorScalarOp(lhs, lhs_t, rhs, rhs_t, op, true, cast<ArrayType>(expr->type));
+        // (lhs = scalar and rhs = vector)
+        if (!lhsIsArray && rhsIsVector) 
+            return exps->vectorScalarOp(lhs, lhs_t, rhs, rhs_t, op, false, cast<ArrayType>(expr->type));
+
+        // // -----------------------------------------------------
+        // // Vector + Vector
+        // // -----------------------------------------------------
+        // if (lhsIsVector && rhsIsVector) {
+
+        //     auto lhsArr = cast<ArrayType>(lhs_t);
+        //     auto rhsArr = cast<ArrayType>(rhs_t);
+
+        //     if (lhsArr->dimensions() != rhsArr->dimensions()) {
+        //         llvm::report_fatal_error("VectorVectorOp: dimension mismatch");
+        //     }
+
+        //     return exps->vectorVectorOp(lhs, lhsArr, rhs, rhsArr, op);
+        // }
+
+        llvm_unreachable("Invalid array dispatch state");
+    }
     // Todo: Find out which lhs or rhs is the matrix, and whatever values is on the the opposite, and do the operation accorgly. List
+    
     // Vector + Scalar
     // Vector + Vector (Must be same dimensions)
     // Vector + Index (Must load the value to be scalar, and got to check if the index is a vector or a scalar).

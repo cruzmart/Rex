@@ -1062,6 +1062,156 @@ mlir::Value ExpressionsHelper::or_(
     );
 }
 
+/// =========================================================
+/// Array Operation TO (Something)
+/// =========================================================
+mlir::Value ExpressionsHelper::vectorScalarOp(
+    mlir::Value lhs,
+    std::shared_ptr<Type> lhs_t,
+    mlir::Value rhs,
+    std::shared_ptr<Type> rhs_t,
+    BinaryOp op,
+    bool vectorIsLHS,
+    std::shared_ptr<ArrayType> res_t
+) {
+    mlir::Value vec;
+    mlir::Value scalar;
+
+    std::shared_ptr<ArrayType> vec_t;
+    std::shared_ptr<PrimType> scalar_t;
+
+    // -----------------------------------------------------
+    // Normalize roles
+    // -----------------------------------------------------
+    if (vectorIsLHS) {
+        vec = lhs;
+        scalar = rhs;
+
+        vec_t = cast<ArrayType>(lhs_t);
+        scalar_t = cast<PrimType>(rhs_t);
+    } 
+    else {
+        vec = rhs;
+        scalar = lhs;
+
+        vec_t = cast<ArrayType>(rhs_t);
+        scalar_t = cast<PrimType>(lhs_t);
+    }
+
+    // -----------------------------------------------------
+    // Now you have CLEAN invariants:
+    // vec_t is ArrayType
+    // scalar_t is PrimType
+    // vec is the vector operand
+    // scalar is the scalar operand
+    // -----------------------------------------------------
+
+    auto [rows, cols] = vec_t->dimensions(); // if matrix/vector unified
+
+    auto zero = builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32);
+    auto one  = builder->create<mlir::arith::ConstantIntOp>(loc, 1, 32);
+    auto size = builder->create<mlir::arith::ConstantIntOp>(loc, rows*cols, 32);
+    auto ptrTy = mlir::LLVM::LLVMPointerType::get(builder->getContext());
+    auto elemTy = types->getMLIRType(vec_t->elem);
+
+
+    // this is ALWAYS going to be of vecot, GET the type of the vector.
+    auto result_t = cast<PrimType>(res_t->elem);
+    auto result_llvm_t = types->getMLIRType(res_t->elem);
+    
+    auto arrayTy = mlir::LLVM::LLVMArrayType::get(result_llvm_t, rows*cols);
+
+    // =====================================================
+    // ✅ ALLOCATE ONE ARRAY OBJECT
+    // =====================================================
+
+    auto resultDistPtr = builder->create<mlir::LLVM::AllocaOp>(
+        loc,
+        ptrTy,
+        arrayTy,
+        one 
+    );
+    
+
+    auto loop = builder->create<mlir::scf::ForOp>(loc, zero, size, one);
+
+    builder->setInsertionPointToStart(loop.getBody());
+
+    auto i = loop.getInductionVar();
+
+    // =====================================================
+    // SOURCE ELEMENT
+    // =====================================================
+
+    auto srcElemPtr = builder->create<mlir::LLVM::GEPOp>(
+        loc,
+        ptrTy,
+        elemTy,        // IMPORTANT: correct base type
+        vec,
+        mlir::ValueRange{i}
+    );
+
+    auto srcElem = builder->create<mlir::LLVM::LoadOp>(
+        loc,
+        elemTy,
+        srcElemPtr
+    );
+
+    // =====================================================
+    // SCALAR BROADCAST
+    // =====================================================
+    // scalar is NOT loaded per iteration (already a value)
+
+    // =====================================================
+    // COMPUTE OP
+    // =====================================================
+
+    mlir::Value lhsV = vectorIsLHS ? srcElem : scalar;
+    mlir::Value rhsV = vectorIsLHS ? scalar  : srcElem;
+
+    auto operation = createBinaryExp(
+        lhsV,
+        rhsV,
+        result_t->prim,
+        op
+    );
+    // =====================================================
+    // DEST ELEMENT
+    // =====================================================
+
+    auto dstElemPtr = builder->create<mlir::LLVM::GEPOp>(
+        loc,
+        ptrTy,
+        result_llvm_t,
+        resultDistPtr,
+        mlir::ValueRange{i}
+    );
+
+    builder->create<mlir::LLVM::StoreOp>(
+        loc,
+        operation,
+        dstElemPtr
+    );
+
+    builder->setInsertionPointAfter(loop);
+
+    return resultDistPtr;
+
+}
+
+mlir::Value vectorVectorOp(
+    mlir::Value lhs, 
+    std::shared_ptr<Type> lhs_t, 
+    mlir::Value rhs, 
+    std::shared_ptr<Type> rhs_t, 
+    BinaryOp op, 
+    std::shared_ptr<ArrayType> res_t
+) {
+
+}
+
+
+
 
 /// =============================================================
 /// Casting + Type Promotion
@@ -1083,6 +1233,7 @@ mlir::Value ExpressionsHelper::castTo(
     mlir::Type targetType
 ) {
     mlir::Type srcType = val.getType();
+
 
     // =========================================================
     // Reject pointer casts

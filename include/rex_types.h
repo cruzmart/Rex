@@ -167,7 +167,7 @@ struct ArrayType : Type {
     }
 
     PrimType::Prims arrayType() {
-        if(isArray())
+        if(isVector())
             return std::static_pointer_cast<PrimType>(elem)->prim;
         return PrimType::Prims::Null;
     }
@@ -176,7 +176,7 @@ struct ArrayType : Type {
         return elem->kind == TypeKind::Array;
     }
 
-    bool isArray(){
+    bool isVector(){
         return isMatrix() != true;
     }
 

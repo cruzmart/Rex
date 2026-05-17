@@ -347,10 +347,64 @@ type_ptr BinaryOpSystem::check_binary( std::shared_ptr<BinaryExpr> exp, BinaryOp
     // -------------------------------------------------
     if (is_comp(op)) {
 
-        // EQ/NEQ already handled above (strings + chars)
+        bool lhsArr = is_array(L);
+        bool rhsArr = is_array(R);
+
+        std::shared_ptr<ArrayType> lhsT = nullptr;
+        std::shared_ptr<ArrayType> rhsT = nullptr;
+
+        // -------------------------------------------------
+        // Extract array metadata if present
+        // -------------------------------------------------
+        if (lhsArr)
+            lhsT = std::static_pointer_cast<ArrayType>(L);
+
+        if (rhsArr)
+            rhsT = std::static_pointer_cast<ArrayType>(R);
+
+        // -------------------------------------------------
+        // Array + Array comparison
+        // -------------------------------------------------
+        if (lhsArr || rhsArr) {
+
+            // If both arrays → must match shape
+            if (lhsArr && rhsArr) {
+                if (lhsT->size != rhsT->size) {
+                    throw std::runtime_error(
+                        "Comparison: array dimension mismatch"
+                    );
+                }
+            }
+
+            // Determine base element types
+            auto lhsBase = lhsArr ? lhsT->elem : L;
+            auto rhsBase = rhsArr ? rhsT->elem : R;
+
+            // EQ / NEQ can work on anything comparable
+            if (!(op == BinaryOp::EQ || op == BinaryOp::NEQ)) {
+                if (!is_numeric(lhsBase) || !is_numeric(rhsBase)) {
+                    throw std::runtime_error(
+                        "Comparison requires numeric operands"
+                    );
+                }
+            }
+
+            return std::make_shared<ArrayType>(
+                std::make_shared<PrimType>(PrimKind::Bool),
+                lhsArr ? lhsT->size
+                    : rhsT->size
+            );
+        }
+
+        // -------------------------------------------------
+        // Scalar comparison
+        // -------------------------------------------------
         if (!(op == BinaryOp::EQ || op == BinaryOp::NEQ)) {
-            if (!is_numeric(L) || !is_numeric(R))
-                throw std::runtime_error("Comparison requires numeric operands");
+            if (!is_numeric(L) || !is_numeric(R)) {
+                throw std::runtime_error(
+                    "Comparison requires numeric operands"
+                );
+            }
         }
 
         return std::make_shared<PrimType>(PrimKind::Bool);
@@ -360,8 +414,48 @@ type_ptr BinaryOpSystem::check_binary( std::shared_ptr<BinaryExpr> exp, BinaryOp
     // LOGIC OPS
     // -------------------------------------------------
     if (is_logic(op)) {
-        if (!is_bool(L) || !is_bool(R))
+
+        // -------------------------------------------------
+        // Array logic (vectorized boolean ops)
+        // -------------------------------------------------
+        if (is_array(L) || is_array(R)) {
+
+            auto lhsArr = is_array(L)
+                ? std::static_pointer_cast<ArrayType>(L)
+                : nullptr;
+
+            auto rhsArr = is_array(R)
+                ? std::static_pointer_cast<ArrayType>(R)
+                : nullptr;
+
+            // If both are arrays, ensure compatibility
+            if (lhsArr && rhsArr) {
+                if (lhsArr->size != rhsArr->size) {
+                    throw std::runtime_error("Logic op: array dimension mismatch");
+                }
+            }
+
+            // Ensure underlying type is boolean
+            auto baseL = lhsArr ? lhsArr->elem : L;
+            auto baseR = rhsArr ? rhsArr->elem : R;
+
+            if (!is_bool(baseL) || !is_bool(baseR)) {
+                throw std::runtime_error("and/or require Bool operands");
+            }
+
+            return std::make_shared<ArrayType>(
+                std::make_shared<PrimType>(PrimKind::Bool),
+                lhsArr ? lhsArr->size
+                    : rhsArr->size
+            );
+        }
+
+        // -------------------------------------------------
+        // Scalar logic
+        // -------------------------------------------------
+        if (!is_bool(L) || !is_bool(R)) {
             throw std::runtime_error("and/or require Bool operands");
+        }
 
         return std::make_shared<PrimType>(PrimKind::Bool);
     }
