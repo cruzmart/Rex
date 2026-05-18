@@ -1063,7 +1063,7 @@ mlir::Value ExpressionsHelper::or_(
 }
 
 /// =========================================================
-/// Array Operation TO (Something)
+/// Vector <op> Scalar
 /// =========================================================
 mlir::Value ExpressionsHelper::vectorScalarOp(
     mlir::Value lhs,
@@ -1074,142 +1074,517 @@ mlir::Value ExpressionsHelper::vectorScalarOp(
     bool vectorIsLHS,
     std::shared_ptr<ArrayType> res_t
 ) {
-    mlir::Value vec;
-    mlir::Value scalar;
 
-    std::shared_ptr<ArrayType> vec_t;
-    std::shared_ptr<PrimType> scalar_t;
+    // =====================================================
+    // NORMALIZE OPERANDS
+    // =====================================================
 
-    // -----------------------------------------------------
-    // Normalize roles
-    // -----------------------------------------------------
-    if (vectorIsLHS) {
-        vec = lhs;
-        scalar = rhs;
+    mlir::Value vectorVal =
+        vectorIsLHS ? lhs : rhs;
 
-        vec_t = cast<ArrayType>(lhs_t);
-        scalar_t = cast<PrimType>(rhs_t);
-    } 
-    else {
-        vec = rhs;
-        scalar = lhs;
+    mlir::Value scalarVal =
+        vectorIsLHS ? rhs : lhs;
 
-        vec_t = cast<ArrayType>(rhs_t);
-        scalar_t = cast<PrimType>(lhs_t);
+    auto vectorTy =
+        vectorIsLHS
+            ? cast<ArrayType>(lhs_t)
+            : cast<ArrayType>(rhs_t);
+
+    auto scalarTy =
+        vectorIsLHS
+            ? cast<PrimType>(rhs_t)
+            : cast<PrimType>(lhs_t);
+
+    (void)scalarTy;
+
+    // =====================================================
+    // DIMENSIONS
+    // =====================================================
+
+    auto [rows, cols] =
+        vectorTy->dimensions();
+
+    int totalSize =
+        rows * cols;
+
+    auto zero =
+        builder->create<mlir::arith::ConstantIntOp>(
+            loc, 0, 32
+        );
+
+    auto one =
+        builder->create<mlir::arith::ConstantIntOp>(
+            loc, 1, 32
+        );
+
+    auto size =
+        builder->create<mlir::arith::ConstantIntOp>(
+            loc, totalSize, 32
+        );
+
+    // =====================================================
+    // TYPES
+    // =====================================================
+
+    auto ctx =
+        builder->getContext();
+
+    auto ptrTy =
+        mlir::LLVM::LLVMPointerType::get(ctx);
+
+    auto vectorElemTy =
+        types->getMLIRType(
+            vectorTy->elem
+        );
+
+    auto resultPrimTy =
+        cast<PrimType>(res_t->elem);
+
+    auto resultElemTy =
+        types->getMLIRType(
+            res_t->elem
+        );
+
+    auto resultArrayTy =
+        mlir::LLVM::LLVMArrayType::get(
+            resultElemTy,
+            totalSize
+        );
+
+    // =====================================================
+    // RESULT STORAGE
+    // =====================================================
+
+    auto resultPtr =
+        builder->create<mlir::LLVM::AllocaOp>(
+            loc,
+            ptrTy,
+            resultArrayTy,
+            one
+        );
+
+    // =====================================================
+    // LOOP
+    // =====================================================
+
+    auto loop =
+        builder->create<mlir::scf::ForOp>(
+            loc,
+            zero,
+            size,
+            one
+        );
+
+    builder->setInsertionPointToStart(
+        loop.getBody()
+    );
+
+    {
+        auto i =
+            loop.getInductionVar();
+
+        // -------------------------------------------------
+        // VECTOR ELEMENT
+        // -------------------------------------------------
+
+        auto vectorElemPtr =
+            builder->create<mlir::LLVM::GEPOp>(
+                loc,
+                ptrTy,
+                vectorElemTy,
+                vectorVal,
+                mlir::ValueRange{i}
+            );
+
+        auto vectorElem =
+            builder->create<mlir::LLVM::LoadOp>(
+                loc,
+                vectorElemTy,
+                vectorElemPtr
+            );
+
+        // -------------------------------------------------
+        // ORDERED OPERANDS
+        // -------------------------------------------------
+
+        mlir::Value lhsValue =
+            vectorIsLHS
+                ? vectorElem
+                : scalarVal;
+
+        mlir::Value rhsValue =
+            vectorIsLHS
+                ? scalarVal
+                : vectorElem;
+
+        // -------------------------------------------------
+        // OPERATION
+        // -------------------------------------------------
+
+        auto resultValue =
+            createBinaryExp(
+                lhsValue,
+                rhsValue,
+                resultPrimTy->prim,
+                op
+            );
+
+        // -------------------------------------------------
+        // DESTINATION ELEMENT
+        // -------------------------------------------------
+
+        auto resultElemPtr =
+            builder->create<mlir::LLVM::GEPOp>(
+                loc,
+                ptrTy,
+                resultElemTy,
+                resultPtr,
+                mlir::ValueRange{i}
+            );
+
+        builder->create<mlir::LLVM::StoreOp>(
+            loc,
+            resultValue,
+            resultElemPtr
+        );
     }
-
-    // -----------------------------------------------------
-    // Now you have CLEAN invariants:
-    // vec_t is ArrayType
-    // scalar_t is PrimType
-    // vec is the vector operand
-    // scalar is the scalar operand
-    // -----------------------------------------------------
-
-    auto [rows, cols] = vec_t->dimensions(); // if matrix/vector unified
-
-    auto zero = builder->create<mlir::arith::ConstantIntOp>(loc, 0, 32);
-    auto one  = builder->create<mlir::arith::ConstantIntOp>(loc, 1, 32);
-    auto size = builder->create<mlir::arith::ConstantIntOp>(loc, rows*cols, 32);
-    auto ptrTy = mlir::LLVM::LLVMPointerType::get(builder->getContext());
-    auto elemTy = types->getMLIRType(vec_t->elem);
-
-
-    // this is ALWAYS going to be of vecot, GET the type of the vector.
-    auto result_t = cast<PrimType>(res_t->elem);
-    auto result_llvm_t = types->getMLIRType(res_t->elem);
-    
-    auto arrayTy = mlir::LLVM::LLVMArrayType::get(result_llvm_t, rows*cols);
-
-    // =====================================================
-    // ✅ ALLOCATE ONE ARRAY OBJECT
-    // =====================================================
-
-    auto resultDistPtr = builder->create<mlir::LLVM::AllocaOp>(
-        loc,
-        ptrTy,
-        arrayTy,
-        one 
-    );
-    
-
-    auto loop = builder->create<mlir::scf::ForOp>(loc, zero, size, one);
-
-    builder->setInsertionPointToStart(loop.getBody());
-
-    auto i = loop.getInductionVar();
-
-    // =====================================================
-    // SOURCE ELEMENT
-    // =====================================================
-
-    auto srcElemPtr = builder->create<mlir::LLVM::GEPOp>(
-        loc,
-        ptrTy,
-        elemTy,        // IMPORTANT: correct base type
-        vec,
-        mlir::ValueRange{i}
-    );
-
-    auto srcElem = builder->create<mlir::LLVM::LoadOp>(
-        loc,
-        elemTy,
-        srcElemPtr
-    );
-
-    // =====================================================
-    // SCALAR BROADCAST
-    // =====================================================
-    // scalar is NOT loaded per iteration (already a value)
-
-    // =====================================================
-    // COMPUTE OP
-    // =====================================================
-
-    mlir::Value lhsV = vectorIsLHS ? srcElem : scalar;
-    mlir::Value rhsV = vectorIsLHS ? scalar  : srcElem;
-
-    auto operation = createBinaryExp(
-        lhsV,
-        rhsV,
-        result_t->prim,
-        op
-    );
-    // =====================================================
-    // DEST ELEMENT
-    // =====================================================
-
-    auto dstElemPtr = builder->create<mlir::LLVM::GEPOp>(
-        loc,
-        ptrTy,
-        result_llvm_t,
-        resultDistPtr,
-        mlir::ValueRange{i}
-    );
-
-    builder->create<mlir::LLVM::StoreOp>(
-        loc,
-        operation,
-        dstElemPtr
-    );
 
     builder->setInsertionPointAfter(loop);
 
-    return resultDistPtr;
+    return resultPtr;
+}
+
+mlir::Value ExpressionsHelper::getOpDefault(BinaryOp op){
+    /*
+    
+        PLUS  -> Additive
+        MINUS -> Additive
+        STAR  -> Multiplicative
+        DIV   -> Multiplicative
+        MOD   -> Modulo
+        LT GT LTE GTE -> Comparison
+        AND OR -> Logical
+    
+    */
+
+    OpClass opClass;
+
+    switch(op){
+        case BinaryOp::ADD:
+        case BinaryOp::SUB:{
+            opClass = OpClass::Additive;
+            break;
+        }
+        case BinaryOp::MUL:
+        case BinaryOp::DIV: {
+            opClass = OpClass::Multiplicative;
+            break;
+        }
+        case BinaryOp::EQ:
+        case BinaryOp::GE:
+        case BinaryOp::GT:
+        case BinaryOp::LE:
+        case BinaryOp::LT:{
+            opClass = OpClass::Comparison;
+            break;
+        }
+        case BinaryOp::AND:
+        case BinaryOp::OR:{
+            opClass = OpClass::Logical;
+            break;
+        }
+        case BinaryOp::MOD:{
+            opClass = OpClass::Modulo;
+            break;
+        }
+        default:   
+             llvm_unreachable("Op cannot be padded with values");
+    }
+
+      switch(opClass) {
+
+        case OpClass::Additive:
+            return createInt("0");
+
+        case OpClass::Multiplicative:
+            return createInt("1");
+
+        case OpClass::Logical:
+            return createBool("false");
+
+        case OpClass::Comparison:
+            llvm_unreachable("Comparisons cannot be padded");
+
+        case OpClass::Modulo:
+            llvm_unreachable("Modulo does not support padding");
+    }
+
 
 }
 
-mlir::Value vectorVectorOp(
-    mlir::Value lhs, 
-    std::shared_ptr<Type> lhs_t, 
-    mlir::Value rhs, 
-    std::shared_ptr<Type> rhs_t, 
-    BinaryOp op, 
+mlir::Value ExpressionsHelper::vectorVectorOp(
+    mlir::Value lhs,
+    std::shared_ptr<ArrayType> lhs_t,
+    mlir::Value rhs,
+    std::shared_ptr<ArrayType> rhs_t,
+    BinaryOp op,
     std::shared_ptr<ArrayType> res_t
 ) {
 
-}
+    auto ctx   = builder->getContext();
+    auto ptrTy = mlir::LLVM::LLVMPointerType::get(ctx);
 
+    auto zero = builder->create<mlir::arith::ConstantIntOp>(
+        loc, 0, 32
+    );
+
+    auto one = builder->create<mlir::arith::ConstantIntOp>(
+        loc, 1, 32
+    );
+
+    // =====================================================
+    // DIMENSIONS
+    // =====================================================
+
+    auto [lhsRows, lhsCols] = lhs_t->dimensions();
+    auto [rhsRows, rhsCols] = rhs_t->dimensions();
+
+    int lhsSize = lhsRows * lhsCols;
+    int rhsSize = rhsRows * rhsCols;
+
+    int resultSize = std::max(lhsSize, rhsSize);
+
+    auto lhsSizeV = builder->create<mlir::arith::ConstantIntOp>(
+        loc, lhsSize, 32
+    );
+
+    auto rhsSizeV = builder->create<mlir::arith::ConstantIntOp>(
+        loc, rhsSize, 32
+    );
+
+    auto resultSizeV = builder->create<mlir::arith::ConstantIntOp>(
+        loc, resultSize, 32
+    );
+
+    // =====================================================
+    // TYPES
+    // =====================================================
+
+    auto lhsElemTy =
+        types->getMLIRType(
+            cast<PrimType>(lhs_t->elem)
+        );
+
+    auto rhsElemTy =
+        types->getMLIRType(
+            cast<PrimType>(rhs_t->elem)
+        );
+
+    auto resultElemTy =
+        types->getMLIRType(
+            cast<PrimType>(res_t->elem)
+        );
+
+    auto resultPrimTy =
+        cast<PrimType>(res_t->elem);
+
+    // =====================================================
+    // RESULT ARRAY
+    // =====================================================
+
+    auto resultArrayTy =
+        mlir::LLVM::LLVMArrayType::get(
+            resultElemTy,
+            resultSize
+        );
+
+    auto resultPtr =
+        builder->create<mlir::LLVM::AllocaOp>(
+            loc,
+            ptrTy,
+            resultArrayTy,
+            one
+        );
+
+    auto paddingValue =
+        getOpDefault(op);
+
+    // =====================================================
+    // PAD RESULT ARRAY
+    // =====================================================
+
+    auto padLoop =
+        builder->create<mlir::scf::ForOp>(
+            loc,
+            zero,
+            resultSizeV,
+            one
+        );
+
+    builder->setInsertionPointToStart(
+        padLoop.getBody()
+    );
+
+    {
+        auto i = padLoop.getInductionVar();
+
+        auto elemPtr =
+            builder->create<mlir::LLVM::GEPOp>(
+                loc,
+                ptrTy,
+                resultElemTy,
+                resultPtr,
+                mlir::ValueRange{i}
+            );
+
+        builder->create<mlir::LLVM::StoreOp>(
+            loc,
+            paddingValue,
+            elemPtr
+        );
+    }
+
+    builder->setInsertionPointAfter(padLoop);
+
+    // =====================================================
+    // COPY LHS INTO RESULT
+    // =====================================================
+
+    auto lhsLoop =
+        builder->create<mlir::scf::ForOp>(
+            loc,
+            zero,
+            lhsSizeV,
+            one
+        );
+
+    builder->setInsertionPointToStart(
+        lhsLoop.getBody()
+    );
+
+    {
+        auto i = lhsLoop.getInductionVar();
+
+        auto lhsElemPtr =
+            builder->create<mlir::LLVM::GEPOp>(
+                loc,
+                ptrTy,
+                lhsElemTy,
+                lhs,
+                mlir::ValueRange{i}
+            );
+
+        auto lhsElem =
+            builder->create<mlir::LLVM::LoadOp>(
+                loc,
+                lhsElemTy,
+                lhsElemPtr
+            );
+
+        auto resultElemPtr =
+            builder->create<mlir::LLVM::GEPOp>(
+                loc,
+                ptrTy,
+                resultElemTy,
+                resultPtr,
+                mlir::ValueRange{i}
+            );
+
+        builder->create<mlir::LLVM::StoreOp>(
+            loc,
+            lhsElem,
+            resultElemPtr
+        );
+    }
+
+    builder->setInsertionPointAfter(lhsLoop);
+
+    // =====================================================
+    // APPLY RHS OPERATION
+    // =====================================================
+
+    auto rhsLoop =
+        builder->create<mlir::scf::ForOp>(
+            loc,
+            zero,
+            rhsSizeV,
+            one
+        );
+
+    builder->setInsertionPointToStart(
+        rhsLoop.getBody()
+    );
+
+    {
+        auto i = rhsLoop.getInductionVar();
+
+        // -------------------------------------------------
+        // RESULT ELEMENT
+        // -------------------------------------------------
+
+        auto resultElemPtr =
+            builder->create<mlir::LLVM::GEPOp>(
+                loc,
+                ptrTy,
+                resultElemTy,
+                resultPtr,
+                mlir::ValueRange{i}
+            );
+
+        auto resultElem =
+            builder->create<mlir::LLVM::LoadOp>(
+                loc,
+                resultElemTy,
+                resultElemPtr
+            );
+
+        // -------------------------------------------------
+        // RHS ELEMENT
+        // -------------------------------------------------
+
+        auto rhsElemPtr =
+            builder->create<mlir::LLVM::GEPOp>(
+                loc,
+                ptrTy,
+                rhsElemTy,
+                rhs,
+                mlir::ValueRange{i}
+            );
+
+        auto rhsElem =
+            builder->create<mlir::LLVM::LoadOp>(
+                loc,
+                rhsElemTy,
+                rhsElemPtr
+            );
+
+        // -------------------------------------------------
+        // OPERATION
+        // -------------------------------------------------
+
+        auto result =
+            createBinaryExp(
+                resultElem,
+                rhsElem,
+                resultPrimTy->prim,
+                op
+            );
+
+        // -------------------------------------------------
+        // STORE
+        // -------------------------------------------------
+
+        builder->create<mlir::LLVM::StoreOp>(
+            loc,
+            result,
+            resultElemPtr
+        );
+    }
+
+    builder->setInsertionPointAfter(rhsLoop);
+
+    return resultPtr;
+}
 
 
 

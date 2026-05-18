@@ -250,20 +250,17 @@ mlir::Value IRGen::visitBinary(
         if (!lhsIsArray && rhsIsVector) 
             return exps->vectorScalarOp(lhs, lhs_t, rhs, rhs_t, op, false, cast<ArrayType>(expr->type));
 
-        // // -----------------------------------------------------
-        // // Vector + Vector
-        // // -----------------------------------------------------
-        // if (lhsIsVector && rhsIsVector) {
+        // -----------------------------------------------------
+        // Vector + Vector
+        // -----------------------------------------------------
+        if (lhsIsVector && rhsIsVector) {
 
-        //     auto lhsArr = cast<ArrayType>(lhs_t);
-        //     auto rhsArr = cast<ArrayType>(rhs_t);
+            auto lhsArr = cast<ArrayType>(lhs_t);
+            auto rhsArr = cast<ArrayType>(rhs_t);
 
-        //     if (lhsArr->dimensions() != rhsArr->dimensions()) {
-        //         llvm::report_fatal_error("VectorVectorOp: dimension mismatch");
-        //     }
 
-        //     return exps->vectorVectorOp(lhs, lhsArr, rhs, rhsArr, op);
-        // }
+            return exps->vectorVectorOp(lhs, lhsArr, rhs, rhsArr, op,  cast<ArrayType>(expr->type));
+        }
 
         llvm_unreachable("Invalid array dispatch state");
     }

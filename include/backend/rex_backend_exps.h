@@ -91,6 +91,14 @@ namespace rex {
 
 using lit_ptr = std::shared_ptr<LiteralExpr>;
 
+enum class OpClass {
+    Additive,
+    Multiplicative,
+    Comparison,
+    Modulo,
+    Logical
+};
+
 
 /// =============================================================
 /// ExpressionsHelper
@@ -147,6 +155,7 @@ private:
     /// ---------------------------------------------------------
 
     mlir::OpBuilder::InsertPoint old_insertion_point;
+    OpClass opClass;
 
 
 public:
@@ -218,7 +227,8 @@ public:
     /// =========================================================
     /// Array Operation TO (Something)
     /// =========================================================
-    mlir::Value vectorVectorOp(mlir::Value lhs, std::shared_ptr<Type> lhs_t, mlir::Value rhs, std::shared_ptr<Type> rhs_t, BinaryOp op, std::shared_ptr<ArrayType> res_t);
+    mlir::Value getOpDefault(BinaryOp op);
+    mlir::Value vectorVectorOp(mlir::Value lhs, std::shared_ptr<ArrayType> lhs_t, mlir::Value rhs, std::shared_ptr<ArrayType> rhs_t, BinaryOp op, std::shared_ptr<ArrayType> res_t);
     mlir::Value vectorScalarOp(mlir::Value lhs, std::shared_ptr<Type> lhs_t, mlir::Value rhs, std::shared_ptr<Type> rhs_t, BinaryOp op, bool vectorIsLHS, std::shared_ptr<ArrayType> res_t);
 
 

@@ -424,4 +424,5 @@ print([[1,2], [3, 4]][1][0]);
 //print([1,2,3] / [8.0][0]);
 //print(8.0 / [1,2,3]);
 //print([true, false, true] or false);
-print(true or false);
+//print(true or false);
+print([1,2,3,4,5] / [1,2,3,4,5,6,7]);
