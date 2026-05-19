@@ -20,6 +20,17 @@ struct RangeType;
 struct PipeType;
 struct FunctionType;
 
+
+namespace {
+
+template<typename T>
+        std::shared_ptr<T> cast(
+            const std::shared_ptr<void> &ptr
+        ) {
+            return std::static_pointer_cast<T>(ptr);
+        }
+
+    }
 // -------------------------------------------------
 // Type kinds supported by Rex
 // -------------------------------------------------
@@ -160,16 +171,16 @@ struct ArrayType : Type {
         return size == o->size && elem->equals(o->elem);
     }
 
-    PrimType::Prims matrixType(){
+    std::shared_ptr<PrimType> matrixType(){
         if(isMatrix())
-            return std::static_pointer_cast<PrimType>(std::static_pointer_cast<ArrayType>(elem)->elem)->prim;
-        return PrimType::Prims::Null;
+            return std::static_pointer_cast<PrimType>(cast<ArrayType>(cast<ArrayType>(elem))->elem);
+        return nullptr;
     }
 
-    PrimType::Prims arrayType() {
+    std::shared_ptr<PrimType> vectorType() {
         if(isVector())
-            return std::static_pointer_cast<PrimType>(elem)->prim;
-        return PrimType::Prims::Null;
+            return std::static_pointer_cast<PrimType>(elem);
+        return nullptr;
     }
     
     bool isMatrix(){

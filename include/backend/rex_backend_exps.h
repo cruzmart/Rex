@@ -225,12 +225,39 @@ public:
     );
 
     /// =========================================================
-    /// Array Operation TO (Something)
+    /// Array Operation TO Scalar/Vector
     /// =========================================================
     mlir::Value getOpDefault(BinaryOp op);
-    mlir::Value vectorVectorOp(mlir::Value lhs, std::shared_ptr<ArrayType> lhs_t, mlir::Value rhs, std::shared_ptr<ArrayType> rhs_t, BinaryOp op, std::shared_ptr<ArrayType> res_t);
-    mlir::Value vectorScalarOp(mlir::Value lhs, std::shared_ptr<Type> lhs_t, mlir::Value rhs, std::shared_ptr<Type> rhs_t, BinaryOp op, bool vectorIsLHS, std::shared_ptr<ArrayType> res_t);
-
+    mlir::Value createVectorVectorOp(
+        mlir::Value lhs, 
+        std::shared_ptr<ArrayType> lhs_t, 
+        mlir::Value rhs, 
+        std::shared_ptr<ArrayType> rhs_t, 
+        BinaryOp op, 
+        std::shared_ptr<ArrayType> res_t
+    );
+    
+    mlir::Value createVectorScalarOp(
+        mlir::Value lhs, 
+        std::shared_ptr<Type> lhs_t, 
+        mlir::Value rhs, 
+        std::shared_ptr<Type> rhs_t, 
+        BinaryOp op, 
+        bool vectorIsLHS, 
+        std::shared_ptr<ArrayType> res_t
+    );
+    
+    mlir::Value loadArrayElem(
+        mlir::Value array,
+        mlir::Type elemTy,
+        mlir::Value index
+    );
+    void storeArrayElem(
+        mlir::Value array,
+        mlir::Type elemTy,
+        mlir::Value index,
+        mlir::Value value
+    );
 
     /// =========================================================
     /// Arithmetic
@@ -420,7 +447,7 @@ public:
 
     mlir::Value createRuntimeArray(
         const std::vector<mlir::Value> &elements,
-        PrimType::Prims kind
+        std::shared_ptr<PrimType> kind
     );
 };
 
