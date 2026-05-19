@@ -49,6 +49,17 @@ ExpressionsHelper::ExpressionsHelper(
 /// =============================================================
 /// Literal Creation
 /// =============================================================
+mlir::Value ExpressionsHelper::i32(int value){
+    return builder->create<mlir::arith::ConstantIntOp>(
+        loc,
+        value,
+        32
+    );
+}
+
+ mlir::LLVM::LLVMPointerType ExpressionsHelper::ptrty(){
+    return mlir::LLVM::LLVMPointerType::get(builder->getContext());
+ }
 
 mlir::Value ExpressionsHelper::createPrimitiveLiteral(
     std::shared_ptr<LiteralExpr> lit
@@ -98,7 +109,7 @@ mlir::Value ExpressionsHelper::createInt(
     return builder->create<mlir::arith::ConstantOp>(
         loc,
         builder->getIntegerAttr(
-            types->i32,
+            this->types->i32_t(),
             value
         )
     );
@@ -128,7 +139,7 @@ mlir::Value ExpressionsHelper::createFloat(
     return builder->create<mlir::arith::ConstantOp>(
         loc,
         builder->getFloatAttr(
-            types->f32,
+            this->types->f32_t(),
             value
         )
     );
@@ -142,7 +153,7 @@ mlir::Value ExpressionsHelper::createBool(
         return builder->create<mlir::arith::ConstantOp>(
             loc,
             builder->getIntegerAttr(
-                types->b1,
+                this->types->b1_t(),
                 1
             )
         );
@@ -152,7 +163,7 @@ mlir::Value ExpressionsHelper::createBool(
         return builder->create<mlir::arith::ConstantOp>(
             loc,
             builder->getIntegerAttr(
-                types->b1,
+                this->types->b1_t(),
                 0
             )
         );
@@ -257,8 +268,8 @@ mlir::Value ExpressionsHelper::createString(
         "str_const_" +
         std::to_string(globalCounter++);
 
-    auto i8Ty =
-        builder->getIntegerType(8);
+    auto i8Ty = this->types->c8_t();
+       
 
     auto arrayTy =
         mlir::LLVM::LLVMArrayType::get(
@@ -298,9 +309,7 @@ mlir::Value ExpressionsHelper::createString(
         mlir::LLVM::BitcastOp
     >(
         loc,
-        mlir::LLVM::LLVMPointerType::get(
-            builder->getContext()
-        ),
+        this->types->ptrty(),
         addr
     );
 }
@@ -327,19 +336,11 @@ mlir::Value ExpressionsHelper::createTuple(
             types
         );
 
-    auto ptrTy =
-        mlir::LLVM::LLVMPointerType::get(
-            ctx
-        );
-
-    auto one =
-        builder->create<
-            mlir::arith::ConstantIntOp
-        >(
-            loc,
-            1,
-            32
-        );
+    auto ptrTy = 
+        this->types->ptrty();
+    
+    auto one = 
+        i32(1);
 
     auto storage =
         builder->create<mlir::LLVM::AllocaOp>(
@@ -409,19 +410,19 @@ mlir::Value ExpressionsHelper::createBinaryExp(
     switch (prim) {
 
         case PrimType::Prims::Int:
-            resultTy = types->i32;
+            resultTy = this->types->i32_t();
             break;
 
         case PrimType::Prims::Real:
-            resultTy = types->f32;
+            resultTy = this->types->f32_t();
             break;
 
         case PrimType::Prims::Bool:
-            resultTy = types->b1;
+            resultTy = this->types->b1_t();
             break;
 
         case PrimType::Prims::Char:
-            resultTy = types->c8;
+            resultTy = this->types->c8_t();
             break;
 
         default:

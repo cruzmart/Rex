@@ -1,8 +1,4 @@
 #include "backend/rex_backend_exps.h"
-#include "rex_exps.h"
-#include "rex_ops.h"
-#include "rex_types.h"
-#include <memory>
 #include <mlir/Conversion/ArithToLLVM/ArithToLLVM.h>
 #include <mlir/Dialect/Arith/IR/Arith.h>
 #include <mlir/Dialect/LLVMIR/LLVMDialect.h>
@@ -389,14 +385,7 @@ namespace rex {
                     }
                 );
 
-            auto zero =
-                builder->create<
-                    mlir::arith::ConstantIntOp
-                >(
-                    loc,
-                    0,
-                    32
-                );
+            auto zero = i32(0);
 
             return builder->create<
                 mlir::arith::CmpIOp
@@ -445,14 +434,8 @@ namespace rex {
                     }
                 );
 
-            auto zero =
-                builder->create<
-                    mlir::arith::ConstantIntOp
-                >(
-                    loc,
-                    0,
-                    32
-                );
+
+            auto zero = i32(0);
 
             return builder->create<
                 mlir::arith::CmpIOp
@@ -546,8 +529,8 @@ namespace rex {
         mlir::Value lhs,
         mlir::Value rhs
     ) {
-        lhs = castTo(lhs, types->b1);
-        rhs = castTo(rhs, types->b1);
+        lhs = castTo(lhs, this->types->b1_t());
+        rhs = castTo(rhs, this->types->b1_t());
 
         return builder->create<mlir::arith::AndIOp>(
             loc,
@@ -564,8 +547,8 @@ namespace rex {
         mlir::Value lhs,
         mlir::Value rhs
     ) {
-        lhs = castTo(lhs, types->b1);
-        rhs = castTo(rhs, types->b1);
+        lhs = castTo(lhs, this->types->b1_t());
+        rhs = castTo(rhs, this->types->b1_t());
 
         return builder->create<mlir::arith::OrIOp>(
             loc,

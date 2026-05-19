@@ -21,304 +21,349 @@ namespace rex {
 /// Casting + Type Promotion
 /// =============================================================
 
-/// Casts a value into another supported primitive type.
+/// Casts a primitive value into another primitive type.
 ///
-/// Supported conversions:
+/// Supported:
 ///  - int   <-> float
 ///  - bool  -> int/float/char
 ///  - char  -> int/float
 ///  - int   -> bool/char
 ///
 /// Notes:
-///  - Pointer casts are intentionally rejected
-///  - No-op if source and target types already match
+///  - Pointer casts are rejected
+///  - Same-type casts are no-ops
 mlir::Value ExpressionsHelper::castTo(
     mlir::Value val,
-    mlir::Type targetType
+    mlir::Type targetTy
 ) {
-    mlir::Type srcType = val.getType();
 
+    auto srcTy =
+        val.getType();
 
-    // =========================================================
-    // Reject pointer casts
-    // =========================================================
-    if (srcType.isa<mlir::LLVM::LLVMPointerType>() ||
-        targetType.isa<mlir::LLVM::LLVMPointerType>()) {
+    // =====================================================
+    // INVALID POINTER CASTS
+    // =====================================================
+
+    if (srcTy.isa<mlir::LLVM::LLVMPointerType>() ||
+        targetTy.isa<mlir::LLVM::LLVMPointerType>()) {
+
         llvm::report_fatal_error(
             "Invalid cast involving pointer type"
         );
     }
 
-    // =========================================================
-    // No-op cast
-    // =========================================================
-    if (srcType == targetType) {
-        return val;
-    }
+    // =====================================================
+    // NO-OP
+    // =====================================================
 
-    // =========================================================
+    if (srcTy == targetTy)
+        return val;
+
+    // =====================================================
     // INT -> FLOAT
-    // =========================================================
-    if (srcType.isInteger(32) && targetType.isF32()) {
+    // =====================================================
+
+    if (srcTy.isInteger(32) && targetTy.isF32()) {
         return builder->create<mlir::arith::SIToFPOp>(
             loc,
-            targetType,
+            targetTy,
             val
         );
     }
 
-    // =========================================================
+    // =====================================================
     // FLOAT -> INT
-    // =========================================================
-    if (srcType.isF32() && targetType.isInteger(32)) {
+    // =====================================================
+
+    if (srcTy.isF32() && targetTy.isInteger(32)) {
         return builder->create<mlir::arith::FPToSIOp>(
             loc,
-            targetType,
+            targetTy,
             val
         );
     }
 
-    // =========================================================
-    // BOOL -> INT
-    // =========================================================
-    if (srcType.isInteger(1) && targetType.isInteger(32)) {
+    // =====================================================
+    // BOOL -> INT/CHAR
+    // =====================================================
+
+    if (srcTy.isInteger(1) &&
+       (targetTy.isInteger(32) || targetTy.isInteger(8))) {
+
         return builder->create<mlir::arith::ExtUIOp>(
             loc,
-            targetType,
+            targetTy,
             val
         );
     }
 
-    // =========================================================
+    // =====================================================
     // BOOL -> FLOAT
-    // =========================================================
-    if (srcType.isInteger(1) && targetType.isF32()) {
+    // =====================================================
 
-        auto i32 =
+    if (srcTy.isInteger(1) && targetTy.isF32()) {
+
+        auto i32Val =
             builder->create<mlir::arith::ExtUIOp>(
                 loc,
-                types->i32,
+                types->i32_t(),
                 val
             );
 
         return builder->create<mlir::arith::SIToFPOp>(
             loc,
-            targetType,
-            i32
+            targetTy,
+            i32Val
         );
     }
 
-    // =========================================================
-    // BOOL -> CHAR
-    // =========================================================
-    if (srcType.isInteger(1) && targetType.isInteger(8)) {
-        return builder->create<mlir::arith::ExtUIOp>(
-            loc,
-            targetType,
-            val
-        );
-    }
-
-    // =========================================================
+    // =====================================================
     // CHAR -> INT
-    // =========================================================
-    if (srcType.isInteger(8) && targetType.isInteger(32)) {
+    // =====================================================
+
+    if (srcTy.isInteger(8) && targetTy.isInteger(32)) {
         return builder->create<mlir::arith::ExtUIOp>(
             loc,
-            targetType,
+            targetTy,
             val
         );
     }
 
-    // =========================================================
+    // =====================================================
     // CHAR -> FLOAT
-    // =========================================================
-    if (srcType.isInteger(8) && targetType.isF32()) {
+    // =====================================================
 
-        auto i32 =
+    if (srcTy.isInteger(8) && targetTy.isF32()) {
+
+        auto i32Val =
             builder->create<mlir::arith::ExtUIOp>(
                 loc,
-                types->i32,
+                types->i32_t(),
                 val
             );
 
         return builder->create<mlir::arith::SIToFPOp>(
             loc,
-            targetType,
-            i32
+            targetTy,
+            i32Val
         );
     }
 
-    // =========================================================
+    // =====================================================
     // INT -> CHAR
-    // =========================================================
-    if (srcType.isInteger(32) && targetType.isInteger(8)) {
+    // =====================================================
+
+    if (srcTy.isInteger(32) && targetTy.isInteger(8)) {
         return builder->create<mlir::arith::TruncIOp>(
             loc,
-            targetType,
+            targetTy,
             val
         );
     }
 
-    // =========================================================
+    // =====================================================
     // INT -> BOOL
-    // =========================================================
-    if (srcType.isInteger(32) && targetType.isInteger(1)) {
+    // =====================================================
 
-        auto zero =
-            builder->create<mlir::arith::ConstantIntOp>(
-                loc,
-                0,
-                32
-            );
+    if (srcTy.isInteger(32) && targetTy.isInteger(1)) {
 
         return builder->create<mlir::arith::CmpIOp>(
             loc,
             mlir::arith::CmpIPredicate::ne,
             val,
-            zero
+            i32(0)
         );
     }
 
     llvm_unreachable("Unsupported cast");
 }
 
-/// Determines the common computation type used for arithmetic.
+/// Determines the common arithmetic compute type.
 ///
-/// Promotion rules:
-///  - If either operand is float -> use f32
-///  - Otherwise -> use i32
+/// Rules:
+///  - float present -> f32
+///  - otherwise -> i32
 mlir::Type ExpressionsHelper::getComputeType(
     mlir::Type lhs,
     mlir::Type rhs
 ) {
-    if (lhs.isF32() || rhs.isF32()) {
-        return types->f32;
-    }
 
-    return types->i32;
+    if (lhs.isF32() || rhs.isF32())
+        return types->f32_t();
+
+    return types->i32_t();
 }
 
 /// =============================================================
 /// String Handling
 /// =============================================================
 
-/// Concatenate two *constant* strings at compile time.
+/// Concatenates two constant strings.
+///
 /// Requirements:
-///  - Both operands must be backed by LLVM globals
-///  - No runtime string concat supported here
-mlir::Value ExpressionsHelper::concatString(mlir::Value lhs, mlir::Value rhs) {
+///  - both operands must be backed by LLVM globals
+///  - runtime concat is unsupported
+mlir::Value ExpressionsHelper::concatString(
+    mlir::Value lhs,
+    mlir::Value rhs
+) {
 
-    // Normalize inputs to string values (i8*)
     lhs = toStringValue(lhs);
     rhs = toStringValue(rhs);
 
-    // Extract AddressOf ops (must be globals)
-    auto lhsAddr = lhs.getDefiningOp<mlir::LLVM::AddressOfOp>();
-    auto rhsAddr = rhs.getDefiningOp<mlir::LLVM::AddressOfOp>();
+    auto lhsAddr =
+        lhs.getDefiningOp<mlir::LLVM::AddressOfOp>();
+
+    auto rhsAddr =
+        rhs.getDefiningOp<mlir::LLVM::AddressOfOp>();
 
     if (!lhsAddr || !rhsAddr) {
-        llvm::report_fatal_error("Only constant string concat supported");
+        llvm::report_fatal_error(
+            "Only constant string concat supported"
+        );
     }
 
-    // Lookup global string definitions
-    auto lhsGlobal = module.lookupSymbol<mlir::LLVM::GlobalOp>(
-        lhsAddr.getGlobalName()
-    );
+    auto lhsGlobal =
+        module.lookupSymbol<mlir::LLVM::GlobalOp>(
+            lhsAddr.getGlobalName()
+        );
 
-    auto rhsGlobal = module.lookupSymbol<mlir::LLVM::GlobalOp>(
-        rhsAddr.getGlobalName()
-    );
+    auto rhsGlobal =
+        module.lookupSymbol<mlir::LLVM::GlobalOp>(
+            rhsAddr.getGlobalName()
+        );
 
-    // Extract string contents
-    auto lhsAttr = lhsGlobal.getValue()->dyn_cast<mlir::StringAttr>();
-    auto rhsAttr = rhsGlobal.getValue()->dyn_cast<mlir::StringAttr>();
+    auto lhsAttr =
+        lhsGlobal.getValue()->dyn_cast<mlir::StringAttr>();
 
-    std::string lhsStr = lhsAttr.getValue().str();
-    std::string rhsStr = rhsAttr.getValue().str();
+    auto rhsAttr =
+        rhsGlobal.getValue()->dyn_cast<mlir::StringAttr>();
 
-    // Remove null terminator from LHS to avoid duplication
+    std::string lhsStr =
+        lhsAttr.getValue().str();
+
+    std::string rhsStr =
+        rhsAttr.getValue().str();
+
+    // remove duplicated null terminator
     if (!lhsStr.empty())
         lhsStr.pop_back();
 
-    std::string combined = lhsStr + rhsStr;
-
-    // Recreate pooled string
-    return createString(combined);
+    return createString(lhsStr + rhsStr);
 }
 
-/// Normalize a value into a string (i8*).
-/// Supports:
-///  - string values (no-op)
-///  - constant char → string
-mlir::Value ExpressionsHelper::toStringValue(mlir::Value v) {
+/// Converts a value into a string-compatible value.
+///
+/// Supported:
+///  - string pointer (no-op)
+///  - constant char -> string
+mlir::Value ExpressionsHelper::toStringValue(
+    mlir::Value v
+) {
 
-    auto type = v.getType();
+    auto ty =
+        v.getType();
 
-    // Already a string pointer
-    if (type.isa<mlir::LLVM::LLVMPointerType>()) {
+    // =====================================================
+    // ALREADY STRING
+    // =====================================================
+
+    if (ty.isa<mlir::LLVM::LLVMPointerType>())
         return v;
-    }
 
-    // Char → string (constant only)
-    if (type.isInteger(8)) {
-        if (auto cst = v.getDefiningOp<mlir::arith::ConstantOp>()) {
-            auto attr = cst.getValue().dyn_cast<mlir::IntegerAttr>();
-            char c = static_cast<char>(attr.getInt());
+    // =====================================================
+    // CHAR -> STRING
+    // =====================================================
 
-            return createString(std::string(1, c));
+    if (ty.isInteger(8)) {
+
+        auto cst =
+            v.getDefiningOp<mlir::arith::ConstantOp>();
+
+        if (!cst) {
+            llvm::report_fatal_error(
+                "Runtime char->string not supported yet"
+            );
         }
 
-        llvm::report_fatal_error("Runtime char→string not supported yet");
+        auto attr =
+            cst.getValue().dyn_cast<mlir::IntegerAttr>();
+
+        char c =
+            static_cast<char>(attr.getInt());
+
+        return createString(
+            std::string(1, c)
+        );
     }
 
-    llvm::report_fatal_error("Cannot convert value to string");
+    llvm::report_fatal_error(
+        "Cannot convert value to string"
+    );
 }
 
-
 /// =============================================================
-/// Constant String Folding (AST-level)
+/// Constant String Folding
 /// =============================================================
 
-/// Checks if an expression can be folded into a constant string.
-/// Supports:
-///  - string literals
-///  - char literals
-///  - nested string concatenations
-bool ExpressionsHelper::isConstStringExpr(std::shared_ptr<Expr> expr) {
+/// Returns true if an expression is a compile-time string.
+bool ExpressionsHelper::isConstStringExpr(
+    std::shared_ptr<Expr> expr
+) {
 
-    if(expr->exp_kind == ExprKind::Literal){
-        auto lit = std::static_pointer_cast<LiteralExpr>(expr);
-        auto prim = std::static_pointer_cast<PrimType>(lit->type);
+    // =====================================================
+    // LITERAL
+    // =====================================================
 
-        return prim->prim == PrimType::Prims::String ||
-               prim->prim == PrimType::Prims::Char;
+    if (expr->exp_kind == ExprKind::Literal) {
+
+        auto lit =
+            std::static_pointer_cast<LiteralExpr>(expr);
+
+        auto prim =
+            std::static_pointer_cast<PrimType>(lit->type);
+
+        return
+            prim->prim == PrimType::Prims::String ||
+            prim->prim == PrimType::Prims::Char;
     }
 
-    if(expr->exp_kind == ExprKind::Binary){
-        auto bin = std::static_pointer_cast<BinaryExpr>(expr);
+    // =====================================================
+    // BINARY CONCAT
+    // =====================================================
+
+    if (expr->exp_kind == ExprKind::Binary) {
+
+        auto bin =
+            std::static_pointer_cast<BinaryExpr>(expr);
 
         if (bin->operation != BinaryOp::ADD)
             return false;
 
-        return isConstStringExpr(bin->lhs) &&
-               isConstStringExpr(bin->rhs);
+        return
+            isConstStringExpr(bin->lhs) &&
+            isConstStringExpr(bin->rhs);
     }
 
-    return false;   
+    return false;
 }
 
-/// Recursively folds a constant string expression into a std::string.
-/// Handles:
-///  - string literals
-///  - char literals (with escape parsing)
-///  - nested concatenation
-std::string ExpressionsHelper::foldConstString(std::shared_ptr<Expr> expr) {
+/// Folds a constant string expression into std::string.
+std::string ExpressionsHelper::foldConstString(
+    std::shared_ptr<Expr> expr
+) {
 
-    // ---------- Literal ----------
-    if(expr->exp_kind == ExprKind::Literal){
-        auto lit = std::static_pointer_cast<LiteralExpr>(expr);
-        auto prim = std::static_pointer_cast<PrimType>(lit->type);
+    // =====================================================
+    // LITERAL
+    // =====================================================
+
+    if (expr->exp_kind == ExprKind::Literal) {
+
+        auto lit =
+            std::static_pointer_cast<LiteralExpr>(expr);
+
+        auto prim =
+            std::static_pointer_cast<PrimType>(lit->type);
 
         switch (prim->prim) {
 
@@ -326,62 +371,89 @@ std::string ExpressionsHelper::foldConstString(std::shared_ptr<Expr> expr) {
                 return lit->value;
 
             case PrimType::Prims::Char: {
-                const std::string &text = lit->value;
 
-                if (text.empty())
-                    llvm::report_fatal_error("Empty char in foldConstString");
+                auto text =
+                    lit->value;
 
-                char value;
-
-                if (text[0] == '\\') {
-                    if (text.size() != 2)
-                        llvm::report_fatal_error("Invalid escaped char");
-
-                    switch (text[1]) {
-                        case 'n':  value = '\n'; break;
-                        case 't':  value = '\t'; break;
-                        case 'r':  value = '\r'; break;
-                        case '\\': value = '\\'; break;
-                        case '\'': value = '\''; break;
-                        case '0':  value = '\0'; break;
-                        default:
-                            llvm::report_fatal_error("Unknown escape sequence");
-                    }
-                } else {
-                    if (text.size() != 1)
-                        llvm::report_fatal_error("Invalid char");
-
-                    value = text[0];
+                if (text.empty()) {
+                    llvm::report_fatal_error(
+                        "Empty char in foldConstString"
+                    );
                 }
 
-                return std::string(1, value);
+                // escaped char
+                if (text[0] == '\\') {
+
+                    if (text.size() != 2) {
+                        llvm::report_fatal_error(
+                            "Invalid escaped char"
+                        );
+                    }
+
+                    switch (text[1]) {
+
+                        case 'n':  return "\n";
+                        case 't':  return "\t";
+                        case 'r':  return "\r";
+                        case '\\': return "\\";
+                        case '\'': return "'";
+                        case '0':  return "\0";
+
+                        default:
+                            llvm::report_fatal_error(
+                                "Unknown escape sequence"
+                            );
+                    }
+                }
+
+                // regular char
+                if (text.size() != 1) {
+                    llvm::report_fatal_error(
+                        "Invalid char"
+                    );
+                }
+
+                return text;
             }
 
             default:
-                llvm::report_fatal_error("Non-string literal in foldConstString");
+                llvm::report_fatal_error(
+                    "Non-string literal in foldConstString"
+                );
         }
     }
 
-    // ---------- Binary (+ only) ----------
-    if(expr->exp_kind == ExprKind::Binary){
-        auto bin = std::static_pointer_cast<BinaryExpr>(expr);
+    // =====================================================
+    // CONCAT
+    // =====================================================
+
+    if (expr->exp_kind == ExprKind::Binary) {
+
+        auto bin =
+            std::static_pointer_cast<BinaryExpr>(expr);
 
         if (bin->operation != BinaryOp::ADD) {
-            llvm::report_fatal_error("Only + supported in foldConstString");
+            llvm::report_fatal_error(
+                "Only + supported in foldConstString"
+            );
         }
 
-        std::string lhs = foldConstString(bin->lhs);
-        std::string rhs = foldConstString(bin->rhs);
-
-        return lhs + rhs;
+        return
+            foldConstString(bin->lhs) +
+            foldConstString(bin->rhs);
     }
 
-    llvm::report_fatal_error("Expression is not a constant string expression");
+    llvm::report_fatal_error(
+        "Expression is not a constant string expression"
+    );
 }
 
-/// Checks if an MLIR value is a string (i8*).
-bool ExpressionsHelper::isStringValue(mlir::Value v){
-    return v.getType().isa<mlir::LLVM::LLVMPointerType>();
+/// Returns true if a value is a string pointer.
+bool ExpressionsHelper::isStringValue(
+    mlir::Value v
+) {
+    return
+        v.getType().isa<mlir::LLVM::LLVMPointerType>();
 }
 
 /// Performs constant string equality at compile time.
@@ -389,10 +461,10 @@ mlir::Value ExpressionsHelper::eqStringsConst(
     std::shared_ptr<Expr> lhs,
     std::shared_ptr<Expr> rhs
 ) {
-    std::string l = foldConstString(lhs);
-    std::string r = foldConstString(rhs);
 
-    bool result = (l == r);
+    bool result =
+        foldConstString(lhs) ==
+        foldConstString(rhs);
 
     return builder->create<mlir::arith::ConstantOp>(
         loc,
@@ -400,39 +472,49 @@ mlir::Value ExpressionsHelper::eqStringsConst(
     );
 }
 
-
 /// =============================================================
 /// External Function Handling
 /// =============================================================
 
-/// Ensures strcmp is declared in the module.
-/// Returns existing declaration or inserts a new one.
+/// Ensures strcmp exists in the module.
 mlir::LLVM::LLVMFuncOp ExpressionsHelper::getOrInsertStrcmp() {
 
-    if (auto func = module.lookupSymbol<mlir::LLVM::LLVMFuncOp>("strcmp")) {
+    if (auto func =
+        module.lookupSymbol<mlir::LLVM::LLVMFuncOp>(
+            "strcmp"
+        )) {
         return func;
     }
 
-    auto i8Ptr = mlir::LLVM::LLVMPointerType::get(builder->getContext());
+    auto i8Ptr =
+        mlir::LLVM::LLVMPointerType::get(
+            builder->getContext()
+        );
 
-    // int strcmp(i8*, i8*)
-    auto fnType = mlir::LLVM::LLVMFunctionType::get(
-        builder->getI32Type(),
-        {i8Ptr, i8Ptr},
-        false
+    auto fnTy =
+        mlir::LLVM::LLVMFunctionType::get(
+            builder->getI32Type(),
+            {i8Ptr, i8Ptr},
+            false
+        );
+
+    auto oldIP =
+        builder->saveInsertionPoint();
+
+    builder->setInsertionPointToStart(
+        module.getBody()
     );
 
-    // Must be inserted at module scope
-    auto oldIP = builder->saveInsertionPoint();
-    builder->setInsertionPointToStart(module.getBody());
+    auto func =
+        builder->create<mlir::LLVM::LLVMFuncOp>(
+            loc,
+            "strcmp",
+            fnTy
+        );
 
-    auto func = builder->create<mlir::LLVM::LLVMFuncOp>(
-        loc,
-        "strcmp",
-        fnType
+    builder->restoreInsertionPoint(
+        oldIP
     );
-
-    builder->restoreInsertionPoint(oldIP);
 
     return func;
 }

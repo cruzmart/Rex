@@ -87,10 +87,6 @@ struct PrintHelper {
 
 public:
 
-    // =========================================================
-    // Construction
-    // =========================================================
-
     PrintHelper(
         std::shared_ptr<mlir::OpBuilder> b,
         mlir::Location l,
@@ -101,47 +97,61 @@ public:
     // Low-Level Helpers
     // =========================================================
 
-    mlir::LLVM::AddressOfOp
-    getFmtAddress(mlir::LLVM::GlobalOp fmt);
+    mlir::LLVM::AddressOfOp getFmtAddress(mlir::LLVM::GlobalOp fmt);
 
     mlir::Value i32(int value);
     mlir::Value i8(char value);
 
-    void emitPrintf(
-        mlir::Value fmt,
-        mlir::Value value
+    // =========================================================
+    // LLVM abstraction layer (IMPORTANT)
+    // =========================================================
+
+    mlir::Type ptrTy();
+
+    mlir::Value gep(
+        mlir::Type elemTy,
+        mlir::Value basePtr,
+        mlir::ValueRange indices
     );
 
-    void emitChar(char c);
+    mlir::Value load(
+        mlir::Type type,
+        mlir::Value ptr
+    );
 
+    mlir::Value loadArrayElem(
+        mlir::Value arrayPtr,
+        mlir::Type elemTy,
+        mlir::Value index
+    );
+
+    // =========================================================
+    // Printing backend
+    // =========================================================
+
+    void emitPrintf(mlir::Value fmt, mlir::Value value);
+    void emitChar(char c);
     void emitSeparator();
 
     // =========================================================
-    // Generic Control Flow Helpers
+    // Control flow helpers
     // =========================================================
 
     template<typename Fn>
-    void forLoop(
-        mlir::Value upperBound,
-        Fn &&body
-    );
+    void forLoop(mlir::Value upperBound, Fn&& body);
 
     template<typename Fn>
     void emitIfNotLast(
         mlir::Value index,
         mlir::Value size,
-        Fn &&body
+        Fn&& body
     );
 
     // =========================================================
-    // Primitive Printing
+    // Core printing
     // =========================================================
 
     void printInline(mlir::Value value);
-
-    // =========================================================
-    // Generic Dispatcher
-    // =========================================================
 
     void printValue(
         mlir::Value value,
@@ -149,7 +159,7 @@ public:
     );
 
     // =========================================================
-    // Arrays / Matrices
+    // Arrays
     // =========================================================
 
     void printArray(
@@ -168,7 +178,7 @@ public:
     );
 
     // =========================================================
-    // Indexed Expressions
+    // Indexed
     // =========================================================
 
     void printIndexed(
@@ -183,7 +193,7 @@ public:
     void printTuple(
         mlir::Value tupPtr,
         mlir::LLVM::LLVMStructType structTy,
-        std::vector<std::shared_ptr<Type>> fieldTypes
+        const std::vector<std::shared_ptr<Type>>& fieldTypes
     );
 };
 

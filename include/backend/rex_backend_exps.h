@@ -157,6 +157,9 @@ private:
     mlir::OpBuilder::InsertPoint old_insertion_point;
     OpClass opClass;
 
+    mlir::Value i32(int value);
+    mlir::LLVM::LLVMPointerType ptrty ();
+
 
 public:
 

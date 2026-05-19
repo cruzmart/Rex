@@ -425,4 +425,9 @@ print([[1,2], [3, 4]][1][0]);
 //print(8.0 / [1,2,3]);
 //print([true, false, true] or false);
 //print(true or false);
-print([1.0,2.8,3.7,4.8,5.9] / [1,2,3,4,5,6,7]);
+//print([1.0,2.8,3.7,4.8,5.9] / [1,2,3,4,5,6,7]);
+//print([1,2,3] * [8.0][0]);
+
+let array1 : Real[3] = [1,2,3] * 8.0;
+print(array1);
+print((2,2.8, true, "I want to leave this world"));
