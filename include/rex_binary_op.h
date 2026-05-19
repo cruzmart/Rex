@@ -33,6 +33,8 @@ struct BinaryOpSystem {
     bool is_numeric(type_ptr T);
     bool is_bool(type_ptr T);
     bool is_array(type_ptr T);
+    bool is_matrix(type_ptr op);
+    bool is_vector(type_ptr op);
     bool is_tuple(type_ptr T);
     bool is_slice(type_ptr T);
     bool is_func(type_ptr T);
@@ -45,6 +47,9 @@ struct BinaryOpSystem {
     bool is_comp(BinaryOp op);
     bool is_arth(BinaryOp op);
     bool is_logic(BinaryOp op);
+
+  
+
 
     int prim_rank(PrimType::Prims k);
     type_ptr promote_primitive(std::shared_ptr<PrimType> A, std::shared_ptr<PrimType> B);

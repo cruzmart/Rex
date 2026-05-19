@@ -1,10 +1,42 @@
 #pragma once
 
-// Pass manager
-#include <mlir/Dialect/LLVMIR/LLVMTypes.h>
+#include <memory>
 #include <string_view>
+#include <vector>
 
 #include "backend/rex_backend_types.h"
+#include "rex_types.h"
+
+// =============================================================
+// MLIR IR
+// =============================================================
+
+#include "mlir/IR/Builders.h"
+#include "mlir/IR/BuiltinAttributes.h"
+#include "mlir/IR/BuiltinOps.h"
+#include "mlir/IR/MLIRContext.h"
+#include "mlir/IR/TypeRange.h"
+#include "mlir/IR/Types.h"
+#include "mlir/IR/Value.h"
+#include "mlir/IR/ValueRange.h"
+#include "mlir/IR/Verifier.h"
+
+// =============================================================
+// Dialects
+// =============================================================
+
+#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/ControlFlow/IR/ControlFlow.h"
+#include "mlir/Dialect/Func/IR/FuncOps.h"
+#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
+#include "mlir/Dialect/LLVMIR/LLVMTypes.h"
+#include "mlir/Dialect/MemRef/IR/MemRef.h"
+#include "mlir/Dialect/SCF/IR/SCF.h"
+
+// =============================================================
+// Conversion Passes
+// =============================================================
+
 #include "mlir/Conversion/ArithToLLVM/ArithToLLVM.h"
 #include "mlir/Conversion/ControlFlowToLLVM/ControlFlowToLLVM.h"
 #include "mlir/Conversion/FuncToLLVM/ConvertFuncToLLVM.h"
@@ -12,85 +44,147 @@
 #include "mlir/Conversion/MemRefToLLVM/MemRefToLLVM.h"
 #include "mlir/Conversion/ReconcileUnrealizedCasts/ReconcileUnrealizedCasts.h"
 #include "mlir/Conversion/SCFToControlFlow/SCFToControlFlow.h"
-#include "mlir/IR/Types.h"
+
+// =============================================================
+// Pass Manager
+// =============================================================
+
 #include "mlir/Pass/Pass.h"
 #include "mlir/Pass/PassManager.h"
 
-// Translation
+// =============================================================
+// LLVM Translation
+// =============================================================
+
 #include "llvm/Support/raw_os_ostream.h"
+
 #include "mlir/Target/LLVMIR/Dialect/Builtin/BuiltinToLLVMIRTranslation.h"
 #include "mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h"
 #include "mlir/Target/LLVMIR/Export.h"
 
-// MLIR IR
-#include "mlir/IR/Builders.h"
-#include "mlir/IR/BuiltinAttributes.h"
-#include "mlir/IR/BuiltinOps.h"
-#include "mlir/IR/MLIRContext.h"
-#include "mlir/IR/TypeRange.h"
-#include "mlir/IR/Value.h"
-#include "mlir/IR/ValueRange.h"
-#include "mlir/IR/Verifier.h"
-
-// Dialects
-#include "mlir/Dialect/Arith/IR/Arith.h"
-#include "mlir/Dialect/ControlFlow/IR/ControlFlow.h"
-#include "mlir/Dialect/Func/IR/FuncOps.h"
-#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
-#include "mlir/Dialect/MemRef/IR/MemRef.h"
-#include "mlir/Dialect/SCF/IR/SCF.h"
-
-
-
-
-
-#include "mlir/IR/Builders.h"
-#include "mlir/IR/MLIRContext.h"
-#include "mlir/IR/BuiltinOps.h"
-
-
-#include "rex_types.h"
-
 namespace rex {
-
 
 struct PrintHelper {
 
+    // =========================================================
+    // Runtime Symbols
+    // =========================================================
+
     mlir::LLVM::LLVMFuncOp printf_func;
+
     mlir::LLVM::GlobalOp fmt_int;
     mlir::LLVM::GlobalOp fmt_float;
     mlir::LLVM::GlobalOp fmt_char;
     mlir::LLVM::GlobalOp fmt_string;
 
-    
+    // =========================================================
+    // Shared State
+    // =========================================================
+
     std::shared_ptr<mlir::OpBuilder> builder;
     mlir::Location loc;
     std::shared_ptr<TypesHelper> types;
 
-    public:
+public:
 
+    // =========================================================
+    // Construction
+    // =========================================================
 
-        PrintHelper (        
-                        std::shared_ptr<mlir::OpBuilder> b,
-                        mlir::Location l,
-                        std::shared_ptr<TypesHelper> types
-                    );
+    PrintHelper(
+        std::shared_ptr<mlir::OpBuilder> b,
+        mlir::Location l,
+        std::shared_ptr<TypesHelper> t
+    );
 
-        mlir::LLVM::AddressOfOp getFmtAddress(mlir::LLVM::GlobalOp fmt);
+    // =========================================================
+    // Low-Level Helpers
+    // =========================================================
 
-        void printPrimtive(mlir::Value value);
-        void printInline(mlir::Value val);
-        
-        
-        void printIndexed(mlir::Value arrPtr, std::shared_ptr<IndexExpr> arrayType);
-        void printFlatArray(mlir::Value arrayPtr, std::shared_ptr<ArrayType> arrayType);
-        void printMatrix(mlir::Value arrayPtr, std::shared_ptr<ArrayType> arrayType);
-        void printArray( mlir::Value arrayPtr, std::shared_ptr<ArrayType> arrType);
+    mlir::LLVM::AddressOfOp
+    getFmtAddress(mlir::LLVM::GlobalOp fmt);
 
+    mlir::Value i32(int value);
+    mlir::Value i8(char value);
 
+    void emitPrintf(
+        mlir::Value fmt,
+        mlir::Value value
+    );
 
-        void printTuple(mlir::Value tupPtr, mlir::LLVM::LLVMStructType t_s, std::vector<std::shared_ptr<Type>> t);
+    void emitChar(char c);
 
+    void emitSeparator();
+
+    // =========================================================
+    // Generic Control Flow Helpers
+    // =========================================================
+
+    template<typename Fn>
+    void forLoop(
+        mlir::Value upperBound,
+        Fn &&body
+    );
+
+    template<typename Fn>
+    void emitIfNotLast(
+        mlir::Value index,
+        mlir::Value size,
+        Fn &&body
+    );
+
+    // =========================================================
+    // Primitive Printing
+    // =========================================================
+
+    void printInline(mlir::Value value);
+
+    // =========================================================
+    // Generic Dispatcher
+    // =========================================================
+
+    void printValue(
+        mlir::Value value,
+        std::shared_ptr<Type> type
+    );
+
+    // =========================================================
+    // Arrays / Matrices
+    // =========================================================
+
+    void printArray(
+        mlir::Value arrayPtr,
+        std::shared_ptr<ArrayType> arrType
+    );
+
+    void printFlatArray(
+        mlir::Value arrayPtr,
+        std::shared_ptr<ArrayType> arrType
+    );
+
+    void printMatrix(
+        mlir::Value arrayPtr,
+        std::shared_ptr<ArrayType> arrType
+    );
+
+    // =========================================================
+    // Indexed Expressions
+    // =========================================================
+
+    void printIndexed(
+        mlir::Value value,
+        std::shared_ptr<IndexExpr> idx
+    );
+
+    // =========================================================
+    // Tuples
+    // =========================================================
+
+    void printTuple(
+        mlir::Value tupPtr,
+        mlir::LLVM::LLVMStructType structTy,
+        std::vector<std::shared_ptr<Type>> fieldTypes
+    );
 };
 
-}
+} // namespace rex
