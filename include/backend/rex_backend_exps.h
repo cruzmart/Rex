@@ -263,6 +263,48 @@ public:
     );
 
     /// =========================================================
+    /// Binary Expressions
+    /// =========================================================
+
+    mlir::Value dispatchArithmetic(
+    mlir::Value lhs,
+    mlir::Value rhs,
+    mlir::Type resultTy,
+    BinaryOp op
+    );
+    mlir::Value dispatchCompare(
+    mlir::Value lhs,
+    mlir::Value rhs,
+    BinaryOp op
+    );
+    mlir::Value dispatchLogical(
+    mlir::Value lhs,
+    mlir::Value rhs,
+    BinaryOp op
+    ); 
+
+    mlir::Type resolvePrimType(PrimType::Prims prim);
+
+    template<typename IntPred, typename FloatPred>
+    mlir::Value emitCompareOp(
+        mlir::Value lhs,
+        mlir::Value rhs,
+        IntPred iPred,
+        FloatPred fPred
+    );
+
+    template<typename IntOp, typename FloatOp>
+    mlir::Value emitArithmeticOp(
+        mlir::Value lhs,
+        mlir::Value rhs,
+        mlir::Type resultTy
+    );
+
+    void checkConstantZero(
+    mlir::Value value,
+    llvm::StringRef message);
+
+    /// =========================================================
     /// Arithmetic
     /// =========================================================
 
