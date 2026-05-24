@@ -1,0 +1,9 @@
+type integer = Int;
+
+
+function nPlusTwo(n: integer)  {
+    print(n + 2);
+}
+
+let u : integer = 2;
+print(nPlusTwo(u));

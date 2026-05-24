@@ -17,6 +17,7 @@ set(REX_PASSES
     passes/rex_return_pass.cpp
     passes/rex_break_pass.cpp
     passes/rex_assignment_pass.cpp
+    passes/rex_toplevel_order_pass.cpp
 )
 
 set(REX_BACKEND

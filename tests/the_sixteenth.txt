@@ -2,6 +2,7 @@ type integer = Int;
 type float = Real;
 type cap = Bool;
 
+
 // ------------------------------------------------
 // function 1 (simple for loop)
 // ------------------------------------------------
