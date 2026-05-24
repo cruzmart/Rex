@@ -68,13 +68,13 @@ namespace rex {
                 exps->sub(
                     visitExp(range->rhs),
                     visitExp(range->lhs),
-                    types->i32
+                    this->types->i32_t()
                 );
 
             return exps->add(
                 diff,
                 i32(1),
-                types->i32
+                this->types->i32_t()
             );
         }
 
@@ -348,7 +348,7 @@ namespace rex {
         auto index =
             builder->create<mlir::LLVM::LoadOp>(
                 loc,
-                types->i32,
+                this->types->i32_t(),
                 indexPtr
             );
 
@@ -409,7 +409,7 @@ namespace rex {
                 );
 
             auto elemTy =
-                types->getMLIRType(
+                this->types->getMLIRType(
                     rowTy->elem
                 );
 
@@ -442,7 +442,7 @@ namespace rex {
             // =========================================
 
             auto valueTy =
-                types->getMLIRType(
+                this->types->getMLIRType(
                     iterSym->type
                 );
 
@@ -476,7 +476,7 @@ namespace rex {
         auto current =
             builder->create<mlir::LLVM::LoadOp>(
                 loc,
-                types->i32,
+                this->types->i32_t(),
                 indexPtr
             );
 

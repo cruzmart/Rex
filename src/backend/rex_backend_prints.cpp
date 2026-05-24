@@ -24,7 +24,10 @@ PrintHelper::PrintHelper(
 
 mlir::LLVM::AddressOfOp
 PrintHelper::getFmtAddress(mlir::LLVM::GlobalOp fmt) {
-    return builder->create<mlir::LLVM::AddressOfOp>(loc, fmt);
+    return builder->create<mlir::LLVM::AddressOfOp>(
+        loc,
+        fmt
+    );
 }
 
 mlir::Value PrintHelper::i32(int value) {
@@ -43,6 +46,68 @@ mlir::Value PrintHelper::i8(char value) {
     );
 }
 
+mlir::Type PrintHelper::ptrTy() {
+    return mlir::LLVM::LLVMPointerType::get(
+        builder->getContext()
+    );
+}
+
+/// ------------------------------------------------------------
+/// Generic GEP helper
+/// ------------------------------------------------------------
+
+mlir::Value PrintHelper::gep(
+    mlir::Type elemTy,
+    mlir::Value basePtr,
+    mlir::ValueRange indices
+) {
+    return builder->create<mlir::LLVM::GEPOp>(
+        loc,
+        ptrTy(),
+        elemTy,
+        basePtr,
+        indices
+    );
+}
+
+/// ------------------------------------------------------------
+/// Load helper
+/// ------------------------------------------------------------
+
+mlir::Value PrintHelper::load(
+    mlir::Type type,
+    mlir::Value ptr
+) {
+    return builder->create<mlir::LLVM::LoadOp>(
+        loc,
+        type,
+        ptr
+    );
+}
+
+/// ------------------------------------------------------------
+/// Array element load
+/// ------------------------------------------------------------
+
+mlir::Value PrintHelper::loadArrayElem(
+    mlir::Value arrayPtr,
+    mlir::Type elemTy,
+    mlir::Value index
+) {
+    auto elemPtr =
+        gep(
+            elemTy,
+            arrayPtr,
+            mlir::ValueRange{index}
+        );
+
+    return load(elemTy, elemPtr);
+}
+
+/// ------------------------------------------------------------
+/// Printf
+/// ------------------------------------------------------------
+
 void PrintHelper::emitPrintf(
     mlir::Value fmt,
     mlir::Value value
@@ -55,7 +120,10 @@ void PrintHelper::emitPrintf(
 }
 
 void PrintHelper::emitChar(char c) {
-    emitPrintf(getFmtAddress(fmt_char), i8(c));
+    emitPrintf(
+        getFmtAddress(fmt_char),
+        i8(c)
+    );
 }
 
 void PrintHelper::emitSeparator() {
@@ -63,24 +131,35 @@ void PrintHelper::emitSeparator() {
     emitChar(' ');
 }
 
+/// ------------------------------------------------------------
+/// Generic For Loop
+/// ------------------------------------------------------------
+
 template<typename Fn>
 void PrintHelper::forLoop(
     mlir::Value upperBound,
     Fn &&body
 ) {
-    auto loop = builder->create<mlir::scf::ForOp>(
-        loc,
-        i32(0),
-        upperBound,
-        i32(1)
-    );
+    auto loop =
+        builder->create<mlir::scf::ForOp>(
+            loc,
+            i32(0),
+            upperBound,
+            i32(1)
+        );
 
-    builder->setInsertionPointToStart(loop.getBody());
+    builder->setInsertionPointToStart(
+        loop.getBody()
+    );
 
     body(loop.getInductionVar());
 
     builder->setInsertionPointAfter(loop);
 }
+
+/// ------------------------------------------------------------
+/// Emit if not last index
+/// ------------------------------------------------------------
 
 template<typename Fn>
 void PrintHelper::emitIfNotLast(
@@ -88,26 +167,27 @@ void PrintHelper::emitIfNotLast(
     mlir::Value size,
     Fn &&body
 ) {
-    auto lastIndex =
+    auto last =
         builder->create<mlir::arith::SubIOp>(
             loc,
             size,
             i32(1)
         );
 
-    auto condition =
+    auto cond =
         builder->create<mlir::arith::CmpIOp>(
             loc,
             mlir::arith::CmpIPredicate::ne,
             index,
-            lastIndex
+            last
         );
 
-    auto ifOp = builder->create<mlir::scf::IfOp>(
-        loc,
-        condition,
-        false
-    );
+    auto ifOp =
+        builder->create<mlir::scf::IfOp>(
+            loc,
+            cond,
+            false
+        );
 
     builder->setInsertionPointToStart(
         &ifOp.getThenRegion().front()
@@ -122,41 +202,57 @@ void PrintHelper::emitIfNotLast(
 /// Primitive Printing
 /// =============================================================
 
-void PrintHelper::printInline(mlir::Value value) {
+void PrintHelper::printInline(
+    mlir::Value value
+) {
 
     auto type = value.getType();
 
     mlir::Value fmt;
 
+    // bool
     if (type.isInteger(1)) {
 
-        value = builder->create<mlir::arith::ExtUIOp>(
-            loc,
-            builder->getI32Type(),
-            value
-        );
+        value =
+            builder->create<mlir::arith::ExtUIOp>(
+                loc,
+                builder->getI32Type(),
+                value
+            );
 
         fmt = getFmtAddress(fmt_int);
     }
+
+    // int
     else if (type.isInteger(32)) {
         fmt = getFmtAddress(fmt_int);
     }
+
+    // char
     else if (type.isInteger(8)) {
         fmt = getFmtAddress(fmt_char);
     }
+
+    // float
     else if (type.isF32()) {
 
-        value = builder->create<mlir::arith::ExtFOp>(
-            loc,
-            builder->getF64Type(),
-            value
-        );
+        value =
+            builder->create<mlir::arith::ExtFOp>(
+                loc,
+                builder->getF64Type(),
+                value
+            );
 
         fmt = getFmtAddress(fmt_float);
     }
-    else if (type.isa<mlir::LLVM::LLVMPointerType>()) {
+
+    // string
+    else if (
+        type.isa<mlir::LLVM::LLVMPointerType>()
+    ) {
         fmt = getFmtAddress(fmt_string);
     }
+
     else {
         llvm::report_fatal_error(
             "Unsupported type in printInline"
@@ -167,13 +263,14 @@ void PrintHelper::printInline(mlir::Value value) {
 }
 
 /// =============================================================
-/// Generic Value Dispatcher
+/// Generic Dispatcher
 /// =============================================================
 
 void PrintHelper::printValue(
     mlir::Value value,
     std::shared_ptr<Type> type
 ) {
+
     switch (type->kind) {
 
         case TypeKind::Primitive:
@@ -183,7 +280,9 @@ void PrintHelper::printValue(
         case TypeKind::Array:
             printArray(
                 value,
-                std::static_pointer_cast<ArrayType>(type)
+                std::static_pointer_cast<ArrayType>(
+                    type
+                )
             );
             return;
 
@@ -214,34 +313,25 @@ void PrintHelper::printFlatArray(
     mlir::Value arrayPtr,
     std::shared_ptr<ArrayType> arrType
 ) {
-    auto ctx = builder->getContext();
 
     auto elemTy =
-        types->getMLIRType(arrType->elem);
+        this->types->getMLIRType(arrType->elem);
 
     auto [rows, cols] =
         arrType->dimensions();
 
-    auto totalSize = i32(rows * cols);
+    auto totalSize =
+        i32(rows * cols);
 
     emitChar('[');
 
     forLoop(totalSize, [&](mlir::Value i) {
 
-        auto elemPtr =
-            builder->create<mlir::LLVM::GEPOp>(
-                loc,
-                mlir::LLVM::LLVMPointerType::get(ctx),
-                elemTy,
-                arrayPtr,
-                mlir::ValueRange{i}
-            );
-
         auto elem =
-            builder->create<mlir::LLVM::LoadOp>(
-                loc,
+            loadArrayElem(
+                arrayPtr,
                 elemTy,
-                elemPtr
+                i
             );
 
         printInline(elem);
@@ -258,7 +348,6 @@ void PrintHelper::printMatrix(
     mlir::Value arrayPtr,
     std::shared_ptr<ArrayType> arrType
 ) {
-    auto ctx = builder->getContext();
 
     auto [rows, cols] =
         arrType->dimensions();
@@ -267,10 +356,10 @@ void PrintHelper::printMatrix(
     auto colCount = i32(cols);
 
     auto matrixTy =
-        types->getMLIRType(arrType);
+        this->types->getMLIRType(arrType);
 
     auto elemTy =
-        types->getMLIRType(
+        this->types->getMLIRType(
             std::static_pointer_cast<ArrayType>(
                 arrType->elem
             )->elem
@@ -299,9 +388,7 @@ void PrintHelper::printMatrix(
                 );
 
             auto elemPtr =
-                builder->create<mlir::LLVM::GEPOp>(
-                    loc,
-                    mlir::LLVM::LLVMPointerType::get(ctx),
+                gep(
                     matrixTy,
                     arrayPtr,
                     mlir::ValueRange{
@@ -311,11 +398,7 @@ void PrintHelper::printMatrix(
                 );
 
             auto elem =
-                builder->create<mlir::LLVM::LoadOp>(
-                    loc,
-                    elemTy,
-                    elemPtr
-                );
+                load(elemTy, elemPtr);
 
             printInline(elem);
 
@@ -334,39 +417,37 @@ void PrintHelper::printMatrix(
     emitChar(']');
 }
 
-/// =============================================================
-/// Indexed Printing
-/// =============================================================
-
 void PrintHelper::printIndexed(
     mlir::Value value,
     std::shared_ptr<IndexExpr> idx
 ) {
     auto resultTy = idx->type;
 
+    // =========================================================
+    // Primitive index result
+    // =========================================================
     if (resultTy->kind == TypeKind::Primitive) {
-        llvm::errs() << "in print index primitive\n";
-        llvm::errs() << value.getType() << "\n";
-        value =
+
+        auto loadedValue =
             builder->create<mlir::LLVM::LoadOp>(
                 loc,
-                types->getMLIRType(resultTy),
+                this->types->getMLIRType(resultTy),
                 value
             );
-        
 
-        printInline(value);
+        printInline(loadedValue);
         return;
     }
 
+    // =========================================================
+    // Array / Matrix index result
+    // =========================================================
     if (resultTy->kind == TypeKind::Array) {
 
         auto arrType =
-            std::static_pointer_cast<ArrayType>(
-                resultTy
-            );
+            std::static_pointer_cast<ArrayType>(resultTy);
 
-        // matrix[row] -> row slice
+        // matrix[row] → slice view
         if (arrType->isMatrix()) {
 
             auto rowType =
@@ -395,17 +476,20 @@ void PrintHelper::printIndexed(
 void PrintHelper::printTuple(
     mlir::Value tupPtr,
     mlir::LLVM::LLVMStructType structTy,
-    std::vector<std::shared_ptr<Type>> fieldTypes
+    const std::vector<std::shared_ptr<Type>>& fieldTypes
 ) {
 
-    auto ptrTy =
-        mlir::LLVM::LLVMPointerType::get(
-            builder->getContext()
-        );
+    auto ptrTy = this->types->ptrty();
+
+    auto structBody = structTy.getBody();
 
     emitChar('(');
 
-    for (size_t i = 0; i < fieldTypes.size(); ++i) {
+    for (size_t i = 0; i < structBody.size(); ++i) {
+
+        // =====================================================
+        // Field pointer (struct access)
+        // =====================================================
 
         auto fieldPtr =
             builder->create<mlir::LLVM::GEPOp>(
@@ -416,24 +500,32 @@ void PrintHelper::printTuple(
                 mlir::ArrayRef<mlir::LLVM::GEPArg>{
                     mlir::LLVM::GEPArg(0),
                     mlir::LLVM::GEPArg(
-                        static_cast<int64_t>(i)
+                        static_cast<int32_t>(i)
                     )
                 }
             );
 
         auto fieldTy =
-            structTy.getBody()[i];
+            structBody[i];
 
-        auto value =
+        // =====================================================
+        // Load field value
+        // =====================================================
+
+        auto fieldValue =
             builder->create<mlir::LLVM::LoadOp>(
                 loc,
                 fieldTy,
                 fieldPtr
             );
 
-        printValue(value, fieldTypes[i]);
+        printValue(fieldValue, fieldTypes[i]);
 
-        if (i != fieldTypes.size() - 1) {
+        // =====================================================
+        // Separator logic
+        // =====================================================
+
+        if (i + 1 < fieldTypes.size()) {
             emitSeparator();
         }
     }

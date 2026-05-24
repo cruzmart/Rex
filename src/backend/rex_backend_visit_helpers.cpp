@@ -1,7 +1,5 @@
 
 #include "backend/rex_backend_visit.h"
-#include "rex_ast.h"
-#include "rex_ast_nodes.h"
 #include "rex_exps.h"
 #include "rex_stmts.h"
 #include "rex_types.h"
@@ -46,7 +44,7 @@ mlir::Value IRGen::loadIfPointer(
 
     return builder->create<mlir::LLVM::LoadOp>(
         loc,
-        types->getMLIRType(type),
+        this->types->getMLIRType(type),
         value
     );
 }

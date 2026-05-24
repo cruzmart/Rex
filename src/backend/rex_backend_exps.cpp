@@ -49,6 +49,17 @@ ExpressionsHelper::ExpressionsHelper(
 /// =============================================================
 /// Literal Creation
 /// =============================================================
+mlir::Value ExpressionsHelper::i32(int value){
+    return builder->create<mlir::arith::ConstantIntOp>(
+        loc,
+        value,
+        32
+    );
+}
+
+ mlir::LLVM::LLVMPointerType ExpressionsHelper::ptrty(){
+    return mlir::LLVM::LLVMPointerType::get(builder->getContext());
+ }
 
 mlir::Value ExpressionsHelper::createPrimitiveLiteral(
     std::shared_ptr<LiteralExpr> lit
@@ -98,7 +109,7 @@ mlir::Value ExpressionsHelper::createInt(
     return builder->create<mlir::arith::ConstantOp>(
         loc,
         builder->getIntegerAttr(
-            types->i32,
+            this->types->i32_t(),
             value
         )
     );
@@ -128,7 +139,7 @@ mlir::Value ExpressionsHelper::createFloat(
     return builder->create<mlir::arith::ConstantOp>(
         loc,
         builder->getFloatAttr(
-            types->f32,
+            this->types->f32_t(),
             value
         )
     );
@@ -142,7 +153,7 @@ mlir::Value ExpressionsHelper::createBool(
         return builder->create<mlir::arith::ConstantOp>(
             loc,
             builder->getIntegerAttr(
-                types->b1,
+                this->types->b1_t(),
                 1
             )
         );
@@ -152,7 +163,7 @@ mlir::Value ExpressionsHelper::createBool(
         return builder->create<mlir::arith::ConstantOp>(
             loc,
             builder->getIntegerAttr(
-                types->b1,
+                this->types->b1_t(),
                 0
             )
         );
@@ -257,8 +268,8 @@ mlir::Value ExpressionsHelper::createString(
         "str_const_" +
         std::to_string(globalCounter++);
 
-    auto i8Ty =
-        builder->getIntegerType(8);
+    auto i8Ty = this->types->c8_t();
+       
 
     auto arrayTy =
         mlir::LLVM::LLVMArrayType::get(
@@ -298,9 +309,7 @@ mlir::Value ExpressionsHelper::createString(
         mlir::LLVM::BitcastOp
     >(
         loc,
-        mlir::LLVM::LLVMPointerType::get(
-            builder->getContext()
-        ),
+        this->types->ptrty(),
         addr
     );
 }
@@ -311,35 +320,19 @@ mlir::Value ExpressionsHelper::createString(
 
 /// Creates an LLVM struct on the stack and initializes fields.
 mlir::Value ExpressionsHelper::createTuple(
-    const std::vector<mlir::Type> types,
+    const mlir::LLVM::LLVMStructType struc,
     std::vector<mlir::Value> values
 ) {
-
-    assert(!values.empty());
-    assert(values.size() == types.size());
-
     auto *ctx =
         builder->getContext();
 
-    auto structTy =
-        mlir::LLVM::LLVMStructType::getLiteral(
-            ctx,
-            types
-        );
+    auto structTy = struc;
 
-    auto ptrTy =
-        mlir::LLVM::LLVMPointerType::get(
-            ctx
-        );
-
-    auto one =
-        builder->create<
-            mlir::arith::ConstantIntOp
-        >(
-            loc,
-            1,
-            32
-        );
+    auto ptrTy = 
+        this->types->ptrty();
+    
+    auto one = 
+        i32(1);
 
     auto storage =
         builder->create<mlir::LLVM::AllocaOp>(
@@ -351,7 +344,8 @@ mlir::Value ExpressionsHelper::createTuple(
 
     for (size_t i = 0;
          i < values.size();
-         ++i) {
+         ++i
+        ) {
 
         auto fieldPtr =
             builder->create<
@@ -377,126 +371,6 @@ mlir::Value ExpressionsHelper::createTuple(
     }
 
     return storage;
-}
-
-
-
-/// =============================================================
-/// Binary Expressions
-/// =============================================================
-
-mlir::Value ExpressionsHelper::createBinaryExp(
-    mlir::Value lhs,
-    mlir::Value rhs,
-    PrimType::Prims prim,
-    BinaryOp op
-) {
-
-    // =====================================================
-    // STRING CONCAT
-    // =====================================================
-
-    if (isPointer(lhs.getType()) &&
-        isPointer(rhs.getType()) &&
-        op == BinaryOp::ADD) {
-
-        return concatString(lhs, rhs);
-    }
-
-
-    mlir::Type resultTy;
-
-    switch (prim) {
-
-        case PrimType::Prims::Int:
-            resultTy = types->i32;
-            break;
-
-        case PrimType::Prims::Real:
-            resultTy = types->f32;
-            break;
-
-        case PrimType::Prims::Bool:
-            resultTy = types->b1;
-            break;
-
-        case PrimType::Prims::Char:
-            resultTy = types->c8;
-            break;
-
-        default:
-            resultTy = {};
-            break;
-    }
-
-    // =====================================================
-    // ARITHMETIC
-    // =====================================================
-
-    switch (op) {
-
-        case BinaryOp::ADD:
-            return add(lhs, rhs, resultTy);
-
-        case BinaryOp::SUB:
-            return sub(lhs, rhs, resultTy);
-
-        case BinaryOp::MUL:
-            return mul(lhs, rhs, resultTy);
-
-        case BinaryOp::DIV:
-            return div(lhs, rhs, resultTy);
-
-        case BinaryOp::MOD:
-            return mod(lhs, rhs, resultTy);
-
-        default:
-            break;
-    }
-
-    // =====================================================
-    // COMPARISONS
-    // =====================================================
-
-    switch (op) {
-
-        case BinaryOp::EQ:
-            return eq(lhs, rhs);
-
-        case BinaryOp::NEQ:
-            return neq(lhs, rhs);
-
-        case BinaryOp::LT:
-            return lt(lhs, rhs);
-
-        case BinaryOp::LE:
-            return le(lhs, rhs);
-
-        case BinaryOp::GT:
-            return gt(lhs, rhs);
-
-        case BinaryOp::GE:
-            return ge(lhs, rhs);
-
-        default:
-            break;
-    }
-
-    // =====================================================
-    // LOGICAL
-    // =====================================================
-
-    switch (op) {
-
-        case BinaryOp::AND:
-            return and_(lhs, rhs);
-
-        case BinaryOp::OR:
-            return or_(lhs, rhs);
-
-        default:
-            return {};
-    }
 }
 
 }
