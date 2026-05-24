@@ -25,7 +25,15 @@ namespace rex {
     }
 
     mlir::Type TypesHelper::getMLIRType(std::shared_ptr<Type> t) {
+        // =====================================================
+        // TUPLE
+        // =====================================================
 
+        if(t->kind == TypeKind::Tuple){
+            auto tupTy = std::static_pointer_cast<TupleType>(t);
+            return createStruct(tupTy->elements);
+        }
+        
         // =====================================================
         // ARRAY
         // =====================================================

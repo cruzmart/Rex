@@ -478,15 +478,19 @@ void PrintHelper::printTuple(
     mlir::LLVM::LLVMStructType structTy,
     const std::vector<std::shared_ptr<Type>>& fieldTypes
 ) {
+
     auto ptrTy = this->types->ptrty();
+
+    auto structBody = structTy.getBody();
 
     emitChar('(');
 
-    for (size_t i = 0; i < fieldTypes.size(); ++i) {
+    for (size_t i = 0; i < structBody.size(); ++i) {
 
         // =====================================================
         // Field pointer (struct access)
         // =====================================================
+
         auto fieldPtr =
             builder->create<mlir::LLVM::GEPOp>(
                 loc,
@@ -495,12 +499,18 @@ void PrintHelper::printTuple(
                 tupPtr,
                 mlir::ArrayRef<mlir::LLVM::GEPArg>{
                     mlir::LLVM::GEPArg(0),
-                    mlir::LLVM::GEPArg(static_cast<int32_t>(i))
+                    mlir::LLVM::GEPArg(
+                        static_cast<int32_t>(i)
+                    )
                 }
             );
 
         auto fieldTy =
-            structTy.getBody()[i];
+            structBody[i];
+
+        // =====================================================
+        // Load field value
+        // =====================================================
 
         auto fieldValue =
             builder->create<mlir::LLVM::LoadOp>(
@@ -514,6 +524,7 @@ void PrintHelper::printTuple(
         // =====================================================
         // Separator logic
         // =====================================================
+
         if (i + 1 < fieldTypes.size()) {
             emitSeparator();
         }

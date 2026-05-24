@@ -320,21 +320,13 @@ mlir::Value ExpressionsHelper::createString(
 
 /// Creates an LLVM struct on the stack and initializes fields.
 mlir::Value ExpressionsHelper::createTuple(
-    const std::vector<mlir::Type> types,
+    const mlir::LLVM::LLVMStructType struc,
     std::vector<mlir::Value> values
 ) {
-
-    assert(!values.empty());
-    assert(values.size() == types.size());
-
     auto *ctx =
         builder->getContext();
 
-    auto structTy =
-        mlir::LLVM::LLVMStructType::getLiteral(
-            ctx,
-            types
-        );
+    auto structTy = struc;
 
     auto ptrTy = 
         this->types->ptrty();
@@ -352,7 +344,8 @@ mlir::Value ExpressionsHelper::createTuple(
 
     for (size_t i = 0;
          i < values.size();
-         ++i) {
+         ++i
+        ) {
 
         auto fieldPtr =
             builder->create<

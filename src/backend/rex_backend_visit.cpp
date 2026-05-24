@@ -327,8 +327,10 @@ mlir::Value IRGen::visitTuple(
         );
     }
 
+    auto tupTy = types->getMLIRType(tupleTy);
+
     return exps->createTuple(
-        mlirTypes,
+          mlir::cast<mlir::LLVM::LLVMStructType>(tupTy),
         values
     );
 }
@@ -451,6 +453,15 @@ mlir::Value IRGen::visitId(
     if (sym->type->kind ==
         TypeKind::Array) {
         return var->ptr;
+    }
+
+      
+    if (sym->type->kind ==
+        TypeKind::Tuple) {
+         return builder->create<mlir::LLVM::LoadOp>(
+        loc,
+        types->ptrty(),
+        var->ptr);
     }
 
 
@@ -611,10 +622,7 @@ mlir::Value IRGen::materializeValueForStorage(
 void IRGen::visitDelc(
     std::shared_ptr<LetStmt> stmt
 ) {
-    auto ptrTy =
-        mlir::LLVM::LLVMPointerType::get(
-            builder->getContext()
-        );
+    auto ptrTy = types->ptrty();
 
     auto one = i32(1);
 
@@ -895,11 +903,11 @@ void IRGen::visitPrint(
             auto tupleTy =
                 cast<TupleType>(type);
 
+            auto structTy = mlir::cast<mlir::LLVM::LLVMStructType>(types->getMLIRType(tupleTy));
+
             prints->printTuple(
                 value,
-                types->createStruct(
-                    tupleTy->elements
-                ),
+                structTy,
                 tupleTy->elements
             );
 

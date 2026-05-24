@@ -211,7 +211,7 @@ public:
     /// =========================================================
 
     mlir::Value createTuple(
-        const std::vector<mlir::Type> types,
+        const mlir::LLVM::LLVMStructType struc,
         std::vector<mlir::Value> values
     );
 
