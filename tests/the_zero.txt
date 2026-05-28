@@ -224,7 +224,7 @@ loop {
         let i : Int = 0;
         while(true){
             while (i < 9){
-               print(i + y);   
+               print(i + 2);   
                i = i + 2;
             }
             break;

@@ -98,6 +98,9 @@ namespace rex {
             case PrimType::Prims::Real:
                 return f32_t();
 
+            case PrimType::Prims::Void:
+                return mlir::LLVM::LLVMVoidType::get(builder->getContext());
+
             default:
                 llvm::report_fatal_error(
                     "Unsupported type in MLIR"

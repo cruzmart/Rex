@@ -58,6 +58,7 @@
 #include "rex_stmts.h"
 #include "rex_symbol.h"
 #include "rex_types.h"
+#include "rex_funcs.h"
 
 namespace rex {
 
@@ -175,6 +176,9 @@ public:
     // =========================================================
     // Root
     // =========================================================
+    void visitFunctionDecls(
+         std::shared_ptr<FileAst> file
+    );
 
     void visit(
         std::shared_ptr<FileAst> file
@@ -280,6 +284,15 @@ public:
     void visitAssign(
         std::shared_ptr<AssignStmt> stmt
     );
+
+    // =========================================================
+    // Functions
+    // =========================================================
+
+    void visitFunctionDef(std::shared_ptr<FunctionDecl> funcDef);
+    void visitFunctionCall(std::shared_ptr<CallExpr> funcCall);
+    void visitReturn(std::shared_ptr<ReturnStmt> restm);
+
 };
 
 } // namespace rex

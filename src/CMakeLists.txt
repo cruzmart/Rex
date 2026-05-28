@@ -31,6 +31,7 @@ set(REX_BACKEND
     backend/rex_backend_visit.cpp
     backend/rex_backend_visit_helpers.cpp
     backend/rex_backend_visit_flow_control.cpp
+    backend/rex_backend_funcs.cpp
 )
 
 add_executable(rex)

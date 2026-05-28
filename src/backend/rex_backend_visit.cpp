@@ -34,6 +34,8 @@ IRGen::IRGen(
 
 /// Entry point: visits entire file AST.
 /// Initializes global scope and processes top-level statements.
+
+
 void IRGen::visit(std::shared_ptr<FileAst> file) {
 
     currentScope = std::make_shared<Scope>();
@@ -47,6 +49,27 @@ void IRGen::visit(std::shared_ptr<FileAst> file) {
 
         if (item->ast_kind == AstNodeKind::Stmt) {
             visitStmt(cast<Stmt>(item));
+        }
+    }
+}
+
+void IRGen::visitFunctionDecls(std::shared_ptr<FileAst> file) {
+
+    // =====================================================
+    // PASS 1:
+    // Module-level declarations
+    // =====================================================
+
+    for (auto& item : file->items) {
+
+        if (item->ast_kind == AstNodeKind::FunctionDecl) {
+
+            // 🔥 ALWAYS reset to module body BEFORE creating functions
+            builder->setInsertionPointToEnd(module.getBody());
+
+            visitFunctionDef(
+                cast<FunctionDecl>(item)
+            );
         }
     }
 }
@@ -522,6 +545,9 @@ void IRGen::visitStmt(
             return visitAssign(
                 cast<AssignStmt>(stmt)
             );
+
+        case StmtKind::Return_Normal:
+            return visitReturn(cast<ReturnStmt>(stmt));
 
         default:
             return;
