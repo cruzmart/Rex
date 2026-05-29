@@ -27,13 +27,21 @@ void IRGen::visitFunctionDef(
     // CREATE FUNCTION
     // =====================================================
 
-    auto function =
+    mlir::LLVM::LLVMFuncOp function =
         builder->create<mlir::LLVM::LLVMFuncOp>(
             loc,
             funcDef->func_name,
             llvmFuncTy
         );
 
+    auto funcSym =
+    std::make_shared<FunctionSymbol>(
+        funcDef->func_name,
+        funcDef->func_type,
+        function
+    );
+
+    currentScope->define(funcSym);
     // =====================================================
     // ENTRY BLOCK
     // =====================================================
@@ -123,10 +131,89 @@ void IRGen::visitFunctionDef(
     builder->restoreInsertionPoint(savedPoint);
 }
 
+mlir::Value IRGen::visitFunctionCall(
+    std::shared_ptr<CallExpr> funcCall
+) {
+
+    // =====================================================
+    // RESOLVE FUNCTION SYMBOL
+    // =====================================================
+
+     llvm::errs() << "hello\n";
+
+    auto sym =
+        currentScope->resolve(funcCall->callee);
+
+    if (!sym)
+        llvm_unreachable("Unknown function");
+
+    if (sym->kind != SymbolType::Function)
+        llvm_unreachable("Symbol is not a function");
+
+    auto funcSym =
+        cast<FunctionSymbol>(sym);
+
+    auto funcTy =
+        cast<FunctionType>(funcSym->type);
+     
+    // =====================================================
+    // EVALUATE ARGUMENTS
+    // =====================================================
+
+    std::vector<mlir::Value> args;
+
+    for (auto &argExpr : funcCall->args) {
+
+        auto value =
+            visitExp(argExpr);
+
+        args.push_back(value);
+    }
+
+    // =====================================================
+    // LOOKUP FUNCTION
+    // =====================================================
+
+    auto function =
+        module.lookupSymbol<mlir::LLVM::LLVMFuncOp>(
+            funcSym->name
+        );
+    
+    if (!function)
+        llvm_unreachable("Function op not found");
+
+    // =====================================================
+    // CALL
+    // =====================================================
+
+    auto call =
+        builder->create<mlir::LLVM::CallOp>(
+            loc,
+            function,
+            args
+        );
+
+    // =====================================================
+    // VOID RETURN
+    // =====================================================
+
+    if (function.getFunctionType().isa<mlir::LLVM::LLVMVoidType>()) {
+
+        return mlir::Value();
+    }
+
+    // =====================================================
+    // RETURN VALUE
+    // =====================================================
+
+    return call.getResult();
+}
+
 void IRGen::visitReturn(std::shared_ptr<ReturnStmt> restmt){
         builder->create<mlir::LLVM::ReturnOp>(
         loc,
         visitExp(restmt->value)
     );
 }
+
 }

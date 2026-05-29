@@ -94,6 +94,8 @@ void BackEnd::dumpLLVM(std::ostream &os, bool debug) {
 
 int BackEnd::emitMain(std::shared_ptr<FileAst> file) {
 
+    visitor->currentScope = std::make_shared<Scope>();
+
     // =====================================================
     // 1. Emit all function declarations FIRST
     // =====================================================

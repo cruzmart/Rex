@@ -66,11 +66,6 @@ class IRGen {
 
 protected:
 
-    // =========================================================
-    // Scope / CFG State
-    // =========================================================
-
-    std::shared_ptr<Scope> currentScope;
 
 
     // =========================================================
@@ -121,6 +116,13 @@ protected:
     );
 
 public:
+
+    // =========================================================
+    // Scope / CFG State / Etc.
+    // =========================================================
+
+    std::shared_ptr<Scope> currentScope;
+
   bool blockHasTerminator(mlir::Block *block);
     std::vector<mlir::Block*> contStack;
     std::vector<mlir::Block*> breakStack;
@@ -290,7 +292,7 @@ public:
     // =========================================================
 
     void visitFunctionDef(std::shared_ptr<FunctionDecl> funcDef);
-    void visitFunctionCall(std::shared_ptr<CallExpr> funcCall);
+    mlir::Value visitFunctionCall(std::shared_ptr<CallExpr> funcCall);
     void visitReturn(std::shared_ptr<ReturnStmt> restm);
 
 };

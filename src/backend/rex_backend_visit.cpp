@@ -38,7 +38,7 @@ IRGen::IRGen(
 
 void IRGen::visit(std::shared_ptr<FileAst> file) {
 
-    currentScope = std::make_shared<Scope>();
+    //currentScope = std::make_shared<Scope>();
 
     for (auto &item : file->items) {
 
@@ -117,6 +117,10 @@ mlir::Value IRGen::visitExp(
         case ExprKind::Id:
             return visitId(
                 cast<IdExpr>(expr)
+            );
+        case ExprKind::Call:
+            return visitFunctionCall(
+                cast<CallExpr>(expr)
             );
 
         default:

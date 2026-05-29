@@ -1,24 +1,10 @@
 type integer = Int;
 
 
-function nPlusTwo(n: integer, m: Real) {
+function nPlusTwo(n: integer, m: Real) -> Int {
 
-     loop {
-                while(true){
-                    print(2);
-                    break;
-                }
-                
-                if(2 > 1){
-                    print(7);
-                    while(3 == 3){
-                        print(3);
-                        print(3);
-                        break;
-                    }
-                }
-
-            break;
-        
-        }
+    return 1;
 }
+
+
+print(nPlusTwo(2,2.0));
