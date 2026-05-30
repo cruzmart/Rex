@@ -25,6 +25,14 @@ namespace rex {
     }
 
     mlir::Type TypesHelper::getMLIRType(std::shared_ptr<Type> t) {
+
+        // =====================================================
+        // VOID
+        // =====================================================
+        if(t->kind == TypeKind::Void){
+            return mlir::LLVM::LLVMVoidType::get(builder->getContext());
+        }
+        
         // =====================================================
         // TUPLE
         // =====================================================

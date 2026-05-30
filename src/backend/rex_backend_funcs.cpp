@@ -115,7 +115,11 @@ void IRGen::visitFunctionDef(
     // =====================================================
 
     builder->setInsertionPointToStart(exitBlock);
-    builder->create<mlir::LLVM::UnreachableOp>(loc);
+    if (llvmFuncTy.getReturnType().isa<mlir::LLVM::LLVMVoidType>()) {
+        builder->create<mlir::LLVM::ReturnOp>(loc, mlir::ValueRange{});
+    } else {
+        builder->create<mlir::LLVM::UnreachableOp>(loc);
+    }
 
     
     // =====================================================
@@ -213,6 +217,70 @@ void IRGen::visitReturn(std::shared_ptr<ReturnStmt> restmt){
         builder->create<mlir::LLVM::ReturnOp>(
         loc,
         visitExp(restmt->value)
+    );
+}
+
+void IRGen::visitReturnExpr(std::shared_ptr<ExprStmt> rexpstmt){
+     builder->create<mlir::LLVM::ReturnOp>(
+        loc,
+        visitExp(rexpstmt->value)
+    );
+}
+
+void IRGen::visitVoidCall(std::shared_ptr<ExprStmt> exprStmt){
+
+    auto void_call = cast<CallExpr>(exprStmt->value);
+
+    auto sym =
+        currentScope->resolve(void_call->callee);
+
+
+    if (!sym)
+        llvm_unreachable("Unknown function");
+
+    if (sym->kind != SymbolType::Function)
+        llvm_unreachable("Symbol is not a function");
+
+    auto funcSym =
+        cast<FunctionSymbol>(sym);
+
+    auto funcTy =
+        cast<FunctionType>(funcSym->type);
+     
+    // =====================================================
+    // EVALUATE ARGUMENTS
+    // =====================================================
+
+    std::vector<mlir::Value> args;
+
+    for (auto &argExpr : void_call->args) {
+
+        auto value =
+            visitExp(argExpr);
+
+        args.push_back(value);
+    }
+
+    // =====================================================
+    // LOOKUP FUNCTION
+    // =====================================================
+
+    auto function =
+        module.lookupSymbol<mlir::LLVM::LLVMFuncOp>(
+            funcSym->name
+        );
+    
+    if (!function)
+        llvm_unreachable("Function op not found");
+
+    // =====================================================
+    // CALL
+    // =====================================================
+
+    builder->create<mlir::LLVM::CallOp>(
+        loc,
+        function,
+        args
     );
 }
 

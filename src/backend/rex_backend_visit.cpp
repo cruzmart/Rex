@@ -553,6 +553,13 @@ void IRGen::visitStmt(
         case StmtKind::Return_Normal:
             return visitReturn(cast<ReturnStmt>(stmt));
 
+        case StmtKind::Return_Expr:
+            return visitReturnExpr(cast<ExprStmt>(stmt));
+
+        case StmtKind::Void_Call:{
+         
+            return visitVoidCall(cast<ExprStmt>(stmt));
+        }
         default:
             return;
     }

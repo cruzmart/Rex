@@ -10,6 +10,7 @@
 #include "passes/rex_exp_pass.h"
 #include "passes/rex_return_pass.h"
 #include "passes/rex_toplevel_order_pass.h"
+#include "passes/rex_call_pass.h"
 #include "rex_ast_build.h"
 #include "rex_ast_nodes.h"
 
@@ -74,6 +75,9 @@ int main(int argc, char* argv[]) {
     //// Function Hoisting Pass /////
     TopLevelOrderPass pass_funcs_hoisting;
     pass_funcs_hoisting.visit(ast);
+
+    FunctionCallPass func_pass;
+    func_pass.visit(ast);
 
     ast->dump(std::cout, 0);
 

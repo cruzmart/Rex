@@ -1,10 +1,18 @@
 type integer = Int;
 
+function docm() -> integer {
+    return 17; 
+}
 
-function nPlusTwo(n: integer, m: Real) -> Int {
+function nPlusTwo(n: integer, m: Real){
+    if(n != 0){
+        print(n);
+        nPlusTwo(0,m);
+        print(docm() + 2);
+    }
 
-    return 1;
+    print(docm());   
 }
 
 
-print(nPlusTwo(2,2.0));
+nPlusTwo(2,2.0);

@@ -294,6 +294,8 @@ public:
     void visitFunctionDef(std::shared_ptr<FunctionDecl> funcDef);
     mlir::Value visitFunctionCall(std::shared_ptr<CallExpr> funcCall);
     void visitReturn(std::shared_ptr<ReturnStmt> restm);
+    void visitReturnExpr(std::shared_ptr<ExprStmt> rexpstmt);
+    void visitVoidCall(std::shared_ptr<ExprStmt> void_call);
 
 };
 
