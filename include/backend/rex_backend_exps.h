@@ -230,6 +230,8 @@ public:
     /// =========================================================
     /// Array Operation TO Scalar/Vector
     /// =========================================================
+
+    mlir::Value malloc(mlir::Value sizeBytes);
     mlir::Value getOpDefault(BinaryOp op);
     mlir::Value createVectorVectorOp(
         mlir::Value lhs, 

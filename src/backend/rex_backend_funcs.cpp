@@ -15,10 +15,26 @@ void IRGen::visitFunctionDef(
 
     std::vector<mlir::Type> paramTypes;
     for (auto &param : funcTy->params) {
-        paramTypes.push_back(types->getMLIRType(param->para_type));
+        mlir::Type t = types->getMLIRType(param->para_type);
+        if (mlir::isa<mlir::LLVM::LLVMArrayType>(t)) {
+            t = types->ptrty();
+        }
+
+        if (mlir::isa<mlir::LLVM::LLVMStructType>(t)) {
+            t = types->ptrty();
+        }
+
+        paramTypes.push_back(t);
     }
 
     auto retTy = types->getMLIRType(funcTy->ret);
+    if (mlir::isa<mlir::LLVM::LLVMArrayType>(retTy)) {
+        retTy = types->ptrty();
+    }
+
+    if (mlir::isa<mlir::LLVM::LLVMStructType>(retTy)) {
+        retTy = types->ptrty();
+    }
 
     auto llvmFuncTy =
         mlir::LLVM::LLVMFunctionType::get(retTy, paramTypes);
