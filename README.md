@@ -75,7 +75,7 @@ This project significantly improved my understanding of:
 * Debugging complex multi-stage systems
 * Tradeoffs between correctness, simplicity, and extensibility
 
-One of the most valuable lessons was learning how small architectural decisions can have cascading effects throughout an entire software system.
+One of the most valuable lessons was learning how small architectural decisions can have cascading effects throughout an entire software system (this is the main reason of discontinuing this, this decision was a fundemental part of it).
 
 ---
 
