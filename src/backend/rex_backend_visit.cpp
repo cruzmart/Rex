@@ -34,9 +34,11 @@ IRGen::IRGen(
 
 /// Entry point: visits entire file AST.
 /// Initializes global scope and processes top-level statements.
+
+
 void IRGen::visit(std::shared_ptr<FileAst> file) {
 
-    currentScope = std::make_shared<Scope>();
+    //currentScope = std::make_shared<Scope>();
 
     for (auto &item : file->items) {
 
@@ -47,6 +49,27 @@ void IRGen::visit(std::shared_ptr<FileAst> file) {
 
         if (item->ast_kind == AstNodeKind::Stmt) {
             visitStmt(cast<Stmt>(item));
+        }
+    }
+}
+
+void IRGen::visitFunctionDecls(std::shared_ptr<FileAst> file) {
+
+    // =====================================================
+    // PASS 1:
+    // Module-level declarations
+    // =====================================================
+
+    for (auto& item : file->items) {
+
+        if (item->ast_kind == AstNodeKind::FunctionDecl) {
+
+            // 🔥 ALWAYS reset to module body BEFORE creating functions
+            builder->setInsertionPointToEnd(module.getBody());
+
+            visitFunctionDef(
+                cast<FunctionDecl>(item)
+            );
         }
     }
 }
@@ -94,6 +117,10 @@ mlir::Value IRGen::visitExp(
         case ExprKind::Id:
             return visitId(
                 cast<IdExpr>(expr)
+            );
+        case ExprKind::Call:
+            return visitFunctionCall(
+                cast<CallExpr>(expr)
             );
 
         default:
@@ -523,6 +550,16 @@ void IRGen::visitStmt(
                 cast<AssignStmt>(stmt)
             );
 
+        case StmtKind::Return_Normal:
+            return visitReturn(cast<ReturnStmt>(stmt));
+
+        case StmtKind::Return_Expr:
+            return visitReturnExpr(cast<ExprStmt>(stmt));
+
+        case StmtKind::Void_Call:{
+         
+            return visitVoidCall(cast<ExprStmt>(stmt));
+        }
         default:
             return;
     }

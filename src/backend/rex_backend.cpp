@@ -92,47 +92,69 @@ void BackEnd::dumpLLVM(std::ostream &os, bool debug) {
 }
 
 
-int BackEnd::emitMain(std::shared_ptr<FileAst> file){
+int BackEnd::emitMain(std::shared_ptr<FileAst> file) {
 
-    // Create a main function 
-    mlir::Type intType = mlir::IntegerType::get(&context, 32);
-    auto mainType = mlir::LLVM::LLVMFunctionType::get(intType, {}, false);
-    mlir::LLVM::LLVMFuncOp mainFunc = builder->create<mlir::LLVM::LLVMFuncOp>(loc, "main", mainType);
-    mlir::Block *entry = mainFunc.addEntryBlock();
-    mlir::Block *exitBlock = builder->createBlock(&mainFunc.getBody());
+    visitor->currentScope = std::make_shared<Scope>();
 
-    // Start in entry
+    // =====================================================
+    // 1. Emit all function declarations FIRST
+    // =====================================================
+
+    visitor->visitFunctionDecls(file);   // or visitFunctions
+
+    // =====================================================
+    // 2. Create main
+    // =====================================================
+
+    mlir::Type intType =
+        mlir::IntegerType::get(&context, 32);
+
+    auto mainType =
+        mlir::LLVM::LLVMFunctionType::get(intType, {}, false);
+
+    auto mainFunc =
+        builder->create<mlir::LLVM::LLVMFuncOp>(
+            loc, "main", mainType
+        );
+
+    auto entry = mainFunc.addEntryBlock();
+    auto exitBlock = builder->createBlock(&mainFunc.getBody());
+
     builder->setInsertionPointToStart(entry);
 
-    // Push global continuation
     visitor->contStack.push_back(exitBlock);
 
-    // Generate program
+    // =====================================================
+    // 3. ONLY statements go into main
+    // =====================================================
+
     visitor->visit(file);
 
-    // 🔥 THIS is the real fix
-    mlir::Block *current = builder->getInsertionBlock();
-
-    if (current && !visitor->blockHasTerminator(current)) {
+    // safety branch
+    if (builder->getInsertionBlock() &&
+        !visitor->blockHasTerminator(builder->getInsertionBlock())) {
         builder->create<mlir::LLVM::BrOp>(loc, exitBlock);
     }
-    // Pop
+
     visitor->contStack.pop_back();
 
-    // Emit exit block
+    // =====================================================
+    // 4. exit block
+    // =====================================================
+
     builder->setInsertionPointToStart(exitBlock);
 
-    mlir::Value zero = builder->create<mlir::LLVM::ConstantOp>(
-        loc, intType, builder->getIntegerAttr(intType, 0)
-    );
+    mlir::Value zero =
+        builder->create<mlir::LLVM::ConstantOp>(
+            loc,
+            intType,
+            builder->getIntegerAttr(intType, 0)
+        );
 
     builder->create<mlir::LLVM::ReturnOp>(loc, zero);
-        
-    
 
     return 0;
 }
-
 void BackEnd::createGlobalString(const char *str, const char *name) {
     auto charType = mlir::IntegerType::get(&context, 8);
 

@@ -77,11 +77,11 @@ struct VariableSymbol : Symbol {
 
 
 struct FunctionSymbol : Symbol {
-    mlir::Value func; // function reference
+    mlir::LLVM::LLVMFuncOp func; // function reference
 
     FunctionSymbol(std::string name,
                    std::shared_ptr<Type> type,
-                   mlir::Value func)
+                   mlir::LLVM::LLVMFuncOp func)
         : Symbol(SymbolType::Function, std::move(name)) {
         this->type = type;
         this->func = func;

@@ -31,6 +31,7 @@ enum class StmtKind {
     Print,
     Return_Normal,
     Return_Expr,
+    Void_Call,
     Break
 };
 

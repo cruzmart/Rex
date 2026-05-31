@@ -17,6 +17,8 @@ set(REX_PASSES
     passes/rex_return_pass.cpp
     passes/rex_break_pass.cpp
     passes/rex_assignment_pass.cpp
+    passes/rex_toplevel_order_pass.cpp
+    passes/rex_call_pass.cpp
 )
 
 set(REX_BACKEND
@@ -30,6 +32,7 @@ set(REX_BACKEND
     backend/rex_backend_visit.cpp
     backend/rex_backend_visit_helpers.cpp
     backend/rex_backend_visit_flow_control.cpp
+    backend/rex_backend_funcs.cpp
 )
 
 add_executable(rex)

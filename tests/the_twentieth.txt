@@ -1,0 +1,24 @@
+type integer = Int;
+/*
+function docm() -> integer {
+    return 17; 
+}
+
+function nPlusTwo(n: integer, m: Real){
+    if(n != 0){
+        print(n);
+        nPlusTwo(0,m);
+        print(docm() + 2);
+    }
+
+    print(docm());   
+}
+*/
+
+function n2Vector(x : Int[2]) -> integer[2]{
+    return x;
+}
+
+
+print(n2Vector([1,2,3]));
+// nPlusTwo(2,2.0);

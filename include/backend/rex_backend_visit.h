@@ -58,6 +58,7 @@
 #include "rex_stmts.h"
 #include "rex_symbol.h"
 #include "rex_types.h"
+#include "rex_funcs.h"
 
 namespace rex {
 
@@ -65,11 +66,6 @@ class IRGen {
 
 protected:
 
-    // =========================================================
-    // Scope / CFG State
-    // =========================================================
-
-    std::shared_ptr<Scope> currentScope;
 
 
     // =========================================================
@@ -120,6 +116,13 @@ protected:
     );
 
 public:
+
+    // =========================================================
+    // Scope / CFG State / Etc.
+    // =========================================================
+
+    std::shared_ptr<Scope> currentScope;
+
   bool blockHasTerminator(mlir::Block *block);
     std::vector<mlir::Block*> contStack;
     std::vector<mlir::Block*> breakStack;
@@ -175,6 +178,9 @@ public:
     // =========================================================
     // Root
     // =========================================================
+    void visitFunctionDecls(
+         std::shared_ptr<FileAst> file
+    );
 
     void visit(
         std::shared_ptr<FileAst> file
@@ -280,6 +286,17 @@ public:
     void visitAssign(
         std::shared_ptr<AssignStmt> stmt
     );
+
+    // =========================================================
+    // Functions
+    // =========================================================
+
+    void visitFunctionDef(std::shared_ptr<FunctionDecl> funcDef);
+    mlir::Value visitFunctionCall(std::shared_ptr<CallExpr> funcCall);
+    void visitReturn(std::shared_ptr<ReturnStmt> restm);
+    void visitReturnExpr(std::shared_ptr<ExprStmt> rexpstmt);
+    void visitVoidCall(std::shared_ptr<ExprStmt> void_call);
+
 };
 
 } // namespace rex

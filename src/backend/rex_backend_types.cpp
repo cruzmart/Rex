@@ -25,6 +25,14 @@ namespace rex {
     }
 
     mlir::Type TypesHelper::getMLIRType(std::shared_ptr<Type> t) {
+
+        // =====================================================
+        // VOID
+        // =====================================================
+        if(t->kind == TypeKind::Void){
+            return mlir::LLVM::LLVMVoidType::get(builder->getContext());
+        }
+        
         // =====================================================
         // TUPLE
         // =====================================================
@@ -97,6 +105,9 @@ namespace rex {
 
             case PrimType::Prims::Real:
                 return f32_t();
+
+            case PrimType::Prims::Void:
+                return mlir::LLVM::LLVMVoidType::get(builder->getContext());
 
             default:
                 llvm::report_fatal_error(
